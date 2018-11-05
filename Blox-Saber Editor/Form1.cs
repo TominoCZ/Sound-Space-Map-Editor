@@ -19,11 +19,17 @@ namespace Blox_Saber_Editor
     {
         private static readonly string Folder = "./Assets/Sounds/";
 
+        private long _loadedId = -1;
+
         private WaveStream _waveStream;
         private WaveChannel32 _volume;
         private WaveOutEvent _player = new WaveOutEvent();
 
         private Thread _timelineThread;
+
+        private List<Keys> _down = new List<Keys>();
+
+        private TimeSpan _playOffset = TimeSpan.Zero;
 
         public Form1()
         {
@@ -34,13 +40,57 @@ namespace Blox_Saber_Editor
         {
             _timelineThread = new Thread(UpdateTimeline) { IsBackground = true };
             _timelineThread.Start();
+
+            void AssingEvents(Control c)
+            {
+                c.Click += (o, evt) => { this.ActiveControl = null; };
+                c.MouseClick += (o, evt) => { this.ActiveControl = null; };
+                c.MouseLeave += (o, evt) => { this.ActiveControl = null; };
+                c.MouseUp += (o, evt) => { this.ActiveControl = null; };
+            }
+
+            foreach (Control c in Controls)
+            {
+                if (c is Panel p)
+                {
+                    foreach (Control pc in p.Controls)
+                    {
+                        if (pc is Button)
+                        {
+                            AssingEvents(pc);
+                        }
+                    }
+                }
+                else if (c is Button)
+                    c.Click += (o, evt) => { this.ActiveControl = null; };
+            }
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (_down.Contains(e.KeyCode))
+                return;
+
+            _down.Add(e.KeyCode);
+
+            if (_player == null || _player.PlaybackState != PlaybackState.Playing)
+                return;
+
+            var timeStamp = new TimeStamp((int)_player.GetPositionTimeSpan().TotalMilliseconds, 1, 1);
+
+            timeline1.AddPoint(timeStamp);
+        }
+
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+            _down.Remove(e.KeyCode);
         }
 
         private void btnLoadFile_Click(object sender, EventArgs e)
         {
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                //TODO timeLine1.ClearPoints();
+                timeline1.Clear();
 
                 var text = File.ReadAllText(ofd.FileName);
 
@@ -74,7 +124,7 @@ namespace Blox_Saber_Editor
                 if (LoadSound(long.Parse(id)))
                 {
                     btnPlay.Enabled = true;
-                    //_loadedID = long.Parse(id);
+                    _loadedId = long.Parse(id);
                 }
 
                 timeline1.Invalidate();
@@ -85,23 +135,23 @@ namespace Blox_Saber_Editor
         {
             if (sfd.ShowDialog() == DialogResult.OK)
             {
-                // TODO var points = timeLine1.GetPoints();
+                var points = timeline1.GetPoints();
 
-                // string text = _loadedID + ",";
+                string text = _loadedId + ",";
 
-                // for (var index = 0; index < points.Count; index++)
+                for (var index = 0; index < points.Count; index++)
                 {
-                    // var point = points[index];
+                    var point = points[index];
 
-                    // text += point.IndexX + "|";
-                    // text += point.IndexY + "|";
-                    //  text += point.Time;
+                    text += point.X + "|";
+                    text += point.Y + "|";
+                    text += point.Time;
 
-                    // if (index < points.Count - 1)
-                    // text += ',';
+                    if (index < points.Count - 1)
+                        text += ',';
                 }
 
-                //File.WriteAllText(sfd.FileName, text);
+                File.WriteAllText(sfd.FileName, text);
             }
         }
 
@@ -117,6 +167,8 @@ namespace Blox_Saber_Editor
                 if (LoadSound(id))
                 {
                     btnPlay.Enabled = true;
+
+                    nudTimeStamp.Maximum = (int)_waveStream.TotalTime.TotalMilliseconds;
                 }
             }
             else
@@ -132,7 +184,17 @@ namespace Blox_Saber_Editor
             btnPause.Enabled = true;
 
             ActiveControl = null;
-            Focus();
+
+            _player.Stop();
+
+            var current = timeline1.GetCurrentTimeStamp();
+
+            _playOffset = TimeSpan.FromMilliseconds(current?.Time ?? 0);
+            
+            _waveStream.CurrentTime = _playOffset;
+
+            _player = new WaveOutEvent();
+            _player.Init(_waveStream);
 
             _player.Play();
         }
@@ -170,11 +232,19 @@ namespace Blox_Saber_Editor
                         !Created || Disposing || IsDisposed)
                         return;
 
+                    _player.Volume = trackBar1.Value / 100f;
+
                     timeline1.TotalTime = _waveStream.TotalTime;
 
-                    var time = _player.GetPositionTimeSpan();// + _offset; TODO
+                    var time = _player.GetPositionTimeSpan() + _playOffset;
 
-                    timeline1.CurrentTime = _player.PlaybackState == PlaybackState.Playing || _player.PlaybackState == PlaybackState.Paused ? (time > _waveStream.TotalTime ? _waveStream.TotalTime : time) : timeline1.CurrentTime;
+                    if (_player.PlaybackState == PlaybackState.Playing)
+                    {
+                        if (time > _waveStream.TotalTime)
+                            timeline1.CurrentTime = _waveStream.TotalTime;
+                        else
+                            timeline1.CurrentTime = time;
+                    }
 
                     timeline1.Invalidate();
                 }));
@@ -190,6 +260,9 @@ namespace Blox_Saber_Editor
                 _waveStream?.Dispose();
                 _volume?.Dispose();
                 _player?.Dispose();
+
+                if (!Directory.Exists(Folder))
+                    Directory.CreateDirectory(Folder);
 
                 if (!File.Exists(Folder + id + ".asset"))
                 {
@@ -214,6 +287,53 @@ namespace Blox_Saber_Editor
             }
 
             return false;
+        }
+
+        private void btnPrev_Click(object sender, EventArgs e)
+        {
+            btnPause.PerformClick();
+
+            var ts = timeline1.GetPreviousTimeStamp();
+
+            if (ts == null)
+                return;
+
+            timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
+
+            nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
+
+            timeline1.Invalidate();
+        }
+
+        private void btnNext_Click(object sender, EventArgs e)
+        {
+            btnPause.PerformClick();
+
+            var ts = timeline1.GetNextTimeStamp();
+
+            if (ts == null)
+                return;
+
+            timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
+
+            nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
+
+            timeline1.Invalidate();
+        }
+
+        private void nudTimeStamp_ValueChanged(object sender, EventArgs e)
+        {
+            //TODO avoid calls from button events
+            if (_player.PlaybackState != PlaybackState.Playing)
+            {
+                var ts = timeline1.GetCurrentTimeStamp();
+
+                var newTs = new TimeStamp((int)nudTimeStamp.Value, ts.X, ts.Y);
+
+                timeline1.Replace(ts, newTs);
+
+                timeline1.Invalidate();
+            }
         }
 
         class SecureWebClient : WebClient

@@ -35,6 +35,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.btnSave = new System.Windows.Forms.Button();
+            this.btnClear = new System.Windows.Forms.Button();
             this.btnLoadFile = new System.Windows.Forms.Button();
             this.sfd = new System.Windows.Forms.SaveFileDialog();
             this.ofd = new System.Windows.Forms.OpenFileDialog();
@@ -43,14 +44,17 @@
             this.btnStop = new System.Windows.Forms.Button();
             this.btnPlay = new System.Windows.Forms.Button();
             this.btnPause = new System.Windows.Forms.Button();
-            this.timeline1 = new Blox_Saber_Editor.Timeline();
-            this.btnClear = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.btnPrev = new System.Windows.Forms.Button();
+            this.btnNext = new System.Windows.Forms.Button();
+            this.nudTimeStamp = new System.Windows.Forms.NumericUpDown();
+            this.timeline1 = new Blox_Saber_Editor.Timeline();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudTimeStamp)).BeginInit();
             this.SuspendLayout();
             // 
             // btnLoadSong
@@ -127,6 +131,18 @@
             this.btnSave.Text = "SAVE";
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
+            // 
+            // btnClear
+            // 
+            this.btnClear.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnClear.Location = new System.Drawing.Point(8, 69);
+            this.btnClear.Margin = new System.Windows.Forms.Padding(5);
+            this.btnClear.Name = "btnClear";
+            this.btnClear.Size = new System.Drawing.Size(155, 41);
+            this.btnClear.TabIndex = 0;
+            this.btnClear.Text = "CLEAR";
+            this.btnClear.UseVisualStyleBackColor = true;
+            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
             // btnLoadFile
             // 
@@ -212,30 +228,6 @@
             this.btnPause.UseVisualStyleBackColor = true;
             this.btnPause.Click += new System.EventHandler(this.btnPause_Click);
             // 
-            // timeline1
-            // 
-            this.timeline1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.timeline1.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.timeline1.CurrentTime = System.TimeSpan.Parse("00:00:00");
-            this.timeline1.Location = new System.Drawing.Point(12, 156);
-            this.timeline1.Name = "timeline1";
-            this.timeline1.Size = new System.Drawing.Size(514, 71);
-            this.timeline1.TabIndex = 5;
-            this.timeline1.TotalTime = System.TimeSpan.Parse("00:00:00");
-            // 
-            // btnClear
-            // 
-            this.btnClear.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClear.Location = new System.Drawing.Point(8, 69);
-            this.btnClear.Margin = new System.Windows.Forms.Padding(5);
-            this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(155, 41);
-            this.btnClear.TabIndex = 0;
-            this.btnClear.Text = "CLEAR";
-            this.btnClear.UseVisualStyleBackColor = true;
-            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
-            // 
             // label3
             // 
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Top;
@@ -256,11 +248,65 @@
             this.label4.TabIndex = 2;
             this.label4.Text = "Map";
             // 
+            // btnPrev
+            // 
+            this.btnPrev.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.btnPrev.Font = new System.Drawing.Font("Segoe UI Black", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnPrev.Location = new System.Drawing.Point(146, 233);
+            this.btnPrev.Name = "btnPrev";
+            this.btnPrev.Size = new System.Drawing.Size(49, 189);
+            this.btnPrev.TabIndex = 6;
+            this.btnPrev.Text = "<";
+            this.btnPrev.UseVisualStyleBackColor = true;
+            this.btnPrev.Click += new System.EventHandler(this.btnPrev_Click);
+            // 
+            // btnNext
+            // 
+            this.btnNext.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.btnNext.Font = new System.Drawing.Font("Segoe UI Black", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnNext.Location = new System.Drawing.Point(356, 233);
+            this.btnNext.Name = "btnNext";
+            this.btnNext.Size = new System.Drawing.Size(49, 189);
+            this.btnNext.TabIndex = 6;
+            this.btnNext.Text = ">";
+            this.btnNext.UseVisualStyleBackColor = true;
+            this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
+            // 
+            // nudTimeStamp
+            // 
+            this.nudTimeStamp.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.nudTimeStamp.Location = new System.Drawing.Point(201, 393);
+            this.nudTimeStamp.Maximum = new decimal(new int[] {
+            -1486618625,
+            232830643,
+            0,
+            0});
+            this.nudTimeStamp.Name = "nudTimeStamp";
+            this.nudTimeStamp.Size = new System.Drawing.Size(149, 29);
+            this.nudTimeStamp.TabIndex = 7;
+            this.nudTimeStamp.ValueChanged += new System.EventHandler(this.nudTimeStamp_ValueChanged);
+            // 
+            // timeline1
+            // 
+            this.timeline1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.timeline1.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.timeline1.CurrentTime = System.TimeSpan.Parse("00:00:00");
+            this.timeline1.Location = new System.Drawing.Point(11, 157);
+            this.timeline1.Margin = new System.Windows.Forms.Padding(2);
+            this.timeline1.Name = "timeline1";
+            this.timeline1.Size = new System.Drawing.Size(515, 71);
+            this.timeline1.TabIndex = 5;
+            this.timeline1.TotalTime = System.TimeSpan.Parse("00:00:00");
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(538, 434);
+            this.ClientSize = new System.Drawing.Size(538, 565);
+            this.Controls.Add(this.nudTimeStamp);
+            this.Controls.Add(this.btnNext);
+            this.Controls.Add(this.btnPrev);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.timeline1);
             this.Controls.Add(this.panel2);
@@ -275,11 +321,14 @@
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudTimeStamp)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -305,5 +354,8 @@
         private System.Windows.Forms.Button btnClear;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button btnPrev;
+        private System.Windows.Forms.Button btnNext;
+        private System.Windows.Forms.NumericUpDown nudTimeStamp;
     }
 }
