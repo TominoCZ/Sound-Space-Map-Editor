@@ -1,6 +1,6 @@
 ﻿namespace Blox_Saber_Editor
 {
-    partial class TimeLine
+    partial class Timeline
     {
         /// <summary> 
         /// Required designer variable.
@@ -30,19 +30,15 @@
         {
             this.SuspendLayout();
             // 
-            // TimeLine
+            // Timeline
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.DoubleBuffered = true;
-            this.Name = "TimeLine";
-            this.Size = new System.Drawing.Size(416, 154);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.TimeLine_Paint);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TimeLine_MouseDown);
-            this.MouseLeave += new System.EventHandler(this.TimeLine_MouseLeave);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TimeLine_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TimeLine_MouseUp);
+            this.Name = "Timeline";
+            this.Size = new System.Drawing.Size(628, 150);
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.Timeline_Paint);
+            this.Resize += new System.EventHandler(this.Timeline_Resize);
             this.ResumeLayout(false);
 
         }

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E5C2603C-F46D-4C99-A3B5-3D049747FACB}</ProjectGuid>
+    <ProjectGuid>{D78A0314-9F42-4764-9F01-D1B94C6811E4}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Blox_Saber_Editor</RootNamespace>
     <AssemblyName>Blox-Saber Editor</AssemblyName>
@@ -37,8 +37,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Design" />
-    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -56,25 +54,16 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="IndexSelector.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="IndexSelector.Designer.cs">
-      <DependentUpon>IndexSelector.cs</DependentUpon>
-    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TimeLine.cs">
+    <Compile Include="Timeline.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="TimeLine.Designer.cs">
-      <DependentUpon>TimeLine.cs</DependentUpon>
+    <Compile Include="Timeline.Designer.cs">
+      <DependentUpon>Timeline.cs</DependentUpon>
     </Compile>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="IndexSelector.resx">
-      <DependentUpon>IndexSelector.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -85,8 +74,8 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="TimeLine.resx">
-      <DependentUpon>TimeLine.cs</DependentUpon>
+    <EmbeddedResource Include="Timeline.resx">
+      <DependentUpon>Timeline.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

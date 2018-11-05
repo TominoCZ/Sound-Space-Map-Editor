@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blox-Saber Editor", "Blox-Saber Editor\Blox-Saber Editor.csproj", "{E5C2603C-F46D-4C99-A3B5-3D049747FACB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blox-Saber Editor", "Blox-Saber Editor\Blox-Saber Editor.csproj", "{D78A0314-9F42-4764-9F01-D1B94C6811E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E5C2603C-F46D-4C99-A3B5-3D049747FACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E5C2603C-F46D-4C99-A3B5-3D049747FACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E5C2603C-F46D-4C99-A3B5-3D049747FACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E5C2603C-F46D-4C99-A3B5-3D049747FACB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D78A0314-9F42-4764-9F01-D1B94C6811E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D78A0314-9F42-4764-9F01-D1B94C6811E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D78A0314-9F42-4764-9F01-D1B94C6811E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D78A0314-9F42-4764-9F01-D1B94C6811E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {F773128D-5233-434D-931F-44A70BF372A8}
+		SolutionGuid = {298A6F53-FDEF-4D2F-AC02-F4A9855500BB}
 	EndGlobalSection
 EndGlobal
