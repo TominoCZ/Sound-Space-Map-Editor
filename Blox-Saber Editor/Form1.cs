@@ -31,9 +31,23 @@ namespace Blox_Saber_Editor
 
         private TimeSpan _playOffset = TimeSpan.Zero;
 
+        private Button[,] _grid = new Button[3, 3];
+
         public Form1()
         {
             InitializeComponent();
+
+            _grid[0, 0] = button1;
+            _grid[1, 0] = button2;
+            _grid[2, 0] = button3;
+
+            _grid[0, 1] = button4;
+            _grid[1, 1] = button5;
+            _grid[2, 1] = button6;
+
+            _grid[0, 2] = button7;
+            _grid[1, 2] = button8;
+            _grid[2, 2] = button8;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -43,10 +57,10 @@ namespace Blox_Saber_Editor
 
             void AssingEvents(Control c)
             {
-                c.Click += (o, evt) => { this.ActiveControl = null; };
-                c.MouseClick += (o, evt) => { this.ActiveControl = null; };
-                c.MouseLeave += (o, evt) => { this.ActiveControl = null; };
-                c.MouseUp += (o, evt) => { this.ActiveControl = null; };
+                c.Click += (o, evt) => { ActiveControl = null; };
+                c.MouseClick += (o, evt) => { ActiveControl = null; };
+                c.MouseLeave += (o, evt) => { ActiveControl = null; };
+                c.MouseUp += (o, evt) => { ActiveControl = null; };
             }
 
             foreach (Control c in Controls)
@@ -84,6 +98,14 @@ namespace Blox_Saber_Editor
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
             _down.Remove(e.KeyCode);
+        }
+
+        private void SetSelected(int x, int y)
+        {
+            foreach (var button in _grid)
+            {
+               
+            }
         }
 
         private void btnLoadFile_Click(object sender, EventArgs e)
@@ -167,8 +189,6 @@ namespace Blox_Saber_Editor
                 if (LoadSound(id))
                 {
                     btnPlay.Enabled = true;
-
-                    nudTimeStamp.Maximum = (int)_waveStream.TotalTime.TotalMilliseconds;
                 }
             }
             else
@@ -278,6 +298,8 @@ namespace Blox_Saber_Editor
 
                 _player.Init(_volume);
 
+                nudTimeStamp.Maximum = (int)_waveStream.TotalTime.TotalMilliseconds;
+
                 return true;
             }
             catch
@@ -328,9 +350,9 @@ namespace Blox_Saber_Editor
             {
                 var ts = timeline1.GetCurrentTimeStamp();
 
-                var newTs = new TimeStamp((int)nudTimeStamp.Value, ts.X, ts.Y);
+                ts.Time = (int) nudTimeStamp.Value;
 
-                timeline1.Replace(ts, newTs);
+                timeline1.Sort();
 
                 timeline1.Invalidate();
             }

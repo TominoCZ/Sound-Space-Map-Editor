@@ -16,7 +16,7 @@ namespace Blox_Saber_Editor
 
         public int BarWidth = 10;
 
-        private float channel = 0.5f;
+        private float _channel = 0.5f;
 
         private TimeStamp _last;
 
@@ -31,7 +31,7 @@ namespace Blox_Saber_Editor
 
             var my = Height / 2;
 
-            var r = (int)(channel * 255);
+            var r = (int)(_channel * 255);
 
             var c = Color.FromArgb(r, r, r);
 
@@ -60,12 +60,12 @@ namespace Blox_Saber_Editor
 
             var current = GetCurrentTimeStamp();
 
-            channel = Math.Max(0.5f, channel * 0.875f);
+            _channel = Math.Max(0.5f, _channel * 0.875f);
 
             if (_last != current)
             {
                 _last = current;
-                channel = 0.92f;
+                _channel = 0.92f;
             }
         }
 
@@ -146,19 +146,14 @@ namespace Blox_Saber_Editor
             lock (_points)
             {
                 _points.Add(point);
-                _points = _points.OrderBy(ts => ts.Time).ToList();
+                Sort();
             }
         }
 
-        public void Replace(TimeStamp which, TimeStamp with)
+        public void Sort()
         {
             lock (_points)
             {
-                var index = _points.IndexOf(which);
-
-                _points.Remove(which);
-                _points.Insert(index, with);
-
                 _points = _points.OrderBy(p => p.Time).ToList();
             }
         }
