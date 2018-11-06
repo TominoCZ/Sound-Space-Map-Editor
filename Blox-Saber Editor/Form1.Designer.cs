@@ -291,6 +291,7 @@
             this.nudTimeStamp.Name = "nudTimeStamp";
             this.nudTimeStamp.Size = new System.Drawing.Size(107, 29);
             this.nudTimeStamp.TabIndex = 7;
+            this.nudTimeStamp.ValueChanged += new System.EventHandler(this.nudTimeStamp_ValueChanged);
             // 
             // button1
             // 
@@ -401,6 +402,8 @@
             this.timeline1.Size = new System.Drawing.Size(514, 71);
             this.timeline1.TabIndex = 8;
             this.timeline1.TotalTime = System.TimeSpan.Parse("00:00:00.0010000");
+            this.timeline1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
+            this.timeline1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
             // 
             // label5
             // 
@@ -434,7 +437,7 @@
             this.MaximizeBox = false;
             this.MinimumSize = new System.Drawing.Size(554, 473);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Blox Saber Editor";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);

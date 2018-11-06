@@ -60,7 +60,7 @@ namespace Blox_Saber_Editor
 
             var current = GetCurrentTimeStamp();
 
-            _channel = Math.Max(0.5f, _channel * 0.875f);
+            _channel = Math.Max(0.5f, _channel * 0.9125f);
 
             if (_last != current)
             {

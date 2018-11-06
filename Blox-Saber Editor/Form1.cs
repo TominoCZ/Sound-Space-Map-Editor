@@ -33,6 +33,8 @@ namespace Blox_Saber_Editor
 
         private Button[,] _grid = new Button[3, 3];
 
+        private bool _bypassEvent;
+
         public Form1()
         {
             InitializeComponent();
@@ -90,7 +92,7 @@ namespace Blox_Saber_Editor
             if (_player == null || _player.PlaybackState != PlaybackState.Playing)
                 return;
 
-            var timeStamp = new TimeStamp((int)_player.GetPositionTimeSpan().TotalMilliseconds, 1, 1);
+            var timeStamp = new TimeStamp((int)(_player.GetPositionTimeSpan() + _playOffset).TotalMilliseconds, 1, 1);
 
             timeline1.AddPoint(timeStamp);
         }
@@ -104,7 +106,7 @@ namespace Blox_Saber_Editor
         {
             foreach (var button in _grid)
             {
-               
+
             }
         }
 
@@ -210,7 +212,7 @@ namespace Blox_Saber_Editor
             var current = timeline1.GetCurrentTimeStamp();
 
             _playOffset = TimeSpan.FromMilliseconds(current?.Time ?? 0);
-            
+
             _waveStream.CurrentTime = _playOffset;
 
             _player = new WaveOutEvent();
@@ -300,6 +302,11 @@ namespace Blox_Saber_Editor
 
                 nudTimeStamp.Maximum = (int)_waveStream.TotalTime.TotalMilliseconds;
 
+                _playOffset = TimeSpan.Zero;
+
+                timeline1.CurrentTime = TimeSpan.Zero;
+                
+                timeline1.Invalidate();
                 return true;
             }
             catch
@@ -322,7 +329,9 @@ namespace Blox_Saber_Editor
 
             timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
 
+            _bypassEvent = true;
             nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
+            _bypassEvent = false;
 
             timeline1.Invalidate();
         }
@@ -338,19 +347,29 @@ namespace Blox_Saber_Editor
 
             timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
 
+            _bypassEvent = true;
             nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
+            _bypassEvent = false;
 
             timeline1.Invalidate();
         }
 
         private void nudTimeStamp_ValueChanged(object sender, EventArgs e)
         {
-            //TODO avoid calls from button events
             if (_player.PlaybackState != PlaybackState.Playing)
             {
                 var ts = timeline1.GetCurrentTimeStamp();
 
-                ts.Time = (int) nudTimeStamp.Value;
+                if (ts == null)
+                    return;
+
+                ts.Time = (int)nudTimeStamp.Value;
+
+                if (!_bypassEvent)
+                {
+                    timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
+                    ts.Dirty = true;
+                }
 
                 timeline1.Sort();
 
