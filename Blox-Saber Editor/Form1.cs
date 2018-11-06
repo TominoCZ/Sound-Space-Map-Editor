@@ -33,6 +33,8 @@ namespace Blox_Saber_Editor
 
         private Button[,] _grid = new Button[3, 3];
 
+        private Random _r = new Random();
+
         private bool _bypassEvent;
 
         public Form1()
@@ -49,7 +51,7 @@ namespace Blox_Saber_Editor
 
             _grid[0, 2] = button7;
             _grid[1, 2] = button8;
-            _grid[2, 2] = button8;
+            _grid[2, 2] = button9;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -84,30 +86,47 @@ namespace Blox_Saber_Editor
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
+            if (e.KeyCode == Keys.A)
+            {
+                btnPrev.PerformClick();
+            }
+            else if (e.KeyCode == Keys.D)
+            {
+                btnNext.PerformClick();
+            }
+            else if (e.KeyCode == Keys.Delete)
+            {
+                var ts = timeline1.GetCurrentTimeStamp();
+
+                if (ts != null)
+                {
+                    var d = MessageBox.Show("Delete this note?", "Delte?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (d == DialogResult.Yes)
+                    {
+                        timeline1.Remove(ts);
+                        timeline1.Invalidate();
+                    }
+                }
+            }
+
             if (_down.Contains(e.KeyCode))
                 return;
 
             _down.Add(e.KeyCode);
 
-            if (_player == null || _player.PlaybackState != PlaybackState.Playing)
-                return;
+            if (_player != null && _player.PlaybackState == PlaybackState.Playing)
+            {
+                var timeStamp = new TimeStamp((int)(_player.GetPositionTimeSpan() + _playOffset).TotalMilliseconds,
+                    _r.Next(0, 3), _r.Next(0, 3));
 
-            var timeStamp = new TimeStamp((int)(_player.GetPositionTimeSpan() + _playOffset).TotalMilliseconds, 1, 1);
-
-            timeline1.AddPoint(timeStamp);
+                timeline1.Add(timeStamp);
+            }
         }
 
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
             _down.Remove(e.KeyCode);
-        }
-
-        private void SetSelected(int x, int y)
-        {
-            foreach (var button in _grid)
-            {
-
-            }
         }
 
         private void btnLoadFile_Click(object sender, EventArgs e)
@@ -138,7 +157,7 @@ namespace Blox_Saber_Editor
                         {
                             var point = new TimeStamp(time, (int)x, y);
 
-                            timeline1.AddPoint(point);
+                            timeline1.Add(point);
                         }
                     }
                 }
@@ -191,6 +210,7 @@ namespace Blox_Saber_Editor
                 if (LoadSound(id))
                 {
                     btnPlay.Enabled = true;
+                    _loadedId = id;
                 }
             }
             else
@@ -232,7 +252,7 @@ namespace Blox_Saber_Editor
             _waveStream.CurrentTime = TimeSpan.Zero;
             timeline1.CurrentTime = TimeSpan.Zero;
 
-            //TODO_offset = TimeSpan.Zero;
+            _playOffset = TimeSpan.Zero;
         }
 
         private void btnPause_Click(object sender, EventArgs e)
@@ -259,6 +279,29 @@ namespace Blox_Saber_Editor
                     timeline1.TotalTime = _waveStream.TotalTime;
 
                     var time = _player.GetPositionTimeSpan() + _playOffset;
+
+                    lock (_grid)
+                    {
+                        if (_player.PlaybackState == PlaybackState.Playing)
+                        {
+                            var ts = timeline1.GetCurrentTimeStamp();
+
+                            if (ts != null)
+                            {
+                                var btn = _grid[ts.X, 2 - ts.Y];
+
+                                btn.Invoke((MethodInvoker)(() =>
+                                {
+                                    SetActiveGridButton(btn);
+                                    btn.Invalidate();
+
+                                    _bypassEvent = true;
+                                    nudTimeStamp.Value = ts.Time;
+                                    _bypassEvent = false;
+                                }));
+                            }
+                        }
+                    }
 
                     if (_player.PlaybackState == PlaybackState.Playing)
                     {
@@ -305,7 +348,7 @@ namespace Blox_Saber_Editor
                 _playOffset = TimeSpan.Zero;
 
                 timeline1.CurrentTime = TimeSpan.Zero;
-                
+
                 timeline1.Invalidate();
                 return true;
             }
@@ -322,36 +365,46 @@ namespace Blox_Saber_Editor
         {
             btnPause.PerformClick();
 
-            var ts = timeline1.GetPreviousTimeStamp();
+            lock (_grid)
+            {
+                var ts = timeline1.GetPreviousTimeStamp();
 
-            if (ts == null)
-                return;
+                if (ts == null)
+                    return;
 
-            timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
+                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
 
-            _bypassEvent = true;
-            nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
-            _bypassEvent = false;
+                _bypassEvent = true;
+                nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
+                _bypassEvent = false;
 
-            timeline1.Invalidate();
+                SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
+
+                timeline1.Invalidate();
+            }
         }
 
         private void btnNext_Click(object sender, EventArgs e)
         {
             btnPause.PerformClick();
 
-            var ts = timeline1.GetNextTimeStamp();
+            lock (_grid)
+            {
+                var ts = timeline1.GetNextTimeStamp();
 
-            if (ts == null)
-                return;
+                if (ts == null)
+                    return;
 
-            timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
+                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
 
-            _bypassEvent = true;
-            nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
-            _bypassEvent = false;
+                _bypassEvent = true;
+                nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
+                _bypassEvent = false;
 
-            timeline1.Invalidate();
+                SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
+
+                timeline1.Invalidate();
+            }
         }
 
         private void nudTimeStamp_ValueChanged(object sender, EventArgs e)
@@ -371,21 +424,69 @@ namespace Blox_Saber_Editor
                     ts.Dirty = true;
                 }
 
+
                 timeline1.Sort();
 
                 timeline1.Invalidate();
             }
         }
 
-        class SecureWebClient : WebClient
+        private void gridButton_Click(object sender, EventArgs e)
         {
-            protected override WebRequest GetWebRequest(Uri address)
+            SetActiveGridButton((Button)sender);
+
+            for (int x = 0; x < 3; x++)
             {
-                HttpWebRequest request = base.GetWebRequest(address) as HttpWebRequest;
-                request.UserAgent = "RobloxProxy";
-                request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
-                return request;
+                for (int y = 0; y < 3; y++)
+                {
+                    var btn = _grid[x, y];
+
+                    if (btn == sender)
+                    {
+                        if (_player != null && _player.PlaybackState != PlaybackState.Playing)
+                        {
+                            var ts = timeline1.GetCurrentTimeStamp();
+
+                            if (ts != null)
+                            {
+                                if (ts.X != x || ts.Y != 2 - y)
+                                {
+                                    ts.X = x;
+                                    ts.Y = 2 - y;
+
+                                    ts.Dirty = true;
+                                }
+                            }
+                        }
+
+                        break;
+                    }
+                }
             }
+        }
+
+        private void SetActiveGridButton(Button b)
+        {
+            for (int x = 0; x < 3; x++)
+            {
+                for (int y = 0; y < 3; y++)
+                {
+                    var btn = _grid[x, y];
+
+                    btn.BackColor = btn == b ? Color.DeepPink : SystemColors.ControlLight;
+                }
+            }
+        }
+    }
+
+    class SecureWebClient : WebClient
+    {
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            HttpWebRequest request = base.GetWebRequest(address) as HttpWebRequest;
+            request.UserAgent = "RobloxProxy";
+            request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
+            return request;
         }
     }
 }

@@ -59,8 +59,9 @@
             this.button8 = new System.Windows.Forms.Button();
             this.button9 = new System.Windows.Forms.Button();
             this.panel4 = new System.Windows.Forms.Panel();
-            this.timeline1 = new Blox_Saber_Editor.Timeline();
             this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.timeline1 = new Blox_Saber_Editor.Timeline();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -127,7 +128,7 @@
             this.panel2.Controls.Add(this.btnSave);
             this.panel2.Controls.Add(this.btnClear);
             this.panel2.Controls.Add(this.btnLoadFile);
-            this.panel2.Location = new System.Drawing.Point(356, 33);
+            this.panel2.Location = new System.Drawing.Point(387, 33);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(170, 117);
             this.panel2.TabIndex = 4;
@@ -184,7 +185,7 @@
             this.panel3.Controls.Add(this.btnStop);
             this.panel3.Controls.Add(this.btnPlay);
             this.panel3.Controls.Add(this.btnPause);
-            this.panel3.Location = new System.Drawing.Point(181, 33);
+            this.panel3.Location = new System.Drawing.Point(196, 33);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(176, 117);
             this.panel3.TabIndex = 5;
@@ -244,7 +245,7 @@
             // 
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(177, 9);
+            this.label3.Location = new System.Drawing.Point(192, 9);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(79, 21);
             this.label3.TabIndex = 2;
@@ -254,7 +255,7 @@
             // 
             this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(352, 9);
+            this.label4.Location = new System.Drawing.Point(383, 9);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(44, 21);
             this.label4.TabIndex = 2;
@@ -263,10 +264,10 @@
             // btnPrev
             // 
             this.btnPrev.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.btnPrev.Font = new System.Drawing.Font("Segoe UI Black", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnPrev.Location = new System.Drawing.Point(133, 233);
+            this.btnPrev.Font = new System.Drawing.Font("Segoe UI Black", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.btnPrev.Location = new System.Drawing.Point(159, 252);
             this.btnPrev.Name = "btnPrev";
-            this.btnPrev.Size = new System.Drawing.Size(49, 197);
+            this.btnPrev.Size = new System.Drawing.Size(38, 162);
             this.btnPrev.TabIndex = 6;
             this.btnPrev.Text = "<";
             this.btnPrev.UseVisualStyleBackColor = true;
@@ -275,10 +276,10 @@
             // btnNext
             // 
             this.btnNext.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.btnNext.Font = new System.Drawing.Font("Segoe UI Black", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnNext.Location = new System.Drawing.Point(356, 233);
+            this.btnNext.Font = new System.Drawing.Font("Segoe UI Black", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.btnNext.Location = new System.Drawing.Point(371, 252);
             this.btnNext.Name = "btnNext";
-            this.btnNext.Size = new System.Drawing.Size(49, 197);
+            this.btnNext.Size = new System.Drawing.Size(38, 162);
             this.btnNext.TabIndex = 6;
             this.btnNext.Text = ">";
             this.btnNext.UseVisualStyleBackColor = true;
@@ -287,7 +288,7 @@
             // nudTimeStamp
             // 
             this.nudTimeStamp.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.nudTimeStamp.Location = new System.Drawing.Point(243, 401);
+            this.nudTimeStamp.Location = new System.Drawing.Point(258, 420);
             this.nudTimeStamp.Name = "nudTimeStamp";
             this.nudTimeStamp.Size = new System.Drawing.Size(107, 29);
             this.nudTimeStamp.TabIndex = 7;
@@ -295,84 +296,102 @@
             // 
             // button1
             // 
+            this.button1.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button1.FlatAppearance.BorderSize = 0;
             this.button1.Location = new System.Drawing.Point(0, 0);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(50, 50);
             this.button1.TabIndex = 9;
-            this.button1.UseVisualStyleBackColor = true;
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.gridButton_Click);
             // 
             // button2
             // 
+            this.button2.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button2.FlatAppearance.BorderSize = 0;
             this.button2.Location = new System.Drawing.Point(56, 0);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(50, 50);
             this.button2.TabIndex = 9;
-            this.button2.UseVisualStyleBackColor = true;
+            this.button2.UseVisualStyleBackColor = false;
+            this.button2.Click += new System.EventHandler(this.gridButton_Click);
             // 
             // button3
             // 
+            this.button3.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button3.FlatAppearance.BorderSize = 0;
             this.button3.Location = new System.Drawing.Point(112, 0);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(50, 50);
             this.button3.TabIndex = 9;
-            this.button3.UseVisualStyleBackColor = true;
+            this.button3.UseVisualStyleBackColor = false;
+            this.button3.Click += new System.EventHandler(this.gridButton_Click);
             // 
             // button4
             // 
+            this.button4.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button4.FlatAppearance.BorderSize = 0;
             this.button4.Location = new System.Drawing.Point(0, 56);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(50, 50);
             this.button4.TabIndex = 9;
-            this.button4.UseVisualStyleBackColor = true;
+            this.button4.UseVisualStyleBackColor = false;
+            this.button4.Click += new System.EventHandler(this.gridButton_Click);
             // 
             // button5
             // 
+            this.button5.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button5.FlatAppearance.BorderSize = 0;
             this.button5.Location = new System.Drawing.Point(56, 56);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(50, 50);
             this.button5.TabIndex = 9;
-            this.button5.UseVisualStyleBackColor = true;
+            this.button5.UseVisualStyleBackColor = false;
+            this.button5.Click += new System.EventHandler(this.gridButton_Click);
             // 
             // button6
             // 
+            this.button6.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button6.FlatAppearance.BorderSize = 0;
             this.button6.Location = new System.Drawing.Point(112, 56);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(50, 50);
             this.button6.TabIndex = 9;
-            this.button6.UseVisualStyleBackColor = true;
+            this.button6.UseVisualStyleBackColor = false;
+            this.button6.Click += new System.EventHandler(this.gridButton_Click);
             // 
             // button7
             // 
+            this.button7.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button7.FlatAppearance.BorderSize = 0;
             this.button7.Location = new System.Drawing.Point(0, 112);
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(50, 50);
             this.button7.TabIndex = 9;
-            this.button7.UseVisualStyleBackColor = true;
+            this.button7.UseVisualStyleBackColor = false;
+            this.button7.Click += new System.EventHandler(this.gridButton_Click);
             // 
             // button8
             // 
+            this.button8.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button8.FlatAppearance.BorderSize = 0;
             this.button8.Location = new System.Drawing.Point(56, 112);
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(50, 50);
             this.button8.TabIndex = 9;
-            this.button8.UseVisualStyleBackColor = true;
+            this.button8.UseVisualStyleBackColor = false;
+            this.button8.Click += new System.EventHandler(this.gridButton_Click);
             // 
             // button9
             // 
+            this.button9.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button9.FlatAppearance.BorderSize = 0;
             this.button9.Location = new System.Drawing.Point(112, 112);
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(50, 50);
             this.button9.TabIndex = 9;
-            this.button9.UseVisualStyleBackColor = true;
+            this.button9.UseVisualStyleBackColor = false;
+            this.button9.Click += new System.EventHandler(this.gridButton_Click);
             // 
             // panel4
             // 
@@ -387,39 +406,50 @@
             this.panel4.Controls.Add(this.button3);
             this.panel4.Controls.Add(this.button9);
             this.panel4.Controls.Add(this.button5);
-            this.panel4.Location = new System.Drawing.Point(188, 233);
+            this.panel4.Location = new System.Drawing.Point(203, 252);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(162, 162);
             this.panel4.TabIndex = 10;
+            // 
+            // label5
+            // 
+            this.label5.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(200, 422);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(52, 21);
+            this.label5.TabIndex = 11;
+            this.label5.Text = "Time:";
+            // 
+            // label6
+            // 
+            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(245, 228);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(80, 21);
+            this.label6.TabIndex = 2;
+            this.label6.Text = "The Note";
             // 
             // timeline1
             // 
             this.timeline1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.timeline1.CurrentTime = System.TimeSpan.Parse("00:00:00");
-            this.timeline1.Location = new System.Drawing.Point(12, 156);
+            this.timeline1.Location = new System.Drawing.Point(12, 155);
+            this.timeline1.Margin = new System.Windows.Forms.Padding(2);
             this.timeline1.Name = "timeline1";
-            this.timeline1.Size = new System.Drawing.Size(514, 71);
+            this.timeline1.Size = new System.Drawing.Size(545, 71);
             this.timeline1.TabIndex = 8;
             this.timeline1.TotalTime = System.TimeSpan.Parse("00:00:00.0010000");
             this.timeline1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.timeline1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
             // 
-            // label5
-            // 
-            this.label5.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(185, 403);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(52, 21);
-            this.label5.TabIndex = 11;
-            this.label5.Text = "Time:";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(538, 614);
+            this.ClientSize = new System.Drawing.Size(569, 461);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.timeline1);
             this.Controls.Add(this.nudTimeStamp);
@@ -429,13 +459,14 @@
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.label4);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.panel4);
             this.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(5);
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(554, 473);
+            this.MinimumSize = new System.Drawing.Size(585, 500);
             this.Name = "Form1";
             this.Text = "Blox Saber Editor";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -487,5 +518,6 @@
         private System.Windows.Forms.Button button9;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
     }
 }
