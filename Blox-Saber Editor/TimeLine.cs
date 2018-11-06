@@ -14,6 +14,8 @@ namespace Blox_Saber_Editor
         public TimeSpan TotalTime { get; set; }
         public TimeSpan CurrentTime { get; set; }
 
+        public bool Smooth { get; set; }
+
         public int BarWidth = 5;
 
         private float _channel = 0.5f;
@@ -30,6 +32,7 @@ namespace Blox_Saber_Editor
         private void Timeline_Paint(object sender, PaintEventArgs e)
         {
             e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.Default;
+            e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Default;
 
             var progress = (float)(TotalTime.TotalMilliseconds == 0 ? 0 : CurrentTime.TotalMilliseconds / TotalTime.TotalMilliseconds);
 
@@ -45,7 +48,12 @@ namespace Blox_Saber_Editor
             e.Graphics.FillRectangle(Brushes.Red, SideRenderOffset + 1, my - BarWidth / 2, (Width - SideRenderOffset * 2) * progress - 1, BarWidth);
 
             e.Graphics.FillRectangle(Brushes.White, SideRenderOffset + (Width - SideRenderOffset * 2) * progress, my - 7, 1, 14);
-            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+
+            if (Smooth)
+            {
+                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+            }
 
             lock (_points)
             {
@@ -63,8 +71,6 @@ namespace Blox_Saber_Editor
             }
 
             var current = GetCurrentTimeStamp();
-
-
 
             if (current != null)
             {
@@ -168,6 +174,9 @@ namespace Blox_Saber_Editor
         {
             lock (_points)
             {
+                if (_points.Any(p => p.Time == point.Time))
+                    _points.RemoveAll(p => p.Time == point.Time);
+
                 _points.Add(point);
                 Sort();
             }

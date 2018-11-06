@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.btnLoadSong = new System.Windows.Forms.Button();
             this.tbID = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -35,12 +36,13 @@
             this.label2 = new System.Windows.Forms.Label();
             this.panel2 = new System.Windows.Forms.Panel();
             this.btnSave = new System.Windows.Forms.Button();
+            this.btnCopy = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
             this.btnLoadFile = new System.Windows.Forms.Button();
             this.sfd = new System.Windows.Forms.SaveFileDialog();
             this.ofd = new System.Windows.Forms.OpenFileDialog();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.trackBar1 = new System.Windows.Forms.TrackBar();
+            this.tbVolume = new System.Windows.Forms.TrackBar();
             this.btnStop = new System.Windows.Forms.Button();
             this.btnPlay = new System.Windows.Forms.Button();
             this.btnPause = new System.Windows.Forms.Button();
@@ -59,24 +61,29 @@
             this.button8 = new System.Windows.Forms.Button();
             this.button9 = new System.Windows.Forms.Button();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.pnlMap = new System.Windows.Forms.Panel();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.lblNote = new System.Windows.Forms.Label();
             this.timeline1 = new Blox_Saber_Editor.Timeline();
+            this.chbSmooth = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tbVolume)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudTimeStamp)).BeginInit();
             this.panel4.SuspendLayout();
+            this.pnlMap.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnLoadSong
             // 
             this.btnLoadSong.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnLoadSong.Location = new System.Drawing.Point(5, 69);
+            this.btnLoadSong.Location = new System.Drawing.Point(5, 79);
             this.btnLoadSong.Margin = new System.Windows.Forms.Padding(5);
             this.btnLoadSong.Name = "btnLoadSong";
-            this.btnLoadSong.Size = new System.Drawing.Size(158, 41);
+            this.btnLoadSong.Size = new System.Drawing.Size(158, 31);
             this.btnLoadSong.TabIndex = 0;
             this.btnLoadSong.Text = "LOAD";
             this.btnLoadSong.UseVisualStyleBackColor = true;
@@ -126,6 +133,7 @@
             this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel2.Controls.Add(this.btnSave);
+            this.panel2.Controls.Add(this.btnCopy);
             this.panel2.Controls.Add(this.btnClear);
             this.panel2.Controls.Add(this.btnLoadFile);
             this.panel2.Location = new System.Drawing.Point(356, 33);
@@ -139,19 +147,31 @@
             this.btnSave.Location = new System.Drawing.Point(88, 5);
             this.btnSave.Margin = new System.Windows.Forms.Padding(5);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(75, 33);
+            this.btnSave.Size = new System.Drawing.Size(75, 39);
             this.btnSave.TabIndex = 1;
             this.btnSave.Text = "SAVE";
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
+            // btnCopy
+            // 
+            this.btnCopy.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnCopy.Location = new System.Drawing.Point(8, 46);
+            this.btnCopy.Margin = new System.Windows.Forms.Padding(5);
+            this.btnCopy.Name = "btnCopy";
+            this.btnCopy.Size = new System.Drawing.Size(155, 31);
+            this.btnCopy.TabIndex = 0;
+            this.btnCopy.Text = "COPY";
+            this.btnCopy.UseVisualStyleBackColor = true;
+            this.btnCopy.Click += new System.EventHandler(this.btnCopy_Click);
+            // 
             // btnClear
             // 
             this.btnClear.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClear.Location = new System.Drawing.Point(8, 48);
+            this.btnClear.Location = new System.Drawing.Point(8, 79);
             this.btnClear.Margin = new System.Windows.Forms.Padding(5);
             this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(155, 62);
+            this.btnClear.Size = new System.Drawing.Size(155, 31);
             this.btnClear.TabIndex = 0;
             this.btnClear.Text = "CLEAR";
             this.btnClear.UseVisualStyleBackColor = true;
@@ -163,7 +183,7 @@
             this.btnLoadFile.Location = new System.Drawing.Point(8, 5);
             this.btnLoadFile.Margin = new System.Windows.Forms.Padding(5);
             this.btnLoadFile.Name = "btnLoadFile";
-            this.btnLoadFile.Size = new System.Drawing.Size(75, 33);
+            this.btnLoadFile.Size = new System.Drawing.Size(75, 39);
             this.btnLoadFile.TabIndex = 0;
             this.btnLoadFile.Text = "LOAD";
             this.btnLoadFile.UseVisualStyleBackColor = true;
@@ -181,7 +201,7 @@
             // 
             this.panel3.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel3.Controls.Add(this.trackBar1);
+            this.panel3.Controls.Add(this.tbVolume);
             this.panel3.Controls.Add(this.btnStop);
             this.panel3.Controls.Add(this.btnPlay);
             this.panel3.Controls.Add(this.btnPause);
@@ -190,23 +210,24 @@
             this.panel3.Size = new System.Drawing.Size(176, 117);
             this.panel3.TabIndex = 5;
             // 
-            // trackBar1
+            // tbVolume
             // 
-            this.trackBar1.AutoSize = false;
-            this.trackBar1.Location = new System.Drawing.Point(0, 0);
-            this.trackBar1.Maximum = 100;
-            this.trackBar1.Name = "trackBar1";
-            this.trackBar1.Size = new System.Drawing.Size(175, 21);
-            this.trackBar1.TabIndex = 2;
-            this.trackBar1.TickFrequency = 0;
-            this.trackBar1.TickStyle = System.Windows.Forms.TickStyle.None;
-            this.trackBar1.Value = 50;
+            this.tbVolume.AutoSize = false;
+            this.tbVolume.Location = new System.Drawing.Point(0, 0);
+            this.tbVolume.Maximum = 100;
+            this.tbVolume.Name = "tbVolume";
+            this.tbVolume.Size = new System.Drawing.Size(175, 21);
+            this.tbVolume.TabIndex = 2;
+            this.tbVolume.TickFrequency = 0;
+            this.tbVolume.TickStyle = System.Windows.Forms.TickStyle.None;
+            this.tbVolume.Value = 50;
+            this.tbVolume.Scroll += new System.EventHandler(this.trackBar1_Scroll);
             // 
             // btnStop
             // 
             this.btnStop.Enabled = false;
             this.btnStop.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnStop.Location = new System.Drawing.Point(92, 26);
+            this.btnStop.Location = new System.Drawing.Point(92, 36);
             this.btnStop.Margin = new System.Windows.Forms.Padding(5);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(77, 33);
@@ -219,7 +240,7 @@
             // 
             this.btnPlay.Enabled = false;
             this.btnPlay.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnPlay.Location = new System.Drawing.Point(5, 26);
+            this.btnPlay.Location = new System.Drawing.Point(5, 36);
             this.btnPlay.Margin = new System.Windows.Forms.Padding(5);
             this.btnPlay.Name = "btnPlay";
             this.btnPlay.Size = new System.Drawing.Size(77, 33);
@@ -232,10 +253,10 @@
             // 
             this.btnPause.Enabled = false;
             this.btnPause.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnPause.Location = new System.Drawing.Point(5, 69);
+            this.btnPause.Location = new System.Drawing.Point(5, 79);
             this.btnPause.Margin = new System.Windows.Forms.Padding(5);
             this.btnPause.Name = "btnPause";
-            this.btnPause.Size = new System.Drawing.Size(164, 41);
+            this.btnPause.Size = new System.Drawing.Size(164, 31);
             this.btnPause.TabIndex = 0;
             this.btnPause.Text = "PAUSE";
             this.btnPause.UseVisualStyleBackColor = true;
@@ -312,6 +333,7 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(50, 50);
             this.button1.TabIndex = 9;
+            this.button1.Text = "Q";
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.gridButton_Click);
             // 
@@ -324,6 +346,7 @@
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(50, 50);
             this.button2.TabIndex = 9;
+            this.button2.Text = "W";
             this.button2.UseVisualStyleBackColor = false;
             this.button2.Click += new System.EventHandler(this.gridButton_Click);
             // 
@@ -336,6 +359,7 @@
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(50, 50);
             this.button3.TabIndex = 9;
+            this.button3.Text = "E";
             this.button3.UseVisualStyleBackColor = false;
             this.button3.Click += new System.EventHandler(this.gridButton_Click);
             // 
@@ -348,6 +372,7 @@
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(50, 50);
             this.button4.TabIndex = 9;
+            this.button4.Text = "A";
             this.button4.UseVisualStyleBackColor = false;
             this.button4.Click += new System.EventHandler(this.gridButton_Click);
             // 
@@ -360,6 +385,7 @@
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(50, 50);
             this.button5.TabIndex = 9;
+            this.button5.Text = "S";
             this.button5.UseVisualStyleBackColor = false;
             this.button5.Click += new System.EventHandler(this.gridButton_Click);
             // 
@@ -372,6 +398,7 @@
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(50, 50);
             this.button6.TabIndex = 9;
+            this.button6.Text = "D";
             this.button6.UseVisualStyleBackColor = false;
             this.button6.Click += new System.EventHandler(this.gridButton_Click);
             // 
@@ -384,6 +411,7 @@
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(50, 50);
             this.button7.TabIndex = 9;
+            this.button7.Text = "Z";
             this.button7.UseVisualStyleBackColor = false;
             this.button7.Click += new System.EventHandler(this.gridButton_Click);
             // 
@@ -396,6 +424,7 @@
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(50, 50);
             this.button8.TabIndex = 9;
+            this.button8.Text = "X";
             this.button8.UseVisualStyleBackColor = false;
             this.button8.Click += new System.EventHandler(this.gridButton_Click);
             // 
@@ -408,6 +437,7 @@
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(50, 50);
             this.button9.TabIndex = 9;
+            this.button9.Text = "C";
             this.button9.UseVisualStyleBackColor = false;
             this.button9.Click += new System.EventHandler(this.gridButton_Click);
             // 
@@ -415,6 +445,7 @@
             // 
             this.panel4.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.panel4.BackColor = System.Drawing.Color.DeepSkyBlue;
+            this.panel4.Controls.Add(this.pnlMap);
             this.panel4.Controls.Add(this.button7);
             this.panel4.Controls.Add(this.button1);
             this.panel4.Controls.Add(this.button2);
@@ -428,6 +459,38 @@
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(162, 162);
             this.panel4.TabIndex = 10;
+            // 
+            // pnlMap
+            // 
+            this.pnlMap.Controls.Add(this.label7);
+            this.pnlMap.Controls.Add(this.label6);
+            this.pnlMap.Location = new System.Drawing.Point(0, 0);
+            this.pnlMap.Name = "pnlMap";
+            this.pnlMap.Size = new System.Drawing.Size(162, 162);
+            this.pnlMap.TabIndex = 13;
+            this.pnlMap.Visible = false;
+            // 
+            // label7
+            // 
+            this.label7.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.ForeColor = System.Drawing.Color.White;
+            this.label7.Location = new System.Drawing.Point(0, 106);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(156, 50);
+            this.label7.TabIndex = 0;
+            this.label7.Text = "ESC or BACKSPACE to cancel";
+            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label6
+            // 
+            this.label6.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.ForeColor = System.Drawing.Color.White;
+            this.label6.Location = new System.Drawing.Point(0, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(156, 156);
+            this.label6.TabIndex = 0;
+            this.label6.Text = "Press a key";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label5
             // 
@@ -457,17 +520,30 @@
             this.timeline1.Location = new System.Drawing.Point(12, 155);
             this.timeline1.Margin = new System.Windows.Forms.Padding(2);
             this.timeline1.Name = "timeline1";
-            this.timeline1.Size = new System.Drawing.Size(514, 71);
+            this.timeline1.Size = new System.Drawing.Size(513, 71);
+            this.timeline1.Smooth = false;
             this.timeline1.TabIndex = 8;
             this.timeline1.TotalTime = System.TimeSpan.Parse("00:00:00");
             this.timeline1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.timeline1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
+            // 
+            // chbSmooth
+            // 
+            this.chbSmooth.AutoSize = true;
+            this.chbSmooth.Location = new System.Drawing.Point(12, 231);
+            this.chbSmooth.Name = "chbSmooth";
+            this.chbSmooth.Size = new System.Drawing.Size(89, 25);
+            this.chbSmooth.TabIndex = 12;
+            this.chbSmooth.Text = "Smooth";
+            this.chbSmooth.UseVisualStyleBackColor = true;
+            this.chbSmooth.CheckedChanged += new System.EventHandler(this.chbSmooth_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(538, 461);
+            this.Controls.Add(this.chbSmooth);
             this.Controls.Add(this.timeline1);
             this.Controls.Add(this.nudTimeStamp);
             this.Controls.Add(this.btnNext);
@@ -481,11 +557,14 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.panel4);
             this.Controls.Add(this.label5);
+            this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(5);
             this.MaximizeBox = false;
             this.MinimumSize = new System.Drawing.Size(554, 500);
             this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Blox Saber Editor";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -495,9 +574,10 @@
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tbVolume)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudTimeStamp)).EndInit();
             this.panel4.ResumeLayout(false);
+            this.pnlMap.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -518,7 +598,7 @@
         private System.Windows.Forms.Button btnStop;
         private System.Windows.Forms.Button btnPlay;
         private System.Windows.Forms.Button btnPause;
-        private System.Windows.Forms.TrackBar trackBar1;
+        private System.Windows.Forms.TrackBar tbVolume;
         private System.Windows.Forms.Button btnClear;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
@@ -538,5 +618,10 @@
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label lblNote;
+        private System.Windows.Forms.CheckBox chbSmooth;
+        private System.Windows.Forms.Panel pnlMap;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Button btnCopy;
     }
 }

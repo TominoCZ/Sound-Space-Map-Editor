@@ -1,17 +1,14 @@
-﻿using System;
+﻿using Blox_Saber_Editor.Properties;
+using NAudio.Utils;
+using NAudio.Wave;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using NAudio.Utils;
-using NAudio.Wave;
 
 namespace Blox_Saber_Editor
 {
@@ -32,10 +29,14 @@ namespace Blox_Saber_Editor
         private TimeSpan _playOffset = TimeSpan.Zero;
 
         private Button[,] _grid = new Button[3, 3];
+        private Button _mappedButton;
+
+        private Dictionary<Keys, Tuple<int, int>> _mapping = new Dictionary<Keys, Tuple<int, int>>();
 
         private Random _r = new Random();
 
         private bool _bypassEvent;
+        private bool _bypassSet;
 
         public static bool Saved = true;
 
@@ -54,10 +55,37 @@ namespace Blox_Saber_Editor
             _grid[0, 2] = button7;
             _grid[1, 2] = button8;
             _grid[2, 2] = button9;
+
+            _mapping.Add(Keys.Q, new Tuple<int, int>(0, 0));
+            _mapping.Add(Keys.W, new Tuple<int, int>(1, 0));
+            _mapping.Add(Keys.E, new Tuple<int, int>(2, 0));
+
+            _mapping.Add(Keys.A, new Tuple<int, int>(0, 1));
+            _mapping.Add(Keys.S, new Tuple<int, int>(1, 1));
+            _mapping.Add(Keys.D, new Tuple<int, int>(2, 1));
+
+            _mapping.Add(Keys.Z, new Tuple<int, int>(0, 2));
+            _mapping.Add(Keys.X, new Tuple<int, int>(1, 2));
+            _mapping.Add(Keys.C, new Tuple<int, int>(2, 2));
+
+            LoadMappings();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            GotFocus += (o, evt) =>
+            {
+                ActiveControl = null;
+            };
+            LostFocus += (o, evt) =>
+            {
+                ActiveControl = null;
+            };
+
+            chbSmooth.Checked = Settings.Default.smooth;
+            tbVolume.Value = Settings.Default.volume;
+            tbID.Text = Settings.Default.id;
+
             _timelineThread = new Thread(UpdateTimeline) { IsBackground = true };
             _timelineThread.Start();
 
@@ -66,6 +94,7 @@ namespace Blox_Saber_Editor
                 c.Click += (o, evt) => { ActiveControl = null; };
                 c.MouseClick += (o, evt) => { ActiveControl = null; };
                 c.MouseLeave += (o, evt) => { ActiveControl = null; };
+                c.MouseEnter += (o, evt) => { ActiveControl = null; };
                 c.MouseUp += (o, evt) => { ActiveControl = null; };
             }
 
@@ -82,17 +111,63 @@ namespace Blox_Saber_Editor
                     }
                 }
                 else if (c is Button)
-                    c.Click += (o, evt) => { this.ActiveControl = null; };
+                    c.Click += (o, evt) => { ActiveControl = null; };
             }
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.A)
+            if (_down.Contains(e.KeyCode) && e.KeyCode != Keys.R && e.KeyCode != Keys.T)
+                return;
+            else
+                _down.Add(e.KeyCode);
+
+            if (pnlMap.Visible)
+            {
+                if (_mappedButton != null && e.KeyCode != Keys.Back && e.KeyCode != Keys.Escape && e.KeyCode != Keys.ShiftKey)
+                {
+                    var xy = GetGridButtonIndex(_mappedButton);
+
+                    _mappedButton.Text = e.KeyCode.ToString();
+
+                    gridButton_Click(_mappedButton, null);
+
+                    MapKey(e.KeyCode, xy);
+
+                    SaveMappings();
+                }
+
+                if (e.KeyCode != Keys.ShiftKey)
+                {
+                    _mappedButton = null;
+                    pnlMap.Visible = false;
+                }
+                return;
+            }
+            else
+            {
+                if (_mapping.TryGetValue(e.KeyCode, out var xy))
+                {
+                    //var btn = _grid[xy.Item1, xy.Item2];
+
+                    //btn.PerformClick();
+
+                    if (_player != null && _player.PlaybackState == PlaybackState.Playing)
+                    {
+                        var timeStamp = new TimeStamp((int)(_player.GetPositionTimeSpan() + _playOffset).TotalMilliseconds, xy.Item1, 2 - xy.Item2);
+
+                        timeline1.Add(timeStamp);
+
+                        return;
+                    }
+                }
+            }
+
+            if (e.KeyCode == Keys.R)
             {
                 btnPrev.PerformClick();
             }
-            else if (e.KeyCode == Keys.D)
+            else if (e.KeyCode == Keys.T)
             {
                 btnNext.PerformClick();
             }
@@ -112,15 +187,9 @@ namespace Blox_Saber_Editor
                 }
             }
 
-            if (_down.Contains(e.KeyCode))
-                return;
-
-            _down.Add(e.KeyCode);
-
-            if (_player != null && _player.PlaybackState == PlaybackState.Playing)
+            if (_player != null && _player.PlaybackState == PlaybackState.Playing && e.KeyCode == Keys.Space)
             {
-                var timeStamp = new TimeStamp((int)(_player.GetPositionTimeSpan() + _playOffset).TotalMilliseconds,
-                    _r.Next(0, 3), _r.Next(0, 3));
+                var timeStamp = new TimeStamp((int)(_player.GetPositionTimeSpan() + _playOffset).TotalMilliseconds, _r.Next(0, 3), _r.Next(0, 3));
 
                 timeline1.Add(timeStamp);
             }
@@ -131,95 +200,6 @@ namespace Blox_Saber_Editor
             _down.Remove(e.KeyCode);
         }
 
-        private void btnLoadFile_Click(object sender, EventArgs e)
-        {
-            if (!Saved)
-            {
-                var d = MessageBox.Show("You have unsaved work.\nContinue?", "Load a Map file", MessageBoxButtons.YesNo);
-
-                if (d != DialogResult.Yes)
-                    return;
-            }
-
-            if (ofd.ShowDialog() == DialogResult.OK)
-            {
-                timeline1.Clear();
-
-                var text = File.ReadAllText(ofd.FileName);
-
-                var values = text.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-
-                string id = "";
-
-                foreach (var value in values)
-                {
-                    var split = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
-
-                    if (long.TryParse(split[0], out var x))
-                    {
-                        if (id == "")
-                        {
-                            id = value;
-                            continue;
-                        }
-
-                        if (int.TryParse(split[1], out var y) && int.TryParse(split[2], out var time))
-                        {
-                            var point = new TimeStamp(time, (int)x, y);
-
-                            timeline1.Add(point);
-                        }
-                    }
-                }
-
-                tbID.Text = id;
-
-                if (LoadSound(long.Parse(id)))
-                {
-                    btnPlay.Enabled = true;
-                    _loadedId = long.Parse(id);
-                }
-
-                timeline1.Invalidate();
-            }
-        }
-
-        private void btnSave_Click(object sender, EventArgs e)
-        {
-            if (sfd.ShowDialog() == DialogResult.OK)
-            {
-                var points = timeline1.GetPoints();
-
-                string text = _loadedId + ",";
-
-                for (var index = 0; index < points.Count; index++)
-                {
-                    var point = points[index];
-
-                    text += point.X + "|";
-                    text += point.Y + "|";
-                    text += point.Time;
-
-                    if (index < points.Count - 1)
-                        text += ',';
-                }
-
-                File.WriteAllText(sfd.FileName, text);
-
-                Saved = true;
-            }
-        }
-
-        private void btnClear_Click(object sender, EventArgs e)
-        {
-            var d = MessageBox.Show("You have unsaved work.\nAre you sure you want to clear the whole timeline?", "Clear", MessageBoxButtons.YesNo);
-
-            if (d == DialogResult.Yes)
-            {
-                timeline1.Clear();
-            }
-        }
-
         private void btnLoadSong_Click(object sender, EventArgs e)
         {
             if (long.TryParse(tbID.Text, out var id))
@@ -227,6 +207,7 @@ namespace Blox_Saber_Editor
                 if (LoadSound(id))
                 {
                     btnPlay.Enabled = true;
+
                     _loadedId = id;
                 }
             }
@@ -234,6 +215,33 @@ namespace Blox_Saber_Editor
             {
                 MessageBox.Show("Please enter a valid asset ID.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                File.WriteAllText(sfd.FileName, GetParsedText());
+
+                Saved = true;
+            }
+        }
+
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            var d = MessageBox.Show("Are you sure you want to clear the whole timeline?", "Clear", MessageBoxButtons.YesNo);
+
+            if (d == DialogResult.Yes)
+            {
+                timeline1.Clear();
+            }
+        }
+
+        private void btnCopy_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(GetParsedText());
+
+            MessageBox.Show("Map copied to clipboard.", "Copy", MessageBoxButtons.OK);
         }
 
         private void btnPlay_Click(object sender, EventArgs e)
@@ -281,6 +289,278 @@ namespace Blox_Saber_Editor
             _player.Pause();
         }
 
+        private void btnLoadFile_Click(object sender, EventArgs e)
+        {
+            if (!Saved)
+            {
+                var d = MessageBox.Show("You have unsaved work.\nContinue?", "Load a Map file", MessageBoxButtons.YesNo);
+
+                if (d != DialogResult.Yes)
+                    return;
+            }
+
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                timeline1.Clear();
+
+                var text = File.ReadAllText(ofd.FileName);
+
+                var values = text.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+
+                string id = "";
+
+                foreach (var value in values)
+                {
+                    var split = value.Split(new[] { "|" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    if (long.TryParse(split[0], out var x))
+                    {
+                        if (id == "")
+                        {
+                            id = value;
+                            continue;
+                        }
+
+                        if (int.TryParse(split[1], out var y) && int.TryParse(split[2], out var time))
+                        {
+                            var point = new TimeStamp(time, 2 - (int)x, y);
+
+                            timeline1.Add(point);
+                        }
+                    }
+                }
+
+                tbID.Text = id;
+
+                if (LoadSound(long.Parse(id)))
+                {
+                    btnPlay.Enabled = true;
+                    _loadedId = long.Parse(id);
+                }
+
+                timeline1.Invalidate();
+            }
+        }
+
+        private void btnPrev_Click(object sender, EventArgs e)
+        {
+            btnPause.PerformClick();
+
+            lock (_grid)
+            {
+                var ts = timeline1.GetPreviousTimeStamp();
+
+                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts?.Time ?? 0);
+
+                _bypassSet = true;
+                nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
+                _bypassSet = false;
+
+                if (ts != null)
+                {
+                    SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
+                }
+                else
+                {
+                    SetActiveGridButton(null);
+                }
+
+                timeline1.Invalidate();
+            }
+        }
+
+        private void btnNext_Click(object sender, EventArgs e)
+        {
+            btnPause.PerformClick();
+
+            lock (_grid)
+            {
+                var ts = timeline1.GetNextTimeStamp();
+
+                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts?.Time ?? timeline1.TotalTime.TotalMilliseconds);
+
+                _bypassSet = true;
+                nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
+                _bypassSet = false;
+
+                if (ts != null)
+                {
+                    SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
+                }
+                else
+                {
+                    SetActiveGridButton(null);
+                }
+
+                timeline1.Invalidate();
+            }
+        }
+
+        private void gridButton_Click(object sender, EventArgs e)
+        {
+            if (_down.Contains(Keys.ShiftKey))
+            {
+                pnlMap.Visible = true;
+
+                _mappedButton = (Button)sender;
+
+                return;
+            }
+
+            SetActiveGridButton((Button)sender);
+
+            var xy = GetGridButtonIndex((Button)sender);
+
+            var btn = _grid[xy.Item1, xy.Item2];
+
+            if (_player != null && _player.PlaybackState != PlaybackState.Playing)
+            {
+                var ts = timeline1.GetCurrentTimeStamp();
+
+                if (ts != null)
+                {
+                    if (ts.X != xy.Item1 || ts.Y != 2 - xy.Item2)
+                    {
+                        ts.X = xy.Item1;
+                        ts.Y = 2 - xy.Item2;
+
+                        ts.Dirty = true;
+
+                        Saved = false;
+                    }
+                }
+            }
+        }
+
+        private void nudTimeStamp_ValueChanged(object sender, EventArgs e)
+        {
+            if (_player.PlaybackState != PlaybackState.Playing && !_bypassSet)
+            {
+                var ts = timeline1.GetCurrentTimeStamp();
+
+                if (ts == null)
+                    return;
+
+                ts.Time = (int)nudTimeStamp.Value;
+
+                if (!_bypassEvent)
+                {
+                    timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
+                    ts.Dirty = true;
+                    Saved = false;
+                }
+
+                timeline1.Sort();
+
+                timeline1.Invalidate();
+            }
+
+            ActiveControl = null;
+        }
+
+        private void chbSmooth_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.Default.smooth = timeline1.Smooth = chbSmooth.Checked;
+            Settings.Default.Save();
+
+            ActiveControl = null;
+        }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+            Settings.Default.volume = tbVolume.Value;
+            Settings.Default.Save();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (Saved)
+                return;
+
+            var d = MessageBox.Show("You have unsaved work.\nAre you sure?", "Exit", MessageBoxButtons.YesNo);
+
+            if (d != DialogResult.Yes)
+                e.Cancel = true;
+        }
+
+        private void MapKey(Keys key, Tuple<int, int> xy)
+        {
+            List<Keys> keys = new List<Keys>();
+
+            foreach (var p in _mapping)
+            {
+                if (p.Value.Item1 == xy.Item1 && p.Value.Item2 == xy.Item2)
+                    keys.Add(p.Key);
+            }
+
+            foreach (var k in keys)
+            {
+                _mapping.Remove(k);
+            }
+
+            _mapping.Add(key, xy);
+        }
+
+        private void LoadMappings()
+        {
+            var file = "blox_saber_editor.cfg";
+
+            if (File.Exists(file))
+            {
+                var lines = File.ReadAllLines(file);
+
+                foreach (var line in lines)
+                {
+                    var trimmed = line.Replace(" ", "");
+
+                    if (trimmed.Length < 4)
+                        continue;
+
+                    try
+                    {
+                        var split = trimmed.Split('=');
+
+                        var key = (Keys)int.Parse(split[0]);
+
+                        var pos = split[1].Split(',');
+
+                        var x = 2 - int.Parse(pos[0]);
+                        var y = 2 - int.Parse(pos[1]);
+
+                        MapKey(key, new Tuple<int, int>(x, y));
+
+                        _grid[x, y].Text = key.ToString();
+                    }
+                    catch
+                    {
+
+                    }
+                }
+            }
+        }
+
+        private void SaveMappings()
+        {
+            var file = "blox_saber_editor.cfg";
+
+            var sb = new StringBuilder();
+
+            for (int x = 0; x < 3; x++)
+            {
+                for (int y = 0; y < 3; y++)
+                {
+                    var btn = _grid[x, y];
+
+                    if (Enum.TryParse(btn.Text, out Keys k))
+                    {
+                        sb.AppendLine($"{(int)k}={2 - x},{2 - y}");
+                    }
+                }
+            }
+
+            File.WriteAllText(file, sb.ToString());
+        }
+
         private void UpdateTimeline()
         {
             while (true)
@@ -291,9 +571,7 @@ namespace Blox_Saber_Editor
                         !Created || Disposing || IsDisposed)
                         return;
 
-                    _player.Volume = trackBar1.Value / 100f;
-
-                    timeline1.TotalTime = _waveStream.TotalTime;
+                    _player.Volume = tbVolume.Value / 100f;
 
                     var time = _player.GetPositionTimeSpan() + _playOffset;
 
@@ -363,12 +641,19 @@ namespace Blox_Saber_Editor
                 _player.Init(_volume);
 
                 nudTimeStamp.Maximum = (int)_waveStream.TotalTime.TotalMilliseconds;
+                timeline1.TotalTime = _waveStream.TotalTime;
 
                 _playOffset = TimeSpan.Zero;
 
                 timeline1.CurrentTime = TimeSpan.Zero;
 
                 timeline1.Invalidate();
+
+                Settings.Default.id = id.ToString();
+                Settings.Default.Save();
+
+                Saved = true;
+
                 return true;
             }
             catch
@@ -380,110 +665,6 @@ namespace Blox_Saber_Editor
             return false;
         }
 
-        private void btnPrev_Click(object sender, EventArgs e)
-        {
-            btnPause.PerformClick();
-
-            lock (_grid)
-            {
-                var ts = timeline1.GetPreviousTimeStamp();
-
-                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts?.Time ?? 0);
-
-                _bypassEvent = true;
-                nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
-                _bypassEvent = false;
-
-                if (ts != null)
-                {
-                    SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
-                }
-
-                timeline1.Invalidate();
-            }
-        }
-
-        private void btnNext_Click(object sender, EventArgs e)
-        {
-            btnPause.PerformClick();
-
-            lock (_grid)
-            {
-                var ts = timeline1.GetNextTimeStamp();
-
-                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts?.Time ?? timeline1.TotalTime.TotalMilliseconds);
-
-                _bypassEvent = true;
-                nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
-                _bypassEvent = false;
-
-                if (ts != null)
-                    SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
-
-                timeline1.Invalidate();
-            }
-        }
-
-        private void nudTimeStamp_ValueChanged(object sender, EventArgs e)
-        {
-            if (_player.PlaybackState != PlaybackState.Playing)
-            {
-                var ts = timeline1.GetCurrentTimeStamp();
-
-                if (ts == null)
-                    return;
-
-                ts.Time = (int)nudTimeStamp.Value;
-
-                if (!_bypassEvent)
-                {
-                    timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
-                    ts.Dirty = true;
-                    Saved = false;
-                }
-
-                timeline1.Sort();
-
-                timeline1.Invalidate();
-            }
-        }
-
-        private void gridButton_Click(object sender, EventArgs e)
-        {
-            SetActiveGridButton((Button)sender);
-
-            for (int x = 0; x < 3; x++)
-            {
-                for (int y = 0; y < 3; y++)
-                {
-                    var btn = _grid[x, y];
-
-                    if (btn == sender)
-                    {
-                        if (_player != null && _player.PlaybackState != PlaybackState.Playing)
-                        {
-                            var ts = timeline1.GetCurrentTimeStamp();
-
-                            if (ts != null)
-                            {
-                                if (ts.X != x || ts.Y != 2 - y)
-                                {
-                                    ts.X = x;
-                                    ts.Y = 2 - y;
-
-                                    ts.Dirty = true;
-
-                                    Saved = false;
-                                }
-                            }
-                        }
-
-                        break;
-                    }
-                }
-            }
-        }
-
         private void SetActiveGridButton(Button b)
         {
             for (int x = 0; x < 3; x++)
@@ -493,20 +674,45 @@ namespace Blox_Saber_Editor
                     var btn = _grid[x, y];
 
                     btn.BackColor = btn == b ? Color.DeepPink : SystemColors.ControlLight;
-                    btn.Invalidate();
                 }
             }
         }
 
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        private Tuple<int, int> GetGridButtonIndex(Button b)
         {
-            if (Saved)
-                return;
+            for (int x = 0; x < 3; x++)
+            {
+                for (int y = 0; y < 3; y++)
+                {
+                    var btn = _grid[x, y];
 
-            var d = MessageBox.Show("You have unsaved work.\nAre you sure?", "Close Program", MessageBoxButtons.YesNo);
+                    if (btn == b)
+                        return new Tuple<int, int>(x, y);
+                }
+            }
 
-            if (d != DialogResult.Yes)
-                e.Cancel = true;
+            return null;
+        }
+
+        private string GetParsedText()
+        {
+            var points = timeline1.GetPoints();
+
+            string text = _loadedId + ",";
+
+            for (var index = 0; index < points.Count; index++)
+            {
+                var point = points[index];
+
+                text += (2 - point.X) + "|";
+                text += point.Y + "|";
+                text += point.Time;
+
+                if (index < points.Count - 1)
+                    text += ',';
+            }
+
+            return text;
         }
     }
 
