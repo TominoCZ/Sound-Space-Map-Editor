@@ -60,7 +60,7 @@
             this.button9 = new System.Windows.Forms.Button();
             this.panel4 = new System.Windows.Forms.Panel();
             this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
+            this.lblNote = new System.Windows.Forms.Label();
             this.timeline1 = new Blox_Saber_Editor.Timeline();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -94,12 +94,12 @@
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(8, 9);
+            this.label1.Location = new System.Drawing.Point(12, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(55, 21);
+            this.label1.Size = new System.Drawing.Size(170, 21);
             this.label1.TabIndex = 2;
             this.label1.Text = "Music";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // panel1
             // 
@@ -128,7 +128,7 @@
             this.panel2.Controls.Add(this.btnSave);
             this.panel2.Controls.Add(this.btnClear);
             this.panel2.Controls.Add(this.btnLoadFile);
-            this.panel2.Location = new System.Drawing.Point(387, 33);
+            this.panel2.Location = new System.Drawing.Point(356, 33);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(170, 117);
             this.panel2.TabIndex = 4;
@@ -136,10 +136,10 @@
             // btnSave
             // 
             this.btnSave.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSave.Location = new System.Drawing.Point(86, 9);
+            this.btnSave.Location = new System.Drawing.Point(88, 5);
             this.btnSave.Margin = new System.Windows.Forms.Padding(5);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(77, 50);
+            this.btnSave.Size = new System.Drawing.Size(75, 33);
             this.btnSave.TabIndex = 1;
             this.btnSave.Text = "SAVE";
             this.btnSave.UseVisualStyleBackColor = true;
@@ -148,10 +148,10 @@
             // btnClear
             // 
             this.btnClear.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClear.Location = new System.Drawing.Point(8, 69);
+            this.btnClear.Location = new System.Drawing.Point(8, 48);
             this.btnClear.Margin = new System.Windows.Forms.Padding(5);
             this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(155, 41);
+            this.btnClear.Size = new System.Drawing.Size(155, 62);
             this.btnClear.TabIndex = 0;
             this.btnClear.Text = "CLEAR";
             this.btnClear.UseVisualStyleBackColor = true;
@@ -160,10 +160,10 @@
             // btnLoadFile
             // 
             this.btnLoadFile.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnLoadFile.Location = new System.Drawing.Point(8, 9);
+            this.btnLoadFile.Location = new System.Drawing.Point(8, 5);
             this.btnLoadFile.Margin = new System.Windows.Forms.Padding(5);
             this.btnLoadFile.Name = "btnLoadFile";
-            this.btnLoadFile.Size = new System.Drawing.Size(77, 50);
+            this.btnLoadFile.Size = new System.Drawing.Size(75, 33);
             this.btnLoadFile.TabIndex = 0;
             this.btnLoadFile.Text = "LOAD";
             this.btnLoadFile.UseVisualStyleBackColor = true;
@@ -185,7 +185,7 @@
             this.panel3.Controls.Add(this.btnStop);
             this.panel3.Controls.Add(this.btnPlay);
             this.panel3.Controls.Add(this.btnPause);
-            this.panel3.Location = new System.Drawing.Point(196, 33);
+            this.panel3.Location = new System.Drawing.Point(181, 33);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(176, 117);
             this.panel3.TabIndex = 5;
@@ -244,28 +244,30 @@
             // label3
             // 
             this.label3.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(192, 9);
+            this.label3.Location = new System.Drawing.Point(181, 9);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(79, 21);
+            this.label3.Size = new System.Drawing.Size(176, 21);
             this.label3.TabIndex = 2;
             this.label3.Text = "Playback";
+            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label4
             // 
             this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(383, 9);
+            this.label4.Location = new System.Drawing.Point(356, 9);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(44, 21);
+            this.label4.Size = new System.Drawing.Size(170, 21);
             this.label4.TabIndex = 2;
             this.label4.Text = "Map";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // btnPrev
             // 
             this.btnPrev.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.btnPrev.Font = new System.Drawing.Font("Segoe UI Black", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.btnPrev.Location = new System.Drawing.Point(159, 252);
+            this.btnPrev.FlatAppearance.BorderSize = 0;
+            this.btnPrev.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnPrev.Font = new System.Drawing.Font("Bauhaus 93", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnPrev.Location = new System.Drawing.Point(144, 252);
             this.btnPrev.Name = "btnPrev";
             this.btnPrev.Size = new System.Drawing.Size(38, 162);
             this.btnPrev.TabIndex = 6;
@@ -276,8 +278,10 @@
             // btnNext
             // 
             this.btnNext.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.btnNext.Font = new System.Drawing.Font("Segoe UI Black", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.btnNext.Location = new System.Drawing.Point(371, 252);
+            this.btnNext.FlatAppearance.BorderSize = 0;
+            this.btnNext.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnNext.Font = new System.Drawing.Font("Bauhaus 93", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnNext.Location = new System.Drawing.Point(356, 252);
             this.btnNext.Name = "btnNext";
             this.btnNext.Size = new System.Drawing.Size(38, 162);
             this.btnNext.TabIndex = 6;
@@ -288,9 +292,14 @@
             // nudTimeStamp
             // 
             this.nudTimeStamp.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.nudTimeStamp.Location = new System.Drawing.Point(258, 420);
+            this.nudTimeStamp.Location = new System.Drawing.Point(274, 420);
+            this.nudTimeStamp.Maximum = new decimal(new int[] {
+            1215752191,
+            23,
+            0,
+            0});
             this.nudTimeStamp.Name = "nudTimeStamp";
-            this.nudTimeStamp.Size = new System.Drawing.Size(107, 29);
+            this.nudTimeStamp.Size = new System.Drawing.Size(76, 29);
             this.nudTimeStamp.TabIndex = 7;
             this.nudTimeStamp.ValueChanged += new System.EventHandler(this.nudTimeStamp_ValueChanged);
             // 
@@ -298,6 +307,7 @@
             // 
             this.button1.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button1.FlatAppearance.BorderSize = 0;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button1.Location = new System.Drawing.Point(0, 0);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(50, 50);
@@ -309,6 +319,7 @@
             // 
             this.button2.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button2.FlatAppearance.BorderSize = 0;
+            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button2.Location = new System.Drawing.Point(56, 0);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(50, 50);
@@ -320,6 +331,7 @@
             // 
             this.button3.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button3.FlatAppearance.BorderSize = 0;
+            this.button3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button3.Location = new System.Drawing.Point(112, 0);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(50, 50);
@@ -331,6 +343,7 @@
             // 
             this.button4.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button4.FlatAppearance.BorderSize = 0;
+            this.button4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button4.Location = new System.Drawing.Point(0, 56);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(50, 50);
@@ -342,6 +355,7 @@
             // 
             this.button5.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button5.FlatAppearance.BorderSize = 0;
+            this.button5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button5.Location = new System.Drawing.Point(56, 56);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(50, 50);
@@ -353,6 +367,7 @@
             // 
             this.button6.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button6.FlatAppearance.BorderSize = 0;
+            this.button6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button6.Location = new System.Drawing.Point(112, 56);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(50, 50);
@@ -364,6 +379,7 @@
             // 
             this.button7.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button7.FlatAppearance.BorderSize = 0;
+            this.button7.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button7.Location = new System.Drawing.Point(0, 112);
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(50, 50);
@@ -375,6 +391,7 @@
             // 
             this.button8.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button8.FlatAppearance.BorderSize = 0;
+            this.button8.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button8.Location = new System.Drawing.Point(56, 112);
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(50, 50);
@@ -386,6 +403,7 @@
             // 
             this.button9.BackColor = System.Drawing.SystemColors.ControlLight;
             this.button9.FlatAppearance.BorderSize = 0;
+            this.button9.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button9.Location = new System.Drawing.Point(112, 112);
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(50, 50);
@@ -396,7 +414,7 @@
             // panel4
             // 
             this.panel4.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.panel4.BackColor = System.Drawing.SystemColors.Highlight;
+            this.panel4.BackColor = System.Drawing.Color.DeepSkyBlue;
             this.panel4.Controls.Add(this.button7);
             this.panel4.Controls.Add(this.button1);
             this.panel4.Controls.Add(this.button2);
@@ -406,7 +424,7 @@
             this.panel4.Controls.Add(this.button3);
             this.panel4.Controls.Add(this.button9);
             this.panel4.Controls.Add(this.button5);
-            this.panel4.Location = new System.Drawing.Point(203, 252);
+            this.panel4.Location = new System.Drawing.Point(188, 252);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(162, 162);
             this.panel4.TabIndex = 10;
@@ -415,21 +433,21 @@
             // 
             this.label5.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(200, 422);
+            this.label5.Location = new System.Drawing.Point(184, 422);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(52, 21);
+            this.label5.Size = new System.Drawing.Size(90, 21);
             this.label5.TabIndex = 11;
-            this.label5.Text = "Time:";
+            this.label5.Text = "Time [ms]:";
             // 
-            // label6
+            // lblNote
             // 
-            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(245, 228);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(80, 21);
-            this.label6.TabIndex = 2;
-            this.label6.Text = "The Note";
+            this.lblNote.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.lblNote.Location = new System.Drawing.Point(189, 228);
+            this.lblNote.Name = "lblNote";
+            this.lblNote.Size = new System.Drawing.Size(161, 21);
+            this.lblNote.TabIndex = 2;
+            this.lblNote.Text = "Note";
+            this.lblNote.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // timeline1
             // 
@@ -439,9 +457,9 @@
             this.timeline1.Location = new System.Drawing.Point(12, 155);
             this.timeline1.Margin = new System.Windows.Forms.Padding(2);
             this.timeline1.Name = "timeline1";
-            this.timeline1.Size = new System.Drawing.Size(545, 71);
+            this.timeline1.Size = new System.Drawing.Size(514, 71);
             this.timeline1.TabIndex = 8;
-            this.timeline1.TotalTime = System.TimeSpan.Parse("00:00:00.0010000");
+            this.timeline1.TotalTime = System.TimeSpan.Parse("00:00:00");
             this.timeline1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.timeline1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
             // 
@@ -449,8 +467,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(569, 461);
-            this.Controls.Add(this.label5);
+            this.ClientSize = new System.Drawing.Size(538, 461);
             this.Controls.Add(this.timeline1);
             this.Controls.Add(this.nudTimeStamp);
             this.Controls.Add(this.btnNext);
@@ -459,16 +476,18 @@
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.label4);
-            this.Controls.Add(this.label6);
+            this.Controls.Add(this.lblNote);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.panel4);
+            this.Controls.Add(this.label5);
             this.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(5);
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(585, 500);
+            this.MinimumSize = new System.Drawing.Size(554, 500);
             this.Name = "Form1";
             this.Text = "Blox Saber Editor";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
@@ -518,6 +537,6 @@
         private System.Windows.Forms.Button button9;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label lblNote;
     }
 }

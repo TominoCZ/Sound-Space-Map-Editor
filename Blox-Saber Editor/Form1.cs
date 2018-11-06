@@ -37,6 +37,8 @@ namespace Blox_Saber_Editor
 
         private bool _bypassEvent;
 
+        public static bool Saved = true;
+
         public Form1()
         {
             InitializeComponent();
@@ -131,6 +133,14 @@ namespace Blox_Saber_Editor
 
         private void btnLoadFile_Click(object sender, EventArgs e)
         {
+            if (!Saved)
+            {
+                var d = MessageBox.Show("You have unsaved work.\nContinue?", "Load a Map file", MessageBoxButtons.YesNo);
+
+                if (d != DialogResult.Yes)
+                    return;
+            }
+
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 timeline1.Clear();
@@ -195,12 +205,19 @@ namespace Blox_Saber_Editor
                 }
 
                 File.WriteAllText(sfd.FileName, text);
+
+                Saved = true;
             }
         }
 
         private void btnClear_Click(object sender, EventArgs e)
         {
-            timeline1.Clear();
+            var d = MessageBox.Show("You have unsaved work.\nAre you sure you want to clear the whole timeline?", "Clear", MessageBoxButtons.YesNo);
+
+            if (d == DialogResult.Yes)
+            {
+                timeline1.Clear();
+            }
         }
 
         private void btnLoadSong_Click(object sender, EventArgs e)
@@ -282,25 +299,27 @@ namespace Blox_Saber_Editor
 
                     lock (_grid)
                     {
+                        var ts = timeline1.GetCurrentTimeStamp();
+
                         if (_player.PlaybackState == PlaybackState.Playing)
                         {
-                            var ts = timeline1.GetCurrentTimeStamp();
-
                             if (ts != null)
                             {
                                 var btn = _grid[ts.X, 2 - ts.Y];
 
-                                btn.Invoke((MethodInvoker)(() =>
-                                {
-                                    SetActiveGridButton(btn);
-                                    btn.Invalidate();
+                                SetActiveGridButton(btn);
+                                btn.Invalidate();
 
-                                    _bypassEvent = true;
-                                    nudTimeStamp.Value = ts.Time;
-                                    _bypassEvent = false;
-                                }));
+                                _bypassEvent = true;
+                                nudTimeStamp.Value = ts.Time;
+                                _bypassEvent = false;
                             }
                         }
+
+                        var total = timeline1.GetCount();
+                        var number = timeline1.GetNumber(ts);
+
+                        lblNote.Text = number == 0 ? "Note" : $"Note #{number}/{total}";
                     }
 
                     if (_player.PlaybackState == PlaybackState.Playing)
@@ -369,16 +388,16 @@ namespace Blox_Saber_Editor
             {
                 var ts = timeline1.GetPreviousTimeStamp();
 
-                if (ts == null)
-                    return;
-
-                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
+                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts?.Time ?? 0);
 
                 _bypassEvent = true;
                 nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
                 _bypassEvent = false;
 
-                SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
+                if (ts != null)
+                {
+                    SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
+                }
 
                 timeline1.Invalidate();
             }
@@ -392,16 +411,14 @@ namespace Blox_Saber_Editor
             {
                 var ts = timeline1.GetNextTimeStamp();
 
-                if (ts == null)
-                    return;
-
-                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
+                timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts?.Time ?? timeline1.TotalTime.TotalMilliseconds);
 
                 _bypassEvent = true;
                 nudTimeStamp.Value = (int)timeline1.CurrentTime.TotalMilliseconds;
                 _bypassEvent = false;
 
-                SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
+                if (ts != null)
+                    SetActiveGridButton(_grid[ts.X, 2 - ts.Y]);
 
                 timeline1.Invalidate();
             }
@@ -422,8 +439,8 @@ namespace Blox_Saber_Editor
                 {
                     timeline1.CurrentTime = TimeSpan.FromMilliseconds(ts.Time);
                     ts.Dirty = true;
+                    Saved = false;
                 }
-
 
                 timeline1.Sort();
 
@@ -455,6 +472,8 @@ namespace Blox_Saber_Editor
                                     ts.Y = 2 - y;
 
                                     ts.Dirty = true;
+
+                                    Saved = false;
                                 }
                             }
                         }
@@ -474,8 +493,20 @@ namespace Blox_Saber_Editor
                     var btn = _grid[x, y];
 
                     btn.BackColor = btn == b ? Color.DeepPink : SystemColors.ControlLight;
+                    btn.Invalidate();
                 }
             }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (Saved)
+                return;
+
+            var d = MessageBox.Show("You have unsaved work.\nAre you sure?", "Close Program", MessageBoxButtons.YesNo);
+
+            if (d != DialogResult.Yes)
+                e.Cancel = true;
         }
     }
 

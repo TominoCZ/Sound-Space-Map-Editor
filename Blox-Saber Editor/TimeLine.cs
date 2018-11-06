@@ -11,7 +11,7 @@ namespace Blox_Saber_Editor
     {
         public int SideRenderOffset = 10;
 
-        public TimeSpan TotalTime { get; set; } = TimeSpan.FromMilliseconds(1);
+        public TimeSpan TotalTime { get; set; }
         public TimeSpan CurrentTime { get; set; }
 
         public int BarWidth = 5;
@@ -29,7 +29,9 @@ namespace Blox_Saber_Editor
 
         private void Timeline_Paint(object sender, PaintEventArgs e)
         {
-            var progress = (float)(CurrentTime.TotalMilliseconds / TotalTime.TotalMilliseconds);
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.Default;
+
+            var progress = (float)(TotalTime.TotalMilliseconds == 0 ? 0 : CurrentTime.TotalMilliseconds / TotalTime.TotalMilliseconds);
 
             var my = Height / 2;
 
@@ -41,31 +43,42 @@ namespace Blox_Saber_Editor
 
             e.Graphics.FillRectangle(Brushes.Black, SideRenderOffset, my - BarWidth / 2 - 1, (Width - SideRenderOffset * 2) + 1, BarWidth + 2);
             e.Graphics.FillRectangle(Brushes.Red, SideRenderOffset + 1, my - BarWidth / 2, (Width - SideRenderOffset * 2) * progress - 1, BarWidth);
-            
+
             e.Graphics.FillRectangle(Brushes.White, SideRenderOffset + (Width - SideRenderOffset * 2) * progress, my - 7, 1, 14);
-            
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+
             lock (_points)
             {
-                foreach (var point in _points)
+                for (int i = 0; i < _points.Count; i++)
                 {
-                    e.Graphics.FillRectangle(Brushes.Black, SideRenderOffset + (Width - SideRenderOffset * 2) * (float)(point.Time / TotalTime.TotalMilliseconds), my + 7 + 3, 1, 8);
+                    TimeStamp point = _points[i];
+
+                    var pointSize = i % 2 == 0 ? 8 : 6;
+
+                    e.Graphics.FillRectangle(Brushes.Black, SideRenderOffset + (Width - SideRenderOffset * 2) * (float)(TotalTime.TotalMilliseconds == 0 ? 0 : point.Time / TotalTime.TotalMilliseconds), my + 7 + 3, 1, pointSize);
 
                     if (point.Dirty)
-                        e.Graphics.FillRectangle(Brushes.LimeGreen, SideRenderOffset + (Width - SideRenderOffset * 2) * (float)(point.Time / TotalTime.TotalMilliseconds), my + 7 + 3 + 8, 1, 5);
+                        e.Graphics.FillRectangle(Brushes.LimeGreen, SideRenderOffset + (Width - SideRenderOffset * 2) * (float)(TotalTime.TotalMilliseconds == 0 ? 0 : point.Time / TotalTime.TotalMilliseconds), my + 7 + 3 + pointSize, 1, i % 2 == 0 ? 6 : 8);
                 }
             }
 
             var current = GetCurrentTimeStamp();
 
+
+
             if (current != null)
-                e.Graphics.FillRectangle(Brushes.White, SideRenderOffset + (Width - SideRenderOffset * 2) * (float)(current.Time / TotalTime.TotalMilliseconds), my + 7 + 3 + 8, 1, 3);
-            
+            {
+                var pointSize = (GetNumber(current) - 1) % 2 == 0 ? 8 : 6;
+
+                e.Graphics.FillRectangle(Brushes.White, SideRenderOffset + (Width - SideRenderOffset * 2) * (float)(TotalTime.TotalMilliseconds == 0 ? 0 : current.Time / TotalTime.TotalMilliseconds), my + 7 + 3 + (8 + 6), 1, 3);
+            }
+
             _channel = Math.Max(0.5f, _channel * 0.9125f);
 
             if (_last != current)
             {
                 _last = current;
-                _channel = 0.92f;
+                _channel = 0.9f;
             }
         }
 
@@ -139,6 +152,16 @@ namespace Blox_Saber_Editor
             }
 
             return stamps;
+        }
+
+        public int GetNumber(TimeStamp ts)
+        {
+            return _points.IndexOf(ts) + 1;
+        }
+
+        public int GetCount()
+        {
+            return _points.Count;
         }
 
         public void Add(TimeStamp point)
