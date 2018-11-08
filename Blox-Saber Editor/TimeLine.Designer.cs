@@ -38,6 +38,9 @@
             this.Name = "Timeline";
             this.Size = new System.Drawing.Size(628, 150);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.Timeline_Paint);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Timeline_MouseDown);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Timeline_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.Timeline_MouseUp);
             this.Resize += new System.EventHandler(this.Timeline_Resize);
             this.ResumeLayout(false);
 

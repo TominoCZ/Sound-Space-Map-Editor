@@ -11,6 +11,10 @@ namespace Blox_Saber_Editor
     {
         public int SideRenderOffset = 10;
 
+        public event EventHandler<float> OnDrag;
+        public event EventHandler OnDragBegin;
+        public event EventHandler OnDragEnd;
+
         public TimeSpan TotalTime { get; set; }
         public TimeSpan CurrentTime { get; set; }
 
@@ -19,6 +23,8 @@ namespace Blox_Saber_Editor
         public int BarWidth = 5;
 
         private float _channel = 0.5f;
+
+        private bool _dragging;
 
         private TimeStamp _last;
 
@@ -91,6 +97,38 @@ namespace Blox_Saber_Editor
         private void Timeline_Resize(object sender, EventArgs e)
         {
             Invalidate();
+        }
+
+        private void Timeline_MouseDown(object sender, MouseEventArgs e)
+        {
+            var rect = new RectangleF(SideRenderOffset, Height / 2 - BarWidth / 2 - 1, (Width - SideRenderOffset * 2) + 1, BarWidth + 2);
+
+            if (rect.Contains(e.Location))
+            {
+                _dragging = true;
+
+                OnDragBegin.Invoke(this, null);
+                Timeline_MouseMove(sender, e);
+            }
+        }
+
+        private void Timeline_MouseUp(object sender, MouseEventArgs e)
+        {
+            _dragging = false;
+
+            OnDragEnd?.Invoke(this, null);
+        }
+
+        private void Timeline_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_dragging)
+            {
+                var pos = (e.Location.X - SideRenderOffset) / (Width - SideRenderOffset * 2f);
+
+                pos = Math.Max(Math.Min(pos, 1), 0);
+
+                OnDrag?.Invoke(this, pos);
+            }
         }
 
         public TimeStamp GetCurrentTimeStamp()

@@ -73,6 +73,10 @@ namespace Blox_Saber_Editor
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            timeline1.OnDrag += timeline1_OnDrag;
+            timeline1.OnDragBegin += timeline1_OnDragBegin;
+            timeline1.OnDragEnd += timeline1_OnDragEnd;
+
             GotFocus += (o, evt) =>
             {
                 ActiveControl = null;
@@ -254,9 +258,9 @@ namespace Blox_Saber_Editor
 
             _player.Stop();
 
-            var current = timeline1.GetCurrentTimeStamp();
+            //var current = timeline1.GetCurrentTimeStamp();
 
-            _playOffset = TimeSpan.FromMilliseconds(current?.Time ?? 0);
+            _playOffset = timeline1.CurrentTime;
 
             _waveStream.CurrentTime = _playOffset;
 
@@ -470,6 +474,30 @@ namespace Blox_Saber_Editor
         {
             Settings.Default.volume = tbVolume.Value;
             Settings.Default.Save();
+        }
+
+        PlaybackState _lastState = PlaybackState.Stopped;
+
+        private void timeline1_OnDragBegin(object sender, EventArgs e)
+        {
+            _lastState = _player.PlaybackState;
+        }
+
+        private void timeline1_OnDrag(object sender, float progress)
+        {
+            btnPause.PerformClick();
+
+            timeline1.CurrentTime = TimeSpan.FromMilliseconds(timeline1.TotalTime.TotalMilliseconds * progress);
+
+            timeline1.Invalidate();
+        }
+
+        private void timeline1_OnDragEnd(object sender, EventArgs e)
+        {
+            if (_lastState == PlaybackState.Playing)
+            {
+                btnPlay.PerformClick();
+            }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

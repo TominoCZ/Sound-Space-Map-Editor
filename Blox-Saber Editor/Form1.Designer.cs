@@ -156,10 +156,10 @@
             // btnCopy
             // 
             this.btnCopy.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCopy.Location = new System.Drawing.Point(8, 46);
+            this.btnCopy.Location = new System.Drawing.Point(5, 46);
             this.btnCopy.Margin = new System.Windows.Forms.Padding(5);
             this.btnCopy.Name = "btnCopy";
-            this.btnCopy.Size = new System.Drawing.Size(155, 31);
+            this.btnCopy.Size = new System.Drawing.Size(158, 31);
             this.btnCopy.TabIndex = 0;
             this.btnCopy.Text = "COPY";
             this.btnCopy.UseVisualStyleBackColor = true;
@@ -168,10 +168,10 @@
             // btnClear
             // 
             this.btnClear.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClear.Location = new System.Drawing.Point(8, 79);
+            this.btnClear.Location = new System.Drawing.Point(5, 79);
             this.btnClear.Margin = new System.Windows.Forms.Padding(5);
             this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(155, 31);
+            this.btnClear.Size = new System.Drawing.Size(158, 31);
             this.btnClear.TabIndex = 0;
             this.btnClear.Text = "CLEAR";
             this.btnClear.UseVisualStyleBackColor = true;
@@ -180,7 +180,7 @@
             // btnLoadFile
             // 
             this.btnLoadFile.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnLoadFile.Location = new System.Drawing.Point(8, 5);
+            this.btnLoadFile.Location = new System.Drawing.Point(5, 5);
             this.btnLoadFile.Margin = new System.Windows.Forms.Padding(5);
             this.btnLoadFile.Name = "btnLoadFile";
             this.btnLoadFile.Size = new System.Drawing.Size(75, 39);
@@ -287,7 +287,7 @@
             this.btnPrev.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.btnPrev.FlatAppearance.BorderSize = 0;
             this.btnPrev.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPrev.Font = new System.Drawing.Font("Bauhaus 93", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnPrev.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnPrev.Location = new System.Drawing.Point(144, 252);
             this.btnPrev.Name = "btnPrev";
             this.btnPrev.Size = new System.Drawing.Size(38, 162);
@@ -301,7 +301,7 @@
             this.btnNext.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.btnNext.FlatAppearance.BorderSize = 0;
             this.btnNext.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnNext.Font = new System.Drawing.Font("Bauhaus 93", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnNext.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnNext.Location = new System.Drawing.Point(356, 252);
             this.btnNext.Name = "btnNext";
             this.btnNext.Size = new System.Drawing.Size(38, 162);
