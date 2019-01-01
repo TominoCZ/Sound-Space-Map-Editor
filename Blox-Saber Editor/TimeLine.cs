@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -30,6 +31,8 @@ namespace Blox_Saber_Editor
 
         private List<TimeStamp> _points = new List<TimeStamp>();
 
+		private Stopwatch _frameTimer = new Stopwatch();
+
         public Timeline()
         {
             InitializeComponent();
@@ -37,7 +40,11 @@ namespace Blox_Saber_Editor
 
         private void Timeline_Paint(object sender, PaintEventArgs e)
         {
-            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.Default;
+	        var delta = _frameTimer.Elapsed.TotalSeconds;
+	        _frameTimer.Restart();
+
+
+			e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.Default;
             e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Default;
 
             var progress = (float)(TotalTime.TotalMilliseconds == 0 ? 0 : CurrentTime.TotalMilliseconds / TotalTime.TotalMilliseconds);
@@ -85,7 +92,7 @@ namespace Blox_Saber_Editor
                 e.Graphics.FillRectangle(Brushes.White, SideRenderOffset + (Width - SideRenderOffset * 2) * (float)(TotalTime.TotalMilliseconds == 0 ? 0 : current.Time / TotalTime.TotalMilliseconds), my + 7 + 3 + (8 + 6), 1, 3);
             }
 
-            _channel = Math.Max(0.5f, _channel * 0.9125f);
+            _channel = Math.Max(0.5f, _channel - (float)delta * 4);
 
             if (_last != current)
             {
