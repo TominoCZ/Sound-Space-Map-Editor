@@ -7,7 +7,7 @@
     <ProjectGuid>{D78A0314-9F42-4764-9F01-D1B94C6811E4}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Blox_Saber_Editor</RootNamespace>
-    <AssemblyName>Blox-Saber Editor</AssemblyName>
+    <AssemblyName>Blox Saber Editor</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -36,8 +36,8 @@
     <ApplicationIcon>Blox Saber.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NAudio, Version=1.8.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\NAudio.1.8.5\lib\net35\NAudio.dll</HintPath>
+    <Reference Include="NAudio, Version=1.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NAudio.1.9.0-preview2\lib\net35\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

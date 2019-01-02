@@ -22,8 +22,6 @@ namespace Blox_Saber_Editor
 
 		private AudioPlayer _audioPlayer = new AudioPlayer();
 
-		private Stopwatch _frameTimer = new Stopwatch();
-
 		private List<Keys> _down = new List<Keys>();
 
 		private Button[,] _grid = new Button[3, 3];
@@ -68,8 +66,9 @@ namespace Blox_Saber_Editor
 
 			Application.Idle += (o, e) =>
 			{
-				UpdateTimeline(_frameTimer.Elapsed.TotalSeconds);
-				_frameTimer.Restart();
+				_audioPlayer.Update();
+
+				UpdateTimeline();
 			};
 
 			LoadMappings();
@@ -618,11 +617,9 @@ namespace Blox_Saber_Editor
 			File.WriteAllText(file, sb.ToString());
 		}
 
-		private void UpdateTimeline(double delta)
+		private void UpdateTimeline()
 		{
 			_audioPlayer.Volume = tbVolume.Value / 100f;
-
-			_audioPlayer.Update(_frameTimer.Elapsed.TotalSeconds);
 
 			var time = _audioPlayer.CurrentTime;
 			timeline1.CurrentTime = time;
@@ -884,9 +881,9 @@ namespace Blox_Saber_Editor
 
 		public double Progress => TotalTime == TimeSpan.Zero ? 0 : Math.Min(1, CurrentTime.TotalMilliseconds / TotalTime.TotalMilliseconds);
 
-		public void Update(double delta)
+		public void Update()
 		{
-			_time.Update(delta * Speed);
+			_time.Update(Speed);
 		}
 
 		public void Dispose()
@@ -900,30 +897,47 @@ namespace Blox_Saber_Editor
 
 	class Timer
 	{
-		private double _elapsed;
+		private Stopwatch _sw = new Stopwatch();
 
-		public bool IsRunning { get; private set; }
+		private double _last;
+
+		private double _elapsed;
 
 		public TimeSpan Elapsed
 		{
 			get => TimeSpan.FromSeconds(_elapsed);
-			set => _elapsed = value.TotalSeconds;
+
+			set
+			{
+				if (_sw.IsRunning)
+					_sw.Restart();
+				else
+					_sw.Reset();
+
+				_elapsed = value.TotalSeconds;
+				_last = 0;
+			}
 		}
 
-		public void Start() => IsRunning = true;
+		public void Start() => _sw.Start();
 
-		public void Stop() => IsRunning = false;
+		public void Stop() => _sw.Stop();
 
 		public void Reset()
 		{
-			IsRunning = false;
+			_sw.Reset();
+
 			_elapsed = 0;
+			_last = 0;
 		}
 
-		public void Update(double delta)
+		public void Update(float speed)
 		{
-			if (IsRunning)
-				_elapsed += delta;
+			var elapsed = _sw.Elapsed.TotalSeconds;
+
+			_elapsed += (elapsed - _last) * speed;
+
+			_last = elapsed;
 		}
 	}
 
