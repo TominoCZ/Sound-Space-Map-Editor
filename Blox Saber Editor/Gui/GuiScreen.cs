@@ -13,11 +13,11 @@ namespace Blox_Saber_Editor
 			Pauses = true;
 		}
 
-		public override void Render(float mouseX, float mouseY)
+		public override void Render(float delta, float mouseX, float mouseY)
 		{
 			foreach (var button in Buttons)
 			{
-				button.Render(mouseX, mouseY);
+				button.Render(delta, mouseX, mouseY);
 			}
 		}
 

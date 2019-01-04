@@ -135,7 +135,7 @@ namespace VarispeedDemo.SoundTouch
                     soundTouch.SetRate(playbackRate);
                 }
             }
-            this.currentSoundTouchProfile = soundTouchProfile;
+            currentSoundTouchProfile = soundTouchProfile;
             soundTouch.SetUseAntiAliasing(soundTouchProfile.UseAntiAliasing);
             soundTouch.SetUseQuickSeek(soundTouchProfile.UseQuickSeek);
         }

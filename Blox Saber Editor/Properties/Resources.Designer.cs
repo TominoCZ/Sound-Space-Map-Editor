@@ -69,5 +69,15 @@ namespace Blox_Saber_Editor.Properties {
                 return ((System.Drawing.Icon)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Vyhledává lokalizovaný prostředek typu System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap BloxSaber {
+            get {
+                object obj = ResourceManager.GetObject("BloxSaber", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

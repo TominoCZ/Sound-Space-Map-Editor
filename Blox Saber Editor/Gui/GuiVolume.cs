@@ -1,5 +1,5 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
+using System.Security.Cryptography.X509Certificates;
 using OpenTK.Graphics.OpenGL;
 
 namespace Blox_Saber_Editor
@@ -10,24 +10,35 @@ namespace Blox_Saber_Editor
 		{
 		}
 
-		public override void Render(float mouseX, float mouseY)
+		public override void Render(float delta, float mouseX, float mouseY)
 		{
 			var rect = ClientRectangle;
 			var maxY = rect.Height - rect.Width;
+			var volume = EditorWindow.Instance.MusicPlayer.Volume;
 			var pos = (1 - EditorWindow.Instance.MusicPlayer.Volume) * maxY;
 			var y = rect.Y + rect.Width / 2;
 
-			GL.Color3(0.15f, 0.15f, 0.15f);
+			GL.Color3(0.1f, 0.1f, 0.1f);
 			GLU.RenderQuad(rect);
 
 			GL.Color3(0.5f, 0.5f, 0.5f);
 			GLU.RenderQuad(rect.X + rect.Width / 2 - 1, y, 2, maxY);
 
-			GL.Color3(0.75f, 0.75f, 0.75f);
+			GL.Color3(1f, 1, 1);
 			GLU.RenderQuad(rect.X + rect.Width / 2 - 10, y + pos - 2.5f, 20, 5);
+
+			GL.Color3(0, 0.75f, 1);
+			var fr = EditorWindow.Instance.FontRenderer;
+
+			var text = "VOLUME";
+
+			var w = fr.GetWidth(text, 16);
+			var h = fr.GetHeight(16);
+
+			fr.Render(text, (int)(rect.X + rect.Width / 2 - w / 2f), (int)(rect.Y - h - 3), 16);
 		}
 
-		public void OnResize(Size size)
+		public override void OnResize(Size size)
 		{
 			ClientRectangle = new RectangleF(size.Width - ClientRectangle.Size.Width, size.Height - ClientRectangle.Size.Height - 64, ClientRectangle.Size.Width, ClientRectangle.Size.Height);
 		}

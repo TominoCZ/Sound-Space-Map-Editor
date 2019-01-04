@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Drawing;
+using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL;
 
 namespace Blox_Saber_Editor
 {
 	class GuiTrack : Gui
 	{
-		private ColorSequence _cs = new ColorSequence();
-
-		private float _mpb = 327.868852459016f;
+		private readonly ColorSequence _cs = new ColorSequence();
 
 		public Note MouseOverNote;
 
@@ -19,12 +18,13 @@ namespace Blox_Saber_Editor
 
 		}
 
-		public override void Render(float mouseX, float mouseY)
+		public override void Render(float delta, float mouseX, float mouseY)
 		{
 			GL.Color3(0.1f, 0.1f, 0.1f);
 
 			GLU.RenderQuad(ClientRectangle);
 
+			var fr = EditorWindow.Instance.FontRenderer;
 			var rect = ClientRectangle;
 
 			var cellSize = rect.Height;
@@ -41,18 +41,51 @@ namespace Blox_Saber_Editor
 			var screenSeconds = rect.Width / cubeStep;
 
 			var zoomLvl = (int)EditorWindow.Instance.Zoom;
-			var lines = Math.Ceiling(screenSeconds + 1) * zoomLvl;
+			//var lines = Math.Ceiling(screenSeconds + 1) * zoomLvl;
 			var lineSpace = cubeStep / zoomLvl;
+			var stepSmall = lineSpace / 4;
 
-			GL.Color3(0.25f, 0.25f, 0.25f);
-			for (int i = 0; i < lines; i++)
+			var stepSmallTime = (int)(stepSmall / cubeStep * 1000);
+			var stepText = stepSmallTime.ToString("#,##");
+			var stepTextW = fr.GetWidth(stepText, 16);
+			var stepTextH = fr.GetHeight(16);
+
+			var lineX = ScreenX - posX;
+
+			if (lineX < 0)
 			{
-				var x = i * lineSpace - (posX - ScreenX) % lineSpace;
+				lineX %= lineSpace;
+			}
 
+			while (lineSpace > 0 && lineX < rect.Width)
+			{
+				GL.Color3(0.65f, 0.65f, 0.65f);
 				GL.Begin(PrimitiveType.Lines);
-				GL.Vertex2((int)x + 0.5f, rect.Y);
-				GL.Vertex2((int)x + 0.5f, rect.Y + rect.Height);
+				GL.Vertex2((int)lineX + 0.5f, rect.Y);
+				GL.Vertex2((int)lineX + 0.5f, rect.Y + rect.Height + 60);
 				GL.End();
+
+				for (int j = 1; j <= 4; j++)
+				{
+					var xo = lineX + j * stepSmall;
+
+					//if (xo < ScreenX)
+						//continue;
+
+					GL.Color4(0, 0.75f, 1, 0.75f);
+					fr.Render(stepText, (int)(xo - stepSmall / 2 - stepTextW / 2f), (int)(rect.Y + rect.Height + 50 - stepTextH), 16);
+
+					if (j < 4)
+					{
+						GL.Color3(0.3f, 0.3f, 0.3f);
+						GL.Begin(PrimitiveType.Lines);
+						GL.Vertex2((int) xo + 0.5f, rect.Y + rect.Height / 2);
+						GL.Vertex2((int) xo + 0.5f, rect.Y + rect.Height + 50);
+						GL.End();
+					}
+				}
+
+				lineX += lineSpace;
 			}
 
 			var mouseOver = false;
@@ -70,9 +103,12 @@ namespace Blox_Saber_Editor
 			GL.Vertex2((int)(ScreenX - posX + maxX) + 0.5f, rect.Y + rect.Height + 8);
 			GL.End();
 
+			MouseOverNote = null;
+
 			_cs.Reset();
-			foreach (var note in EditorWindow.Instance.Notes)
+			for (int i = 0; i < EditorWindow.Instance.Notes.Count; i++)
 			{
+				Note note = EditorWindow.Instance.Notes[i];
 				note.Color = _cs.Next();
 
 				var x = ScreenX - posX + note.Ms / 1000f * cubeStep;
@@ -84,19 +120,14 @@ namespace Blox_Saber_Editor
 
 				if (x <= ScreenX)
 				{
-					alphaMult = 0.25f;
+					alphaMult = 0.35f;
 				}
 
 				var y = rect.Y + gap / 2;
 
 				var noteRect = new RectangleF(x, y, noteSize, noteSize);
 
-				if (!mouseOver)
-				{
-					MouseOverNote = null;
-				}
-
-				var b = !mouseOver && noteRect.Contains(mouseX, mouseY);
+				var b = MouseOverNote == null && !mouseOver && noteRect.Contains(mouseX, mouseY);
 
 				if (b || EditorWindow.Instance.SelectedNote == note)
 				{
@@ -119,15 +150,24 @@ namespace Blox_Saber_Editor
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, alphaMult * 1f);
 				GLU.RenderOutline(x, y, noteSize, noteSize);
 
+				var numText = $"{(i + 1):#,##}";
+
+				GL.Color3(0, 0.75f, 1f);
+				fr.Render(numText, (int)x + 3, (int)(rect.Y + rect.Height) + 3, 16);
+
+				GL.Color3(0, 1f, 0.5f);
+				fr.Render($"{note.Ms:#,##} ms", (int)x + 3, (int)(rect.Y + rect.Height + fr.GetHeight(16)) + 3 + 2, 16);
+
 				//draw line
 				GL.Color4(1f, 1f, 1f, alphaMult);
 				GL.Begin(PrimitiveType.Lines);
 				GL.Vertex2((int)x + 0.5f, rect.Y + rect.Height - 4);
-				GL.Vertex2((int)x + 0.5f, rect.Y + rect.Height + 4);
+				GL.Vertex2((int)x + 0.5f, rect.Y + rect.Height + 30);
 				GL.End();
 			}
 
-			GL.Color3(1f, 1, 1);
+			//draw screen line
+			GL.Color3(1f, 0.5f, 0);
 			GL.Begin(PrimitiveType.Lines);
 			GL.Vertex2(rect.X + ScreenX + 0.5f, rect.Y + 4);
 			GL.Vertex2(rect.X + ScreenX + 0.5f, rect.Y + rect.Height - 4);
@@ -137,7 +177,7 @@ namespace Blox_Saber_Editor
 			//FontRenderer.Print("HELLO", 0, rect.Y + rect.Height + 8);
 		}
 
-		public void OnResize(Size size)
+		public override void OnResize(Size size)
 		{
 			ClientRectangle = new RectangleF(0, ClientRectangle.Y, size.Width, ClientRectangle.Height);
 

@@ -44,7 +44,7 @@ namespace Blox_Saber_Editor
 			{
 				CurrentTime = TimeSpan.Zero;
 			}
-
+			
 			_time.Start();
 			_player.Play();
 		}
@@ -61,7 +61,7 @@ namespace Blox_Saber_Editor
 
 		public float Speed
 		{
-			get => _speedControl.PlaybackRate;
+			get => _speedControl?.PlaybackRate ?? 1;
 
 			set
 			{
@@ -115,6 +115,8 @@ namespace Blox_Saber_Editor
 					return TimeSpan.Zero;
 				}
 
+				Update();
+
 				var time = _time.Elapsed;
 
 				time = time > _music.TotalTime ? _music.TotalTime : time;
@@ -134,10 +136,10 @@ namespace Blox_Saber_Editor
 
 		public void Dispose()
 		{
-			_player.Dispose();
-			_speedControl.Dispose();
-			_music.Dispose();
-			_volumeStream.Dispose();
+			_player?.Dispose();
+			_speedControl?.Dispose();
+			_music?.Dispose();
+			_volumeStream?.Dispose();
 		}
 	}
 }

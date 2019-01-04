@@ -12,7 +12,7 @@ namespace Blox_Saber_Editor
 			_textureId = TextureManager.GetOrRegister("tempo");
 		}
 
-		public override void Render(float mouseX, float mouseY)
+		public override void Render(float delta, float mouseX, float mouseY)
 		{
 			GL.Color3(1, 1, 1f);
 			GLU.RenderTexturedQuad(ClientRectangle, 0, 0, 1, 1, _textureId);
@@ -24,7 +24,7 @@ namespace Blox_Saber_Editor
 			GLU.RenderQuad(ClientRectangle.X + 32 + tempo * (512 - 64) - 2f, y - 15 + 1, 4, 15);
 		}
 
-		public void OnResize(Size size)
+		public override void OnResize(Size size)
 		{
 			ClientRectangle = new RectangleF(size.Width - ClientRectangle.Width, size.Height - ClientRectangle.Height, ClientRectangle.Width, ClientRectangle.Height);
 		}

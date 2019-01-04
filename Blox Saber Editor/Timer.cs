@@ -5,47 +5,59 @@ namespace Blox_Saber_Editor
 {
 	class Timer
 	{
-		private readonly Stopwatch _sw = new Stopwatch();
+		private long _currentTime;
+		private long _lastTime;
 
-		private double _last;
+		private bool _isRunning;
 
-		private double _elapsed;
+		private long _elapsed;
 
 		public TimeSpan Elapsed
 		{
-			get => TimeSpan.FromMilliseconds(_elapsed);
+			get => TimeSpan.FromTicks(_elapsed);
 
 			set
 			{
-				if (_sw.IsRunning)
-					_sw.Restart();
-				else
-					_sw.Reset();
-
-				_elapsed = value.TotalMilliseconds;
-				_last = 0;
+				_elapsed = value.Ticks;
+				_currentTime = DateTime.Now.Ticks;
+				_lastTime = _currentTime;
 			}
 		}
 
-		public void Start() => _sw.Start();
+		public void Start()
+		{
+			_currentTime = DateTime.Now.Ticks;
+			_lastTime = _currentTime;
 
-		public void Stop() => _sw.Stop();
+			_isRunning = true;
+		}
+
+		public void Stop()
+		{
+			_currentTime = DateTime.Now.Ticks;
+			if (_isRunning)
+				_elapsed += (long)Math.Round((_currentTime - _lastTime) * EditorWindow.Instance.MusicPlayer.Speed);
+			_lastTime = _currentTime;
+
+			_isRunning = false;
+		}
 
 		public void Reset()
 		{
-			_sw.Reset();
+			_isRunning = false;
+
+			_currentTime = DateTime.Now.Ticks;
+			_lastTime = _currentTime;
 
 			_elapsed = 0;
-			_last = 0;
 		}
 
 		public void Update(double speed)
 		{
-			var elapsed = _sw.Elapsed.TotalMilliseconds;
-
-			_elapsed += (elapsed - _last) * speed;
-
-			_last = elapsed;
+			_currentTime = DateTime.Now.Ticks;
+			if (_isRunning)
+				_elapsed += (long) Math.Round((_currentTime - _lastTime) * speed);
+			_lastTime = _currentTime;
 		}
 	}
 }

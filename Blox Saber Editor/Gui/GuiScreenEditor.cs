@@ -1,10 +1,12 @@
 ﻿using System.Drawing;
+using System.Security.AccessControl;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
 
 namespace Blox_Saber_Editor
 {
-	class GuiScreenMain : GuiScreen
+	class GuiScreenEditor : GuiScreen
 	{
 		public double Progress;
 
@@ -13,18 +15,21 @@ namespace Blox_Saber_Editor
 		public readonly GuiTempo Tempo = new GuiTempo(512, 64);
 		public readonly GuiVolume Volume = new GuiVolume(64, 256);
 
-		public GuiScreenMain() : base(0, EditorWindow.Instance.ClientSize.Height - 64, EditorWindow.Instance.ClientSize.Width - 512 - 64, 64)
+		public readonly GuiTextBox TextBox = new GuiTextBox(0, 0, 256, 64);
+
+		public GuiScreenEditor() : base(0, EditorWindow.Instance.ClientSize.Height - 64, EditorWindow.Instance.ClientSize.Width - 512 - 64, 64)
 		{
 			Buttons.Add(new GuiButtonPlayPause(0, EditorWindow.Instance.ClientSize.Width - 512 - 64, EditorWindow.Instance.ClientSize.Height - 64, 64, 64));
 		}
 
-		public override void Render(float mouseX, float mouseY)
+		public override void Render(float delta, float mouseX, float mouseY)
 		{
-			Grid.Render(mouseX, mouseY);
+			Grid.Render(delta, mouseX, mouseY);
 
-			Track.Render(mouseX, mouseY);
-			Tempo.Render(mouseX, mouseY);
-			Volume.Render(mouseX, mouseY);
+			Track.Render(delta, mouseX, mouseY);
+			Tempo.Render(delta, mouseX, mouseY);
+			Volume.Render(delta, mouseX, mouseY);
+			//TextBox.Render(delta, mouseX, mouseY);
 
 			var rect = ClientRectangle;
 
@@ -44,10 +49,27 @@ namespace Blox_Saber_Editor
 			var cursorPos = timelineSize.X * Progress;
 
 			//cursor
-			GL.Color3(0.75f, 0.75f, 0.75f);
+			GL.Color3(1f, 1, 1);
 			GLU.RenderQuad(timelinePos.X + cursorPos - 2.5f + pos.X, timelinePos.Y - size.Y * 0.5f / 2 + pos.Y, 5, size.Y * 0.5f);
 
-			base.Render(mouseX, mouseY);
+			base.Render(delta, mouseX, mouseY);
+		}
+
+		public void OnKeyTyped(char key)
+		{
+			TextBox.OnKeyTyped(key);
+		}
+
+		public void OnKeyDown(Key key, bool control)
+		{
+			TextBox.OnKeyDown(key, control);
+		}
+
+		public override void OnMouseClick(float x, float y)
+		{
+			TextBox.OnMouseClick(x, y);
+
+			base.OnMouseClick(x, y);
 		}
 
 		protected override void OnButtonClicked(int id)
@@ -60,13 +82,14 @@ namespace Blox_Saber_Editor
 					EditorWindow.Instance.MusicPlayer.Play();
 			}
 		}
-		
-		public void OnResize(Size size)
+
+		public override void OnResize(Size size)
 		{
 			Buttons[0].ClientRectangle = new RectangleF(size.Width - 512 - 64, size.Height - 64, 64, 64);
 
 			ClientRectangle = new RectangleF(0, size.Height - 64, size.Width - 512 - 64, 64);
 
+			TextBox.OnResize(size);
 			Track.OnResize(size);
 			Tempo.OnResize(size);
 			Volume.OnResize(size);

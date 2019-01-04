@@ -23,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet />
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -41,9 +42,6 @@
     <ApplicationIcon>Blox Saber.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FreeTypeLib">
-      <HintPath>runtime_stuff\FreeTypeLib.dll</HintPath>
-    </Reference>
     <Reference Include="NAudio, Version=1.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NAudio.1.9.0-preview2\lib\net35\NAudio.dll</HintPath>
     </Reference>
@@ -58,14 +56,17 @@
   <ItemGroup>
     <Compile Include="ColorSequence.cs" />
     <Compile Include="EditorWindow.cs" />
+    <Compile Include="FreeType.cs" />
+    <Compile Include="FtFont.cs" />
     <Compile Include="GLU.cs" />
+    <Compile Include="Gui\FontRenderer.cs" />
     <Compile Include="Gui\Gui.cs" />
     <Compile Include="Gui\GuiButton.cs" />
     <Compile Include="Gui\GuiButtonPlayPause.cs" />
     <Compile Include="Gui\GuiGrid.cs" />
-    <Compile Include="Gui\GuiRenderer.cs" />
     <Compile Include="Gui\GuiScreen.cs" />
-    <Compile Include="Gui\GuiScreenMain.cs" />
+    <Compile Include="Gui\GuiScreenLoadCreate.cs" />
+    <Compile Include="Gui\GuiScreenEditor.cs" />
     <Compile Include="Gui\GuiVolume.cs" />
     <Compile Include="Gui\GuiTempo.cs" />
     <Compile Include="Gui\GuiTextBox.cs" />
@@ -115,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Blox Saber.ico" />
+    <None Include="Resources\BloxSaber.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

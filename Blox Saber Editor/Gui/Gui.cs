@@ -11,7 +11,12 @@ namespace Blox_Saber_Editor
 			ClientRectangle = new RectangleF(x, y, sx, sy);
 		}
 
-		public virtual void Render(float mouseX, float mouseY)
+		public virtual void Render(float delta, float mouseX, float mouseY)
+		{
+
+		}
+
+		public virtual void OnResize(Size size)
 		{
 
 		}

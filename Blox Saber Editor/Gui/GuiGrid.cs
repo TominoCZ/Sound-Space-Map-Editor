@@ -16,7 +16,7 @@ namespace Blox_Saber_Editor
 
 		}
 
-		public override void Render(float mouseX, float mouseY)
+		public override void Render(float delta, float mouseX, float mouseY)
 		{
 			var rect = ClientRectangle;
 			var mouseOver = false;
@@ -53,8 +53,11 @@ namespace Blox_Saber_Editor
 				GL.End();
 			}
 
-			foreach (var note in EditorWindow.Instance.Notes)
+			var fr = EditorWindow.Instance.FontRenderer;
+
+			for (var index = 0; index < EditorWindow.Instance.Notes.Count; index++)
 			{
+				var note = EditorWindow.Instance.Notes[index];
 				var visible = audioTime < note.Ms && note.Ms - audioTime <= 750;
 
 				if (!visible)
@@ -72,8 +75,15 @@ namespace Blox_Saber_Editor
 				GLU.RenderQuad(noteRect);
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, progress);
 				GLU.RenderOutline(noteRect);
+				GLU.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2, outlineSize,
+					outlineSize);
 
-				GLU.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2, outlineSize, outlineSize);
+				GL.Color4(1, 1, 1, progress);
+				var s = $"{(index + 1):#,##}";
+				var w = fr.GetWidth(s, 24);
+				var h = fr.GetHeight(24);
+
+				fr.Render(s, (int)(noteRect.X + noteRect.Width / 2 - w / 2f), (int)(noteRect.Y + noteRect.Height / 2 - h / 2f), 24);
 
 				if (!mouseOver)
 				{
@@ -85,7 +95,8 @@ namespace Blox_Saber_Editor
 					outlineSize = noteSize + 8;
 
 					GL.Color4(0, 0.5f, 1f, progress);
-					GLU.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2, outlineSize, outlineSize);
+					GLU.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2,
+						outlineSize, outlineSize);
 				}
 
 				if (!mouseOver && noteRect.Contains(mouseX, mouseY))
