@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL;
 
 namespace Blox_Saber_Editor
@@ -18,7 +19,7 @@ namespace Blox_Saber_Editor
 			}
 
 			_createButton = new GuiButton(0, 0, 0, 192, 64, "CREATE MAP");
-			_loadButton = new GuiButton(0, 0, 0, 192, 64, "LOAD MAP");
+			_loadButton = new GuiButton(1, 0, 0, 192, 64, "LOAD MAP");
 
 			Buttons.Add(_createButton);
 			Buttons.Add(_loadButton);
@@ -32,6 +33,30 @@ namespace Blox_Saber_Editor
 			GLU.RenderTexturedQuad(rect.X + rect.Width / 2 - 256, 0, 512, 512, 0, 0, 1, 1, _textureId);
 
 			base.Render(delta, mouseX, mouseY);
+		}
+
+		protected override void OnButtonClicked(int id)
+		{
+			switch (id)
+			{
+				case 0:
+
+					break;
+				case 1:
+					var ofd = new OpenFileDialog
+					{
+						Title = "Load map",
+						Filter = "Text Documents (*.txt)|*.txt"
+					};
+
+					var result = ofd.ShowDialog();
+
+					if (result == DialogResult.OK)
+					{
+						EditorWindow.Instance.LoadMap(ofd.FileName);
+					}
+					break;
+			}
 		}
 
 		public override void OnResize(Size size)

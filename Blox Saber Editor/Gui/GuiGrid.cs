@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.Remoting.Metadata;
 using OpenTK.Graphics.OpenGL;
 
 namespace Blox_Saber_Editor
@@ -33,27 +34,36 @@ namespace Blox_Saber_Editor
 
 			GL.Color3(0.2, 0.2, 0.2f);
 
-			for (int y = 1; y <= 2; y++)
+			for (int y = 0; y <= 3; y++)
 			{
 				var ly = y * cellSize;
 
-				GL.Begin(PrimitiveType.Lines);
-				GL.Vertex2(rect.X + 0.5f, rect.Y + ly);
-				GL.Vertex2(rect.X + rect.Width + 0.5f, rect.Y + ly);
-				GL.End();
+				GLU.RenderQuad((int)(rect.X), (int)(rect.Y + ly), rect.Width + 1, 1);
 			}
 
-			for (int x = 1; x <= 2; x++)
+			for (int x = 0; x <= 3; x++)
 			{
 				var lx = x * cellSize;
 
-				GL.Begin(PrimitiveType.Lines);
-				GL.Vertex2(rect.X + lx + 0.5f, rect.Y);
-				GL.Vertex2(rect.X + lx + 0.5f, rect.Y + rect.Height);
-				GL.End();
+				GLU.RenderQuad((int)(rect.X + lx), (int)(rect.Y), 1, rect.Height + 1);
 			}
 
 			var fr = EditorWindow.Instance.FontRenderer;
+
+			GL.Color3(0.2f, 0.2f, 0.2f);
+			foreach (var pair in EditorWindow.Instance.KeyMapping)
+			{
+				var letter = pair.Key.ToString();
+				var tuple = pair.Value;
+
+				var x = rect.X + tuple.Item1 * cellSize + cellSize / 2;
+				var y = rect.Y + tuple.Item2 * cellSize + cellSize / 2;
+
+				var width = fr.GetWidth(letter, 38);
+				var height = fr.GetHeight(38);
+
+				fr.Render(letter, (int)(x - width / 2f), (int)(y - height / 2), 38);
+			}
 
 			for (var index = 0; index < EditorWindow.Instance.Notes.Count; index++)
 			{

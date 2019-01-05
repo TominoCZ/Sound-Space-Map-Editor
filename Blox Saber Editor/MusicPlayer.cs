@@ -111,9 +111,7 @@ namespace Blox_Saber_Editor
 			get
 			{
 				if (_music == null)
-				{
 					return TimeSpan.Zero;
-				}
 
 				Update();
 
@@ -125,6 +123,9 @@ namespace Blox_Saber_Editor
 			}
 			set
 			{
+				if (_music == null)
+					return;
+
 				_music.CurrentTime = value;
 				_time.Elapsed = value;
 

@@ -20,10 +20,11 @@ namespace Blox_Saber_Editor
 
 			GL.Color3(0.1f, 0.1f, 0.1f);
 			GLU.RenderQuad(rect);
+			GL.Color3(0.35f, 0.35f, 0.35f);
+			GLU.RenderOutline(rect);
 
 			GL.Color3(0.5f, 0.5f, 0.5f);
 			GLU.RenderQuad(rect.X + rect.Width / 2 - 1, y, 2, maxY);
-
 			GL.Color3(1f, 1, 1);
 			GLU.RenderQuad(rect.X + rect.Width / 2 - 10, y + pos - 2.5f, 20, 5);
 
@@ -32,10 +33,10 @@ namespace Blox_Saber_Editor
 
 			var text = "VOLUME";
 
-			var w = fr.GetWidth(text, 16);
-			var h = fr.GetHeight(16);
+			var w = fr.GetWidth(text, 14);
+			var h = fr.GetHeight(14);
 
-			fr.Render(text, (int)(rect.X + rect.Width / 2 - w / 2f), (int)(rect.Y - h - 3), 16);
+			fr.Render(text, (int)(rect.X + rect.Width / 2 - w / 2f), (int)(rect.Y + h - 3), 14);
 		}
 
 		public override void OnResize(Size size)

@@ -14,13 +14,18 @@ namespace Blox_Saber_Editor
 
 		public TimeSpan Elapsed
 		{
-			get => TimeSpan.FromTicks(_elapsed);
+			get
+			{
+				Update(EditorWindow.Instance.MusicPlayer.Speed);
+
+				return TimeSpan.FromTicks(_elapsed);
+			}
 
 			set
 			{
 				_elapsed = value.Ticks;
-				_currentTime = DateTime.Now.Ticks;
-				_lastTime = _currentTime;
+
+				Update(EditorWindow.Instance.MusicPlayer.Speed);
 			}
 		}
 

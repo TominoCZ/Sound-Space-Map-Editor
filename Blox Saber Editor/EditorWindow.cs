@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Blox_Saber_Editor.Properties;
-using FreeType;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -26,18 +26,22 @@ namespace Blox_Saber_Editor
 		public MusicPlayer MusicPlayer;
 		public SoundPlayer SoundPlayer;
 
-		private readonly Dictionary<Key, Tuple<int, int>> _mapping = new Dictionary<Key, Tuple<int, int>>();
+		public readonly Dictionary<Key, Tuple<int, int>> KeyMapping = new Dictionary<Key, Tuple<int, int>>();
 
 		//private readonly GuiScreenEditor _screenEditor;
 
+		private WindowState _lastWindowState;
+
 		private readonly UndoRedo _undoRedo = new UndoRedo();
 
+		public bool IsDraggingNoteOnTimeLine => _draggingNoteTimeline && _dragStartMs != _draggedNote.Ms;
+		public Note SelectedNote;
 		private Note _draggedNote;
 		private Note _lastPlayedNote;
-		public Note SelectedNote;
 
 		private DateTime _lastTempoChange = DateTime.Now;
 
+		private Point _clickedMouse;
 		private Point _lastMouse;
 
 		private float _brigthness;
@@ -48,7 +52,7 @@ namespace Blox_Saber_Editor
 		private int _dragStartIndexX;
 		private int _dragStartIndexY;
 
-		private bool _mouseDown;
+		private bool _rightDown;
 		private bool _draggingCursor;
 		private bool _draggingNoteTimeline;
 		private bool _draggingNoteGrid;
@@ -59,7 +63,7 @@ namespace Blox_Saber_Editor
 
 		private long _soundID = -1;
 
-		public List<Note> Notes = new List<Note>();
+		public NoteList Notes = new NoteList();
 
 		private float _zoom = 1;
 
@@ -71,12 +75,14 @@ namespace Blox_Saber_Editor
 
 		public float CubeStep => 50 * 10 * Zoom;
 
-		public EditorWindow() : base(800, 600, new GraphicsMode(32, 8, 0, 4), "Blox Saber Editor")
+		public EditorWindow() : base(800, 600, new GraphicsMode(32, 8, 0, 4), "Blox Saber Map Editor Beta")
 		{
 			Instance = this;
 
 			Icon = Resources.Blox_Saber;
 			VSync = VSyncMode.Off;
+
+			_lastWindowState = WindowState;
 
 			TargetRenderFrequency = 240;
 
@@ -86,29 +92,29 @@ namespace Blox_Saber_Editor
 			FontRenderer = new FontRenderer("main");
 			//_screenEditor = new GuiScreenEditor();
 
-			OpenGuiScreen(new GuiScreenEditor()); //_screenEditor);
-												  //OpenGuiScreen(new GuiScreenLoadCreate());
+			OpenGuiScreen(new GuiScreenLoadCreate()); //_screenEditor);
+													  //OpenGuiScreen(new GuiScreenLoadCreate());
 
 			SoundPlayer.Init();
 
-			LoadMap("map.txt");
+			//LoadMap("map.txt");
 
-			MusicPlayer.Load("song.mp3");
-			MusicPlayer.Play();
+			//MusicPlayer.Load("song.mp3");
+			//MusicPlayer.Play();
 
 			SoundPlayer.Cache("hit");
 
-			_mapping.Add(Key.Q, new Tuple<int, int>(0, 0));
-			_mapping.Add(Key.W, new Tuple<int, int>(1, 0));
-			_mapping.Add(Key.E, new Tuple<int, int>(2, 0));
+			KeyMapping.Add(Key.Q, new Tuple<int, int>(0, 0));
+			KeyMapping.Add(Key.W, new Tuple<int, int>(1, 0));
+			KeyMapping.Add(Key.E, new Tuple<int, int>(2, 0));
 
-			_mapping.Add(Key.A, new Tuple<int, int>(0, 1));
-			_mapping.Add(Key.S, new Tuple<int, int>(1, 1));
-			_mapping.Add(Key.D, new Tuple<int, int>(2, 1));
+			KeyMapping.Add(Key.A, new Tuple<int, int>(0, 1));
+			KeyMapping.Add(Key.S, new Tuple<int, int>(1, 1));
+			KeyMapping.Add(Key.D, new Tuple<int, int>(2, 1));
 
-			_mapping.Add(Key.Z, new Tuple<int, int>(0, 2));
-			_mapping.Add(Key.X, new Tuple<int, int>(1, 2));
-			_mapping.Add(Key.C, new Tuple<int, int>(2, 2));
+			KeyMapping.Add(Key.Z, new Tuple<int, int>(0, 2));
+			KeyMapping.Add(Key.X, new Tuple<int, int>(1, 2));
+			KeyMapping.Add(Key.C, new Tuple<int, int>(2, 2));
 		}
 
 		protected override void OnLoad(EventArgs e)
@@ -137,8 +143,7 @@ namespace Blox_Saber_Editor
 
 			if (MusicPlayer.IsPlaying)
 			{
-				var closest = Notes.OrderBy(n => n.Ms)
-					.LastOrDefault(n => n.Ms <= (int)MusicPlayer.CurrentTime.TotalMilliseconds);
+				var closest = Notes.LastOrDefault(n => n.Ms <= (int)MusicPlayer.CurrentTime.TotalMilliseconds);
 
 				if (_lastPlayedNote != closest)
 				{
@@ -146,7 +151,7 @@ namespace Blox_Saber_Editor
 
 					if (closest != null)
 					{
-						SoundPlayer.Play("hit");
+						SoundPlayer.Play("hit", 0.2f);
 						_brigthness = 0.2f;
 					}
 				}
@@ -164,13 +169,23 @@ namespace Blox_Saber_Editor
 				var noteX = editor.Track.ScreenX - posX + _dragStartMs / 1000f * CubeStep;
 
 				GL.Color3(0.75f, 0.75f, 0.75f);
-				GLU.RenderQuad(noteX, rect.Y, 1, rect.Height);
+				GLU.RenderQuad((int)noteX, (int)rect.Y, 1, rect.Height);
+			}
 
-				if (_lastMouse.X != _dragStartX)
+			if (_rightDown && GuiScreen is GuiScreenEditor g)
+			{
+				if (g.Track.ClientRectangle.Contains(_clickedMouse))
 				{
-					noteX = editor.Track.ScreenX - posX + _draggedNote.Ms / 1000f * CubeStep;
+					var x = Math.Min(_lastMouse.X, _clickedMouse.X);
+					var y = Math.Min(_lastMouse.Y, _clickedMouse.Y);
 
-					GLU.RenderQuad(noteX, rect.Y, 1, rect.Height);
+					var w = Math.Max(_lastMouse.X, _clickedMouse.X) - x;
+					var h = Math.Min((int)g.Track.ClientRectangle.Height, Math.Max(_lastMouse.Y, _clickedMouse.Y)) - y;
+
+					GL.Color4(0, 1, 0.2f, 0.2f);
+					GLU.RenderQuad(x, y, w, h);
+					GL.Color4(0, 1, 0.2f, 1);
+					GLU.RenderOutline(x, y, w, h);
 				}
 			}
 
@@ -247,15 +262,25 @@ namespace Blox_Saber_Editor
 			}
 		}
 
+		protected override void OnMouseLeave(EventArgs e)
+		{
+			_rightDown = false;
+		}
+
 		protected override void OnMouseDown(MouseButtonEventArgs e)
 		{
-			_mouseDown = true;
+			if (e.Button == MouseButton.Right)
+			{
+				_clickedMouse = e.Position;
+
+				_rightDown = true;
+			}
 
 			GuiScreen?.OnMouseClick(e.X, e.Y);
 
 			SelectedNote = null;
 
-			if (GuiScreen is GuiScreenEditor editor)
+			if (GuiScreen is GuiScreenEditor editor && !_rightDown)
 			{
 				if (editor.Track.MouseOverNote is Note tn)
 				{
@@ -315,9 +340,9 @@ namespace Blox_Saber_Editor
 			if (_draggingNoteTimeline)
 			{
 				MusicPlayer.Pause();
-				OnDraggingTimelineNote(Math.Abs(e.X - _dragStartX) >= 5 ? e.X : _dragStartX);
+				//OnDraggingTimelineNote(Math.Abs(e.X - _dragStartX) >= 5 ? e.X : _dragStartX);
 
-				_lastPlayedNote = Notes.OrderBy(n => n.Ms).LastOrDefault(n =>
+				_lastPlayedNote = Notes.LastOrDefault(n =>
 					n.Ms <= Math.Floor(MusicPlayer.CurrentTime.TotalMilliseconds));
 
 				var note = _draggedNote;
@@ -326,7 +351,9 @@ namespace Blox_Saber_Editor
 
 				if (diff != 0)
 				{
-					_undoRedo.AddUndoRedo(() => { note.Ms = start; }, () => { note.Ms = start + diff; });
+					Notes.Sort();
+
+					_undoRedo.AddUndoRedo(() => { note.Ms = start; Notes.Sort(); }, () => { note.Ms = start + diff; Notes.Sort(); });
 				}
 			}
 
@@ -360,7 +387,7 @@ namespace Blox_Saber_Editor
 				MusicPlayer.Stop();
 				OnDraggingTimeline(e.X);
 
-				_lastPlayedNote = Notes.OrderBy(n => n.Ms).LastOrDefault(n =>
+				_lastPlayedNote = Notes.LastOrDefault(n =>
 					n.Ms <= Math.Floor(MusicPlayer.CurrentTime.TotalMilliseconds));
 
 				if (_wasPlaying)
@@ -372,7 +399,7 @@ namespace Blox_Saber_Editor
 			_draggingNoteGrid = false;
 			_draggingTimeline = false;
 			_draggingCursor = false;
-			_mouseDown = false;
+			_rightDown = false;
 		}
 
 		protected override void OnKeyPress(KeyPressEventArgs e)
@@ -387,10 +414,15 @@ namespace Blox_Saber_Editor
 		{
 			if (e.Key == Key.F11)
 			{
-				if (WindowState == WindowState.Normal)
+				if (WindowState != WindowState.Fullscreen)
+				{
+					_lastWindowState = WindowState;
 					WindowState = WindowState.Fullscreen;
+				}
 				else if (WindowState == WindowState.Fullscreen)
-					WindowState = WindowState.Normal;
+				{
+					WindowState = _lastWindowState;
+				}
 			}
 
 			if (GuiScreen is GuiScreenEditor editor)
@@ -416,6 +448,30 @@ namespace Blox_Saber_Editor
 				//make sure to not register input while we're typing into a text box
 				if (!editor.TextBox.Focused)
 				{
+					if (!MusicPlayer.IsPlaying && SelectedNote != null && _draggingNoteTimeline)
+					{
+						if (e.Key == Key.Left)
+						{
+							var node = SelectedNote;
+							//var prev = node.Ms;
+							node.Ms--;
+							Notes.Sort();
+							//var next = node.Ms;
+
+							//_undoRedo.AddUndoRedo(() => node.Ms = prev, () => node.Ms = next);
+						}
+						if (e.Key == Key.Right)
+						{
+							var node = SelectedNote;
+							//var prev = node.Ms;
+							node.Ms++;
+							Notes.Sort();
+							//var next = node.Ms;
+
+							//_undoRedo.AddUndoRedo(() => node.Ms = prev, () => node.Ms = next);
+						}
+					}
+
 					if (e.Key == Key.Space)
 					{
 						if (!_draggingTimeline && !_draggingNoteTimeline && !_draggingCursor)
@@ -433,12 +489,14 @@ namespace Blox_Saber_Editor
 
 					if (!e.Control)
 					{
-						if (_mapping.TryGetValue(e.Key, out var tuple))
+						if (KeyMapping.TryGetValue(e.Key, out var tuple))
 						{
 							var note = new Note(tuple.Item1, tuple.Item2,
 								(int)MusicPlayer.CurrentTime.TotalMilliseconds);
 
 							Notes.Add(note);
+
+							_undoRedo.AddUndoRedo(() => Notes.Remove(note), () => Notes.Add(note));
 						}
 
 						if (e.Key == Key.Delete && SelectedNote != null)
@@ -448,7 +506,11 @@ namespace Blox_Saber_Editor
 
 							if (result == DialogResult.Yes)
 							{
-								Notes.Remove(SelectedNote);
+								var note = SelectedNote;
+
+								Notes.Remove(note);
+
+								_undoRedo.AddUndoRedo(() => Notes.Add(note), () => Notes.Remove(note));
 
 								SelectedNote = null;
 							}
@@ -517,6 +579,7 @@ namespace Blox_Saber_Editor
 			time = (int)Math.Max(0, Math.Min(MusicPlayer.TotalTime.TotalMilliseconds, time));
 
 			_draggedNote.Ms = time;
+			Notes.Sort();
 		}
 
 		private void OnDraggingGridNote(Point pos)
@@ -549,7 +612,7 @@ namespace Blox_Saber_Editor
 			MusicPlayer.CurrentTime = TimeSpan.FromMilliseconds(time);
 		}
 
-		private void LoadMap(string file)
+		public void LoadMap(string file)
 		{
 			Notes.Clear();
 
@@ -572,14 +635,24 @@ namespace Blox_Saber_Editor
 				Notes.Add(new Note(x, y, ms));
 			}
 
-			_soundID = long.Parse(ID.Value);
+			if (long.TryParse(ID.Value, out _soundID))
+			{
+				if (LoadSound(_soundID))
+				{
+					MusicPlayer.Load("assets/cached/" + _soundID + ".asset");
+					OpenGuiScreen(new GuiScreenEditor());
+				}
+			}
+			else
+				_soundID = -1;
 		}
 
 		private void SaveMap()
 		{
 			SaveFileDialog sfd = new SaveFileDialog
 			{
-				Filter = ".TXT|*.TXT"
+				Title = "Save map",
+				Filter = "Text Documents (*.txt)|*.txt"
 			};
 
 			var result = sfd.ShowDialog();
@@ -606,6 +679,33 @@ namespace Blox_Saber_Editor
 			}
 		}
 
+		private bool LoadSound(long id)
+		{
+			try
+			{
+				if (!Directory.Exists("assets/cached"))
+					Directory.CreateDirectory("assets/cached");
+
+				if (!File.Exists("assets/cached/" + id + ".asset"))
+				{
+					using (var wc = new SecureWebClient())
+					{
+						wc.DownloadFile("https://assetgame.roblox.com/asset/?id=" + id, "assets/cached/" + id + ".asset");
+					}
+				}
+
+				return true;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+				MessageBox.Show($"Failed to download asset with id '{id}'", "Error", MessageBoxButtons.OK,
+					MessageBoxIcon.Error);
+			}
+
+			return false;
+		}
+
 		public void OpenGuiScreen(GuiScreen s)
 		{
 			GuiScreen?.OnClosing();
@@ -613,6 +713,59 @@ namespace Blox_Saber_Editor
 			IsPaused = s != null && s.Pauses;
 
 			GuiScreen = s;
+		}
+	}
+
+	class SecureWebClient : WebClient
+	{
+		protected override WebRequest GetWebRequest(Uri address)
+		{
+			HttpWebRequest request = base.GetWebRequest(address) as HttpWebRequest;
+			request.UserAgent = "RobloxProxy";
+			request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
+			return request;
+		}
+	}
+
+	class NoteList
+	{
+		private List<Note> _notes = new List<Note>();
+
+		public int Count => _notes.Count;
+
+		public void Add(Note note)
+		{
+			_notes.Add(note);
+
+			Sort();
+		}
+
+		public void Remove(Note note)
+		{
+			_notes.Remove(note);
+
+			Sort();
+		}
+
+		public void Clear()
+		{
+			_notes.Clear();
+		}
+
+		public void Sort()
+		{
+			_notes = new List<Note>(_notes.OrderBy(n => n.Ms));
+		}
+
+		public Note LastOrDefault(Func<Note, bool> predicate)
+		{
+			return _notes.LastOrDefault(predicate);
+		}
+
+		public Note this[int index]
+		{
+			get => _notes[index];
+			set => _notes[index] = value;
 		}
 	}
 }

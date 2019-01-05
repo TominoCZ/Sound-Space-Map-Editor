@@ -53,6 +53,12 @@ namespace Blox_Saber_Editor
 		{
 			GL.PolygonMode(MaterialFace.Front, PolygonMode.Line);
 
+			x += 0.5f;
+			y += 0.5f;
+
+			sx--;
+			sy--;
+
 			GL.Translate(x, y, 0);
 			GL.Scale(sx, sy, 1);
 			GL.Begin(PrimitiveType.Polygon);

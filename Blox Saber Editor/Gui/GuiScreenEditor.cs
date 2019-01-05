@@ -32,45 +32,43 @@ namespace Blox_Saber_Editor
 			//TextBox.Render(delta, mouseX, mouseY);
 
 			var rect = ClientRectangle;
-
-			var pos = new Vector2(rect.X, rect.Y);
-			var size = new Vector2(rect.Width, rect.Height);
+			
 			var timelinePos = new Vector2(rect.Height / 2f, rect.Height / 2f - 1);
 			var timelineSize = new Vector2(rect.Width - rect.Height, 2);
 
 			//background
 			GL.Color3(0.1f, 0.1f, 0.1f);
-			GLU.RenderQuad(pos.X, pos.Y, size.X, size.Y);
+			GLU.RenderQuad((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
 
 			//timeline
 			GL.Color3(0.5f, 0.5f, 0.5f);
-			GLU.RenderQuad(timelinePos.X + pos.X, timelinePos.Y + pos.Y, timelineSize.X, timelineSize.Y);
+			GLU.RenderQuad(timelinePos.X + rect.X, timelinePos.Y + rect.Y, timelineSize.X, timelineSize.Y);
 
 			var cursorPos = timelineSize.X * Progress;
 
 			//cursor
 			GL.Color3(1f, 1, 1);
-			GLU.RenderQuad(timelinePos.X + cursorPos - 2.5f + pos.X, timelinePos.Y - size.Y * 0.5f / 2 + pos.Y, 5, size.Y * 0.5f);
+			GLU.RenderQuad(timelinePos.X + cursorPos - 2.5f + rect.X, timelinePos.Y - rect.Height * 0.5f / 2 + rect.Y, 5, rect.Height * 0.5f);
 
 			base.Render(delta, mouseX, mouseY);
 		}
 
 		public void OnKeyTyped(char key)
 		{
-			TextBox.OnKeyTyped(key);
+			//TextBox.OnKeyTyped(key);
 		}
 
 		public void OnKeyDown(Key key, bool control)
 		{
-			TextBox.OnKeyDown(key, control);
+			//TextBox.OnKeyDown(key, control);
 		}
 
-		public override void OnMouseClick(float x, float y)
-		{
-			TextBox.OnMouseClick(x, y);
+		//public override void OnMouseClick(float x, float y)
+		//{
+			//TextBox.OnMouseClick(x, y);
 
-			base.OnMouseClick(x, y);
-		}
+			//base.OnMouseClick(x, y);
+		//}
 
 		protected override void OnButtonClicked(int id)
 		{

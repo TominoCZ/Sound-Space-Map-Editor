@@ -22,10 +22,13 @@ namespace Blox_Saber_Editor
 		{
 			GL.Color3(0.1f, 0.1f, 0.1f);
 
-			GLU.RenderQuad(ClientRectangle);
+			var rect = ClientRectangle;
+
+			GLU.RenderQuad(rect);
+			GL.Color3(0.2f, 0.2f, 0.2f);
+			GLU.RenderQuad((int)rect.X, (int)rect.Y + rect.Height, (int)rect.Width, 1);
 
 			var fr = EditorWindow.Instance.FontRenderer;
-			var rect = ClientRectangle;
 
 			var cellSize = rect.Height;
 			var noteSize = cellSize * 0.65f;
@@ -45,8 +48,8 @@ namespace Blox_Saber_Editor
 			var lineSpace = cubeStep / zoomLvl;
 			var stepSmall = lineSpace / 4;
 
-			var stepSmallTime = (int)(stepSmall / cubeStep * 1000);
-			var stepText = stepSmallTime.ToString("#,##");
+			var stepSmallTime = (int)(stepSmall / cubeStep * 1000 * 100) / 100f;
+			var stepText = stepSmallTime.ToString("#,##.##") + "ms";
 			var stepTextW = fr.GetWidth(stepText, 16);
 			var stepTextH = fr.GetHeight(16);
 
@@ -129,7 +132,7 @@ namespace Blox_Saber_Editor
 
 				var b = MouseOverNote == null && !mouseOver && noteRect.Contains(mouseX, mouseY);
 
-				if (b || EditorWindow.Instance.SelectedNote == note)
+				if ((b || EditorWindow.Instance.SelectedNote == note) && !EditorWindow.Instance.IsDraggingNoteOnTimeLine)
 				{
 					if (b)
 					{
@@ -142,13 +145,13 @@ namespace Blox_Saber_Editor
 						GL.Color3(0, 0.5f, 1);
 					}
 
-					GLU.RenderOutline(x - 4, y - 4, noteSize + 8, noteSize + 8);
+					GLU.RenderOutline((int)(x - 4), (int)(y - 4), (int)(noteSize + 8), (int)(noteSize + 8));
 				}
 
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, alphaMult * 0.2f);
-				GLU.RenderQuad(x, y, noteSize, noteSize);
+				GLU.RenderQuad((int)x, (int)y, (int)noteSize, (int)noteSize);
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, alphaMult * 1f);
-				GLU.RenderOutline(x, y, noteSize, noteSize);
+				GLU.RenderOutline((int)x, (int)y, (int)noteSize, (int)noteSize);
 
 				var numText = $"{(i + 1):#,##}";
 
@@ -156,7 +159,7 @@ namespace Blox_Saber_Editor
 				fr.Render(numText, (int)x + 3, (int)(rect.Y + rect.Height) + 3, 16);
 
 				GL.Color3(0, 1f, 0.5f);
-				fr.Render($"{note.Ms:#,##} ms", (int)x + 3, (int)(rect.Y + rect.Height + fr.GetHeight(16)) + 3 + 2, 16);
+				fr.Render($"{note.Ms:#,##}ms", (int)x + 3, (int)(rect.Y + rect.Height + fr.GetHeight(16)) + 3 + 2, 16);
 
 				//draw line
 				GL.Color4(1f, 1f, 1f, alphaMult);
