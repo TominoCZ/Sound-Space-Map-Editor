@@ -32,6 +32,7 @@ namespace Blox_Saber_Editor
 			{
 				if (button.IsMouseOver)
 				{
+					EditorWindow.Instance.SoundPlayer.Play("click", 0.4f);
 					OnButtonClicked(button.ID);
 					break;
 				}

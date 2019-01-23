@@ -31,7 +31,7 @@ namespace Blox_Saber_Editor
 			GL.Color3(0, 0.75f, 1);
 			var fr = EditorWindow.Instance.FontRenderer;
 
-			var text = "VOLUME";
+			var text = "MASTER";
 
 			var w = fr.GetWidth(text, 14);
 			var h = fr.GetHeight(14);

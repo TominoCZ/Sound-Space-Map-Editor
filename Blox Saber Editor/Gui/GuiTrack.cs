@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL;
@@ -132,7 +133,7 @@ namespace Blox_Saber_Editor
 
 				var b = MouseOverNote == null && !mouseOver && noteRect.Contains(mouseX, mouseY);
 
-				if ((b || EditorWindow.Instance.SelectedNote == note) && !EditorWindow.Instance.IsDraggingNoteOnTimeLine)
+				if ((b || EditorWindow.Instance.SelectedNotes.Contains(note)) && !EditorWindow.Instance.IsDraggingNoteOnTimeLine)
 				{
 					if (b)
 					{
@@ -185,6 +186,43 @@ namespace Blox_Saber_Editor
 			ClientRectangle = new RectangleF(0, ClientRectangle.Y, size.Width, ClientRectangle.Height);
 
 			ScreenX = ClientRectangle.Width / 2.5f;
+		}
+
+		public List<Note> GetNotesInRect(RectangleF selectionRect)
+		{
+			var notes = new List<Note>();
+
+			var rect = ClientRectangle;
+
+			var cellSize = rect.Height;
+			var noteSize = cellSize * 0.65f;
+
+			var gap = cellSize - noteSize;
+
+			var audioTime = EditorWindow.Instance.MusicPlayer.CurrentTime.TotalMilliseconds;
+
+			var cubeStep = EditorWindow.Instance.CubeStep;
+			var posX = (float) audioTime / 1000 * cubeStep;
+
+			for (int i = 0; i < EditorWindow.Instance.Notes.Count; i++)
+			{
+				Note note = EditorWindow.Instance.Notes[i];
+				note.Color = _cs.Next();
+
+				var x = ScreenX - posX + note.Ms / 1000f * cubeStep;
+
+				if (x < rect.X - noteSize || x > rect.Width)
+					continue;
+
+				var y = rect.Y + gap / 2;
+
+				var noteRect = new RectangleF(x, y, noteSize, noteSize);
+
+				if (selectionRect.IntersectsWith(noteRect))
+					notes.Add(note);
+			}
+
+			return notes;
 		}
 	}
 }

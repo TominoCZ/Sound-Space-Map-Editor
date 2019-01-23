@@ -100,7 +100,7 @@ namespace Blox_Saber_Editor
 					MouseOverNote = null;
 				}
 
-				if (EditorWindow.Instance.SelectedNote is Note selected && selected == note)
+				if (EditorWindow.Instance.SelectedNotes.Contains(note))
 				{
 					outlineSize = noteSize + 8;
 

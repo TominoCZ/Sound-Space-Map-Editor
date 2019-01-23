@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Security.AccessControl;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -15,16 +16,42 @@ namespace Blox_Saber_Editor
 		public readonly GuiTempo Tempo = new GuiTempo(512, 64);
 		public readonly GuiVolume Volume = new GuiVolume(64, 256);
 
-		public readonly GuiTextBox TextBox = new GuiTextBox(0, 0, 256, 64);
+		private GuiLabel _toast;
+		private float _toastTime;
 
 		public GuiScreenEditor() : base(0, EditorWindow.Instance.ClientSize.Height - 64, EditorWindow.Instance.ClientSize.Width - 512 - 64, 64)
 		{
+			_toast = new GuiLabel(0, 0, "") { Centered = true, FontSize = 36 };
+
 			Buttons.Add(new GuiButtonPlayPause(0, EditorWindow.Instance.ClientSize.Width - 512 - 64, EditorWindow.Instance.ClientSize.Height - 64, 64, 64));
+
+			OnResize(EditorWindow.Instance.ClientSize);
 		}
 
 		public override void Render(float delta, float mouseX, float mouseY)
 		{
+			_toastTime = Math.Min(2, _toastTime + delta);
+
+			var toastOffY = 1f;
+
+			if (_toastTime <= 0.5)
+			{
+				toastOffY = (float)Math.Sin(Math.Min(0.5, _toastTime) / 0.5 * MathHelper.PiOver2);
+			}
+			else if (_toastTime >= 1.75)
+			{
+				toastOffY = (float)Math.Cos(Math.Min(0.25, _toastTime - 1.75) / 0.25 * MathHelper.PiOver2);
+			}
+
+			var size = EditorWindow.Instance.ClientSize;
+
+			var h = EditorWindow.Instance.FontRenderer.GetHeight(_toast.FontSize);
+
+			_toast.ClientRectangle.Y = size.Height - Tempo.ClientRectangle.Height + h - toastOffY * h * 2;
+			//_toast.ClientRectangle.Y = 200;
 			Grid.Render(delta, mouseX, mouseY);
+
+			_toast.Render(delta, mouseX, mouseY);
 
 			Track.Render(delta, mouseX, mouseY);
 			Tempo.Render(delta, mouseX, mouseY);
@@ -32,7 +59,7 @@ namespace Blox_Saber_Editor
 			//TextBox.Render(delta, mouseX, mouseY);
 
 			var rect = ClientRectangle;
-			
+
 			var timelinePos = new Vector2(rect.Height / 2f, rect.Height / 2f - 1);
 			var timelineSize = new Vector2(rect.Width - rect.Height, 2);
 
@@ -53,23 +80,6 @@ namespace Blox_Saber_Editor
 			base.Render(delta, mouseX, mouseY);
 		}
 
-		public void OnKeyTyped(char key)
-		{
-			//TextBox.OnKeyTyped(key);
-		}
-
-		public void OnKeyDown(Key key, bool control)
-		{
-			//TextBox.OnKeyDown(key, control);
-		}
-
-		//public override void OnMouseClick(float x, float y)
-		//{
-			//TextBox.OnMouseClick(x, y);
-
-			//base.OnMouseClick(x, y);
-		//}
-
 		protected override void OnButtonClicked(int id)
 		{
 			if (id == 0)
@@ -87,11 +97,21 @@ namespace Blox_Saber_Editor
 
 			ClientRectangle = new RectangleF(0, size.Height - 64, size.Width - 512 - 64, 64);
 
-			TextBox.OnResize(size);
 			Track.OnResize(size);
 			Tempo.OnResize(size);
 			Volume.OnResize(size);
+
 			Grid.ClientRectangle = new RectangleF((int)(size.Width / 2f - Grid.ClientRectangle.Width / 2), (int)((size.Height + Track.ClientRectangle.Height - 64) / 2 - Grid.ClientRectangle.Height / 2), Grid.ClientRectangle.Width, Grid.ClientRectangle.Height);
+
+			_toast.ClientRectangle.X = size.Width / 2f;
+		}
+
+		public void ShowToast(string text, Color color)
+		{
+			_toastTime = 0;
+
+			_toast.Text = text;
+			_toast.Color = color;
 		}
 	}
 }

@@ -11,11 +11,13 @@ namespace Blox_Saber_Editor
 {
 	class GuiTextBox : Gui
 	{
+		public bool Centered;
+
 		private string _text = "";
 		private int _cursorPos;
 
 		private float _timer;
-
+		
 		public string Text
 		{
 			get => _text;
@@ -50,6 +52,11 @@ namespace Blox_Saber_Editor
 				renderedText = renderedText.Substring(1, renderedText.Length - 1);
 			}
 
+			var offX = (int)(ClientRectangle.Width / 2 - fr.GetWidth(renderedText, 24) / 2f - rect.Height / 2);
+
+			if (Centered)
+				GL.Translate(offX, 0, 0);
+
 			GL.Color3(1, 1, 1f);
 			fr.Render(renderedText, (int)x, (int)(y - fr.GetHeight(24) / 2f), 24);
 
@@ -72,6 +79,9 @@ namespace Blox_Saber_Editor
 			{
 				_timer = 0;
 			}
+
+			if (Centered)
+				GL.Translate(-offX, 0, 0);
 		}
 
 		public void OnMouseClick(float x, float y)
@@ -111,6 +121,7 @@ namespace Blox_Saber_Editor
 					if (!string.IsNullOrWhiteSpace(clipboard))
 					{
 						_text += clipboard;
+						_cursorPos += clipboard.Length;
 					}
 					break;
 				case Key.Left:
@@ -133,7 +144,7 @@ namespace Blox_Saber_Editor
 				case Key.Delete:
 					if (_text.Length > 0 && _cursorPos < _text.Length)
 					{
-						_text = _text.Remove(Math.Min(_cursorPos + 1, _text.Length - 1), 1);
+						_text = _text.Remove(Math.Min(_cursorPos, _text.Length - 1), 1);
 					}
 					break;
 			}

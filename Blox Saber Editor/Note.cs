@@ -7,6 +7,7 @@ namespace Blox_Saber_Editor
 		public int X;
 		public int Y;
 		public int Ms;
+		public int DragStartMs;
 
 		public Color Color;
 

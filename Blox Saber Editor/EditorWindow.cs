@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -34,9 +35,9 @@ namespace Blox_Saber_Editor
 
 		private readonly UndoRedo _undoRedo = new UndoRedo();
 
-		public bool IsDraggingNoteOnTimeLine => _draggingNoteTimeline && _dragStartMs != _draggedNote.Ms;
-		public Note SelectedNote;
-		private Note _draggedNote;
+		public bool IsDraggingNoteOnTimeLine => _draggingNoteTimeline && _draggedNotes.Count > 0 && _draggedNotes[0].DragStartMs != _draggedNotes[0].Ms;
+		public List<Note> SelectedNotes = new List<Note>();
+		private List<Note> _draggedNotes = new List<Note>();
 		private Note _lastPlayedNote;
 
 		private DateTime _lastTempoChange = DateTime.Now;
@@ -52,6 +53,7 @@ namespace Blox_Saber_Editor
 		private int _dragStartIndexX;
 		private int _dragStartIndexY;
 
+		private bool _saved;
 		private bool _rightDown;
 		private bool _draggingCursor;
 		private bool _draggingNoteTimeline;
@@ -60,6 +62,8 @@ namespace Blox_Saber_Editor
 		private bool _draggingVolume;
 
 		private bool _wasPlaying;
+
+		private string _file;
 
 		private long _soundID = -1;
 
@@ -90,19 +94,13 @@ namespace Blox_Saber_Editor
 			SoundPlayer = new SoundPlayer();
 
 			FontRenderer = new FontRenderer("main");
-			//_screenEditor = new GuiScreenEditor();
 
-			OpenGuiScreen(new GuiScreenLoadCreate()); //_screenEditor);
-													  //OpenGuiScreen(new GuiScreenLoadCreate());
+			OpenGuiScreen(new GuiScreenLoadCreate());
 
 			SoundPlayer.Init();
 
-			//LoadMap("map.txt");
-
-			//MusicPlayer.Load("song.mp3");
-			//MusicPlayer.Play();
-
 			SoundPlayer.Cache("hit");
+			SoundPlayer.Cache("click");
 
 			KeyMapping.Add(Key.Q, new Tuple<int, int>(0, 0));
 			KeyMapping.Add(Key.W, new Tuple<int, int>(1, 0));
@@ -151,7 +149,7 @@ namespace Blox_Saber_Editor
 
 					if (closest != null)
 					{
-						SoundPlayer.Play("hit", 0.2f);
+						SoundPlayer.Play("hit", 0.35f);
 						_brigthness = 0.2f;
 					}
 				}
@@ -165,11 +163,15 @@ namespace Blox_Saber_Editor
 			if (_draggingNoteTimeline && GuiScreen is GuiScreenEditor editor)
 			{
 				var rect = editor.Track.ClientRectangle;
-				var posX = (float)MusicPlayer.CurrentTime.TotalSeconds * CubeStep;
-				var noteX = editor.Track.ScreenX - posX + _dragStartMs / 1000f * CubeStep;
 
-				GL.Color3(0.75f, 0.75f, 0.75f);
-				GLU.RenderQuad((int)noteX, (int)rect.Y, 1, rect.Height);
+				foreach (var draggedNote in _draggedNotes)
+				{
+					var posX = (float)MusicPlayer.CurrentTime.TotalSeconds * CubeStep;
+					var noteX = editor.Track.ScreenX - posX + draggedNote.DragStartMs / 1000f * CubeStep;
+
+					GL.Color3(0.75f, 0.75f, 0.75f);
+					GLU.RenderQuad((int)noteX, (int)rect.Y, 1, rect.Height);
+				}
 			}
 
 			if (_rightDown && GuiScreen is GuiScreenEditor g)
@@ -239,7 +241,7 @@ namespace Blox_Saber_Editor
 
 				if (_draggingNoteTimeline)
 				{
-					OnDraggingTimelineNote(Math.Abs(e.X - _dragStartX) >= 5 ? e.X : _dragStartX);
+					OnDraggingTimelineNotes(Math.Abs(e.X - _dragStartX) >= 5 ? e.X : _dragStartX);
 				}
 
 				if (_draggingVolume)
@@ -278,8 +280,6 @@ namespace Blox_Saber_Editor
 
 			GuiScreen?.OnMouseClick(e.X, e.Y);
 
-			SelectedNote = null;
-
 			if (GuiScreen is GuiScreenEditor editor && !_rightDown)
 			{
 				if (editor.Track.MouseOverNote is Note tn)
@@ -289,11 +289,18 @@ namespace Blox_Saber_Editor
 					_draggingNoteTimeline = true;
 
 					_dragStartX = e.X;
-					_dragStartMs = tn.Ms;
+					tn.DragStartMs = tn.Ms;
 
-					_draggedNote = tn;
+					if (!_draggedNotes.Contains(tn))
+						_draggedNotes.Add(tn);
 
-					SelectedNote = tn;
+					if (!SelectedNotes.Contains(tn))
+						SelectedNotes.Add(tn);
+
+					foreach (var note in _draggedNotes)
+					{
+						note.DragStartMs = note.Ms;
+					}
 
 					//_noteDragStartMs = note.Ms;
 				}
@@ -306,9 +313,9 @@ namespace Blox_Saber_Editor
 					_dragStartIndexX = gn.X;
 					_dragStartIndexY = gn.Y;
 
-					_draggedNote = gn;
+					_draggedNotes.Add(gn);
 
-					SelectedNote = gn;
+					SelectedNotes.Add(gn);
 				}
 				else if (editor.Track.ClientRectangle.Contains(e.Position))
 				{
@@ -319,10 +326,15 @@ namespace Blox_Saber_Editor
 					_draggingTimeline = true;
 					_dragStartX = e.X;
 					_dragStartMs = (int)MusicPlayer.CurrentTime.TotalMilliseconds;
+
 				}
 				else if (editor.Volume.ClientRectangle.Contains(e.Position))
 				{
 					_draggingVolume = true;
+				}
+				else
+				{
+					SelectedNotes.Clear();
 				}
 
 				if (editor.ClientRectangle.Contains(e.Position))
@@ -345,15 +357,57 @@ namespace Blox_Saber_Editor
 				_lastPlayedNote = Notes.LastOrDefault(n =>
 					n.Ms <= Math.Floor(MusicPlayer.CurrentTime.TotalMilliseconds));
 
-				var note = _draggedNote;
-				var start = _dragStartMs;
-				var diff = note.Ms - start;
-
-				if (diff != 0)
+				if (_draggedNotes.Count > 0)
 				{
-					Notes.Sort();
+					var notes = new List<Note>(_draggedNotes);
 
-					_undoRedo.AddUndoRedo(() => { note.Ms = start; Notes.Sort(); }, () => { note.Ms = start + diff; Notes.Sort(); });
+					var note = notes[0];
+					var start = note.DragStartMs;
+					var diff = note.Ms - start;
+
+					if (diff != 0)
+					{
+						Notes.Sort();
+
+						int[] _startMs = new int[notes.Count];
+
+						for (var i = 0; i < _startMs.Length; i++)
+						{
+							_startMs[i] = notes[i].DragStartMs;
+						}
+
+						var saveState = _saved;
+
+						_undoRedo.AddUndoRedo(() =>
+						{
+							for (var index = 0; index < notes.Count; index++)
+							{
+								var note1 = notes[index];
+
+								start = _startMs[index];
+								note1.Ms = start;
+							}
+
+							Notes.Sort();
+
+							_saved = saveState;
+						}, () =>
+						{
+							for (var index = 0; index < notes.Count; index++)
+							{
+								var note1 = notes[index];
+
+								start = _startMs[index];
+								note1.Ms = start + diff;
+							}
+
+							Notes.Sort();
+
+							_saved = false;
+						});
+
+						_saved = false;
+					}
 				}
 			}
 
@@ -362,7 +416,7 @@ namespace Blox_Saber_Editor
 				MusicPlayer.Pause();
 				OnDraggingGridNote(_lastMouse);
 
-				var note = _draggedNote;
+				var note = _draggedNotes[0];
 				var startX = _dragStartIndexX;
 				var startY = _dragStartIndexY;
 				var newX = note.X;
@@ -370,15 +424,23 @@ namespace Blox_Saber_Editor
 
 				if (note.X != _dragStartIndexX || note.Y != _dragStartIndexY)
 				{
+					var saveState = _saved;
+
 					_undoRedo.AddUndoRedo(() =>
 					{
 						note.X = startX;
 						note.Y = startY;
+
+						_saved = saveState;
 					}, () =>
 					{
 						note.X = newX;
 						note.Y = newY;
+
+						_saved = false;
 					});
+
+					_saved = false;
 				}
 			}
 
@@ -394,6 +456,23 @@ namespace Blox_Saber_Editor
 					MusicPlayer.Play();
 			}
 
+			if (_rightDown && e.Button == MouseButton.Right && GuiScreen is GuiScreenEditor g)
+			{
+				var x = Math.Min(_lastMouse.X, _clickedMouse.X);
+				var y = Math.Min(_lastMouse.Y, _clickedMouse.Y);
+
+				var w = Math.Max(_lastMouse.X, _clickedMouse.X) - x;
+				var h = Math.Min((int)g.Track.ClientRectangle.Height, Math.Max(_lastMouse.Y, _clickedMouse.Y)) - y;
+
+				var rect = new Rectangle(x, y, w, h);
+
+				var list = g.Track.GetNotesInRect(rect);
+
+				SelectedNotes = list;
+				_draggedNotes = new List<Note>(list);
+
+				_rightDown = false;
+			}
 			_draggingVolume = false;
 			_draggingNoteTimeline = false;
 			_draggingNoteGrid = false;
@@ -404,14 +483,23 @@ namespace Blox_Saber_Editor
 
 		protected override void OnKeyPress(KeyPressEventArgs e)
 		{
-			if (GuiScreen is GuiScreenEditor editor)
+			if (GuiScreen is GuiScreenCreate create)
 			{
-				editor.OnKeyTyped(e.KeyChar);
+				create.OnKeyTyped(e.KeyChar);
 			}
 		}
 
 		protected override void OnKeyDown(KeyboardKeyEventArgs e)
 		{
+			if (e.Key == Key.A && e.Control)
+			{
+				Notes.Sort();
+
+				SelectedNotes = Notes.ToList();
+				_draggedNotes = Notes.ToList();
+
+				return;
+			}
 			if (e.Key == Key.F11)
 			{
 				if (WindowState != WindowState.Fullscreen)
@@ -423,97 +511,162 @@ namespace Blox_Saber_Editor
 				{
 					WindowState = _lastWindowState;
 				}
+
+				return;
+			}
+
+			if (GuiScreen is GuiScreenCreate create)
+			{
+				create.OnKeyDown(e.Key, e.Control);
 			}
 
 			if (GuiScreen is GuiScreenEditor editor)
 			{
-				editor.OnKeyDown(e.Key, e.Control);
+				if (e.Key == Key.S)
+				{
+					if (e.Shift || !_saved && _file == null)
+					{
+						var wasPlaying = MusicPlayer.IsPlaying;
+
+						MusicPlayer.Pause();
+
+						if (PromptSave())
+						{
+							_saved = true;
+
+							editor.ShowToast("SAVED", Color.Chartreuse);
+						}
+
+						if (wasPlaying)
+							MusicPlayer.Play();
+					}
+					else
+					{
+						if (WriteFile(_file))
+						{
+							_saved = true;
+
+							editor.ShowToast("SAVED", Color.Chartreuse);
+						}
+					}
+
+					return;
+				}
 
 				if (e.Control)
 				{
 					if (e.Key == Key.Z)
 					{
-						MusicPlayer.Pause();
+						if (_undoRedo.CanUndo)
+						{
+							MusicPlayer.Pause();
 
-						_undoRedo.Undo();
+							_undoRedo.Undo();
+						}
 					}
 					else if (e.Key == Key.Y)
 					{
-						MusicPlayer.Pause();
+						if (_undoRedo.CanRedo)
+						{
+							MusicPlayer.Pause();
 
-						_undoRedo.Redo();
+							_undoRedo.Redo();
+						}
 					}
 				}
 
 				//make sure to not register input while we're typing into a text box
-				if (!editor.TextBox.Focused)
+
+				if (!MusicPlayer.IsPlaying && SelectedNotes.Count > 0 && _draggingNoteTimeline)
 				{
-					if (!MusicPlayer.IsPlaying && SelectedNote != null && _draggingNoteTimeline)
+					if (e.Key == Key.Left)
 					{
-						if (e.Key == Key.Left)
+						_saved = false;
+						foreach (var node in SelectedNotes)
 						{
-							var node = SelectedNote;
-							//var prev = node.Ms;
 							node.Ms--;
-							Notes.Sort();
-							//var next = node.Ms;
-
-							//_undoRedo.AddUndoRedo(() => node.Ms = prev, () => node.Ms = next);
 						}
-						if (e.Key == Key.Right)
+
+						Notes.Sort();
+					}
+					if (e.Key == Key.Right)
+					{
+						_saved = false;
+						foreach (var node in SelectedNotes)
 						{
-							var node = SelectedNote;
-							//var prev = node.Ms;
 							node.Ms++;
-							Notes.Sort();
-							//var next = node.Ms;
+						}
 
-							//_undoRedo.AddUndoRedo(() => node.Ms = prev, () => node.Ms = next);
+						Notes.Sort();
+					}
+				}
+
+				if (e.Key == Key.Space)
+				{
+					if (!_draggingTimeline && !_draggingNoteTimeline && !_draggingCursor)
+					{
+						if (MusicPlayer.IsPlaying)
+						{
+							MusicPlayer.Pause();
+						}
+						else
+						{
+							MusicPlayer.Play();
 						}
 					}
+				}
 
-					if (e.Key == Key.Space)
+				if (!e.Control)
+				{
+					if (KeyMapping.TryGetValue(e.Key, out var tuple))
 					{
-						if (!_draggingTimeline && !_draggingNoteTimeline && !_draggingCursor)
-						{
-							if (MusicPlayer.IsPlaying)
-							{
-								MusicPlayer.Pause();
-							}
-							else
-							{
-								MusicPlayer.Play();
-							}
-						}
-					}
+						var note = new Note(tuple.Item1, tuple.Item2,
+							(int)MusicPlayer.CurrentTime.TotalMilliseconds);
 
-					if (!e.Control)
-					{
-						if (KeyMapping.TryGetValue(e.Key, out var tuple))
-						{
-							var note = new Note(tuple.Item1, tuple.Item2,
-								(int)MusicPlayer.CurrentTime.TotalMilliseconds);
+						Notes.Add(note);
 
+						var saveState = _saved;
+						_undoRedo.AddUndoRedo(() =>
+						{
+							Notes.Remove(note);
+
+							_saved = saveState;
+						}, () =>
+						{
 							Notes.Add(note);
+							_saved = false;
+						});
 
-							_undoRedo.AddUndoRedo(() => Notes.Remove(note), () => Notes.Add(note));
-						}
+						_saved = false;
+					}
 
-						if (e.Key == Key.Delete && SelectedNote != null)
+					if (e.Key == Key.Delete && SelectedNotes.Count > 0)
+					{
+						var result = MessageBox.Show($"Are you sure you want to delete {(SelectedNotes.Count > 1 ? "these notes" : "this note")}?", $"Delete {(SelectedNotes.Count > 1 ? "notes" : "note")}?",
+							MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+						if (result == DialogResult.Yes)
 						{
-							var result = MessageBox.Show("Are you sure you want to delete this note?", "Delete note?",
-								MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+							var toRemove = new List<Note>(SelectedNotes);
 
-							if (result == DialogResult.Yes)
+							Notes.RemoveAll(toRemove);
+
+							var saveState = _saved;
+							_undoRedo.AddUndoRedo(() =>
 							{
-								var note = SelectedNote;
+								Notes.AddAll(toRemove);
 
-								Notes.Remove(note);
+								_saved = saveState;
+							}, () =>
+							{
+								Notes.RemoveAll(toRemove);
 
-								_undoRedo.AddUndoRedo(() => Notes.Add(note), () => Notes.Remove(note));
+								_saved = false;
+							});
 
-								SelectedNote = null;
-							}
+							_saved = false;
+
+							SelectedNotes.Clear();
 						}
 					}
 				}
@@ -561,24 +714,44 @@ namespace Blox_Saber_Editor
 			}
 		}
 
-		protected override void OnClosed(EventArgs e)
+		protected override void OnClosing(CancelEventArgs e)
 		{
+			if (!_saved && _soundID != -1)
+			{
+				var wasPlaying = MusicPlayer.IsPlaying;
+
+				MusicPlayer.Pause();
+
+				var r = MessageBox.Show("You have unsaved progress.\nDo you wish to save it before closing?", "Closing", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+
+				if (r == DialogResult.Yes)
+					PromptSave();
+
+				e.Cancel = r == DialogResult.Cancel;
+
+				if (e.Cancel && wasPlaying)
+				{
+					MusicPlayer.Play();
+				}
+			}
+
 			MusicPlayer.Dispose();
 			SoundPlayer.Dispose();
-
-			SaveMap();
 		}
 
-		private void OnDraggingTimelineNote(int mouseX)
+		private void OnDraggingTimelineNotes(int mouseX)
 		{
 			var pixels = mouseX - _dragStartX;
 			var msDiff = pixels / CubeStep * 1000;
 
-			var time = _dragStartMs + (int)msDiff;
+			foreach (var note in _draggedNotes)
+			{
+				var time = note.DragStartMs + (int)msDiff;
 
-			time = (int)Math.Max(0, Math.Min(MusicPlayer.TotalTime.TotalMilliseconds, time));
+				time = (int)Math.Max(0, Math.Min(MusicPlayer.TotalTime.TotalMilliseconds, time));
 
-			_draggedNote.Ms = time;
+				note.Ms = time;
+			}
 			Notes.Sort();
 		}
 
@@ -595,8 +768,8 @@ namespace Blox_Saber_Editor
 					return;
 				}
 
-				_draggedNote.X = newX;
-				_draggedNote.Y = newY;
+				_draggedNotes[0].X = newX;
+				_draggedNotes[0].Y = newY;
 			}
 		}
 
@@ -612,13 +785,22 @@ namespace Blox_Saber_Editor
 			MusicPlayer.CurrentTime = TimeSpan.FromMilliseconds(time);
 		}
 
-		public void LoadMap(string file)
+		public void LoadFile(string file)
+		{
+			var data = File.ReadAllText(file);
+
+			if (LoadMap(data))
+			{
+				_file = file;
+				_saved = true;
+			}
+		}
+
+		public bool LoadMap(string data)
 		{
 			Notes.Clear();
 
-			var text = File.ReadAllText(file);
-
-			var splits = Regex.Matches(text, "([^,]+)");
+			var splits = Regex.Matches(data, "([^,]+)");
 
 			var ID = splits[0];
 
@@ -635,19 +817,23 @@ namespace Blox_Saber_Editor
 				Notes.Add(new Note(x, y, ms));
 			}
 
-			if (long.TryParse(ID.Value, out _soundID))
+			if (long.TryParse(ID.Value, out _soundID) && LoadSound(_soundID))
 			{
-				if (LoadSound(_soundID))
-				{
-					MusicPlayer.Load("assets/cached/" + _soundID + ".asset");
-					OpenGuiScreen(new GuiScreenEditor());
-				}
+				MusicPlayer.Load("assets/cached/" + _soundID + ".asset");
+				OpenGuiScreen(new GuiScreenEditor());
 			}
 			else
 				_soundID = -1;
+
+			return _soundID != -1;
 		}
 
-		private void SaveMap()
+		public void CreateMap(long id)
+		{
+			LoadMap(id.ToString());
+		}
+
+		private bool PromptSave()
 		{
 			SaveFileDialog sfd = new SaveFileDialog
 			{
@@ -655,26 +841,49 @@ namespace Blox_Saber_Editor
 				Filter = "Text Documents (*.txt)|*.txt"
 			};
 
+			if (_file != null)
+			{
+				sfd.InitialDirectory = Path.GetDirectoryName(_file);
+
+				sfd.FileName = Path.GetFileNameWithoutExtension(_file);
+			}
+
 			var result = sfd.ShowDialog();
 
 			if (result == DialogResult.OK)
 			{
-				using (var fs = File.OpenWrite(sfd.FileName))
+				WriteFile(sfd.FileName);
+
+				_file = sfd.FileName;
+
+				return true;
+			}
+
+			return false;
+		}
+
+		private bool WriteFile(string file)
+		{
+			if (file == null)
+				return false;
+
+			using (var fs = File.OpenWrite(file))
+			{
+				using (var sw = new StreamWriter(fs))
 				{
-					using (var sw = new StreamWriter(fs))
+					sw.Write(_soundID.ToString());
+
+					for (int i = 0; i < Notes.Count; i++)
 					{
-						sw.Write(_soundID.ToString());
+						Note note = Notes[i];
 
-						for (int i = 0; i < Notes.Count; i++)
-						{
-							Note note = Notes[i];
+						var gridX = 2 - note.X;
+						var gridY = 2 - note.Y;
 
-							var gridX = 2 - note.X;
-							var gridY = 2 - note.Y;
-
-							sw.Write($",{gridX}|{gridY}|{note.Ms}");
-						}
+						sw.Write($",{gridX}|{gridY}|{note.Ms}");
 					}
+
+					return true;
 				}
 			}
 		}
@@ -698,8 +907,7 @@ namespace Blox_Saber_Editor
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e.Message);
-				MessageBox.Show($"Failed to download asset with id '{id}'", "Error", MessageBoxButtons.OK,
+				MessageBox.Show($"Failed to download asset with id '{id}':\n\n{e.Message}", "Error", MessageBoxButtons.OK,
 					MessageBoxIcon.Error);
 			}
 
@@ -762,10 +970,32 @@ namespace Blox_Saber_Editor
 			return _notes.LastOrDefault(predicate);
 		}
 
+		public void RemoveAll(List<Note> notes)
+		{
+			foreach (var note in notes)
+			{
+				_notes.Remove(note);
+			}
+
+			Sort();
+		}
+
+		public void AddAll(List<Note> notes)
+		{
+			_notes.AddRange(notes);
+
+			Sort();
+		}
+
 		public Note this[int index]
 		{
 			get => _notes[index];
 			set => _notes[index] = value;
+		}
+
+		public List<Note> ToList()
+		{
+			return new List<Note>(_notes);
 		}
 	}
 }

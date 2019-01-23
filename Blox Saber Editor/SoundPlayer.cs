@@ -23,13 +23,13 @@ namespace Blox_Saber_Editor
 			AL.Listener(ALListener3f.Velocity, 0, 0, 0);
 		}
 
-		public void Cache(string id)
+		public void Cache(string id, string ext = "wav")
 		{
 			//create a buffer
 			byte[] data;
 			WaveFormat format;
 
-			using (var afr = new AudioFileReader($"assets/sounds/{id}.wav"))
+			using (var afr = new AudioFileReader($"assets/sounds/{id}.{ext}"))
 			{
 				data = new byte[afr.Length];
 

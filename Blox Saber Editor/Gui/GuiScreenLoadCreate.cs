@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL;
 
@@ -21,6 +22,8 @@ namespace Blox_Saber_Editor
 			_createButton = new GuiButton(0, 0, 0, 192, 64, "CREATE MAP");
 			_loadButton = new GuiButton(1, 0, 0, 192, 64, "LOAD MAP");
 
+			OnResize(EditorWindow.Instance.ClientSize);
+
 			Buttons.Add(_createButton);
 			Buttons.Add(_loadButton);
 		}
@@ -40,7 +43,7 @@ namespace Blox_Saber_Editor
 			switch (id)
 			{
 				case 0:
-
+					EditorWindow.Instance.OpenGuiScreen(new GuiScreenCreate());
 					break;
 				case 1:
 					var ofd = new OpenFileDialog
@@ -53,7 +56,7 @@ namespace Blox_Saber_Editor
 
 					if (result == DialogResult.OK)
 					{
-						EditorWindow.Instance.LoadMap(ofd.FileName);
+						EditorWindow.Instance.LoadFile(ofd.FileName);
 					}
 					break;
 			}

@@ -64,7 +64,9 @@
     <Compile Include="Gui\GuiButton.cs" />
     <Compile Include="Gui\GuiButtonPlayPause.cs" />
     <Compile Include="Gui\GuiGrid.cs" />
+    <Compile Include="Gui\GuiLabel.cs" />
     <Compile Include="Gui\GuiScreen.cs" />
+    <Compile Include="Gui\GuiScreenCreate.cs" />
     <Compile Include="Gui\GuiScreenLoadCreate.cs" />
     <Compile Include="Gui\GuiScreenEditor.cs" />
     <Compile Include="Gui\GuiVolume.cs" />
