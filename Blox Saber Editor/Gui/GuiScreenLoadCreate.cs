@@ -9,6 +9,7 @@ namespace Blox_Saber_Editor
 	{
 		private readonly GuiButton _createButton;
 		private readonly GuiButton _loadButton;
+		private readonly GuiButton _pasteButton;
 
 		private readonly int _textureId;
 
@@ -21,11 +22,13 @@ namespace Blox_Saber_Editor
 
 			_createButton = new GuiButton(0, 0, 0, 192, 64, "CREATE MAP");
 			_loadButton = new GuiButton(1, 0, 0, 192, 64, "LOAD MAP");
+			_pasteButton = new GuiButton(2, 0, 0, 192, 64, "PASTE MAP");
 
 			OnResize(EditorWindow.Instance.ClientSize);
 
 			Buttons.Add(_createButton);
 			Buttons.Add(_loadButton);
+			Buttons.Add(_pasteButton);
 		}
 
 		public override void Render(float delta, float mouseX, float mouseY)
@@ -59,6 +62,14 @@ namespace Blox_Saber_Editor
 						EditorWindow.Instance.LoadFile(ofd.FileName);
 					}
 					break;
+				case 2:
+					var clipboard = Clipboard.GetText();
+
+					if (!string.IsNullOrWhiteSpace(clipboard))
+					{
+						EditorWindow.Instance.LoadMap(clipboard);
+					}
+					break;
 			}
 		}
 
@@ -66,8 +77,10 @@ namespace Blox_Saber_Editor
 		{
 			ClientRectangle = new RectangleF(0, 0, size.Width, size.Height);
 
-			_createButton.ClientRectangle = new RectangleF((int)(size.Width / 2f - _createButton.ClientRectangle.Width - 20), 512, _createButton.ClientRectangle.Width, _createButton.ClientRectangle.Height);
-			_loadButton.ClientRectangle = new RectangleF((int)(size.Width / 2f + 20), 512, _loadButton.ClientRectangle.Width, _loadButton.ClientRectangle.Height);
+			_createButton.ClientRectangle.Location =
+				new PointF((int)(size.Width / 2f - _createButton.ClientRectangle.Width - 10), 512);
+			_loadButton.ClientRectangle.Location = new PointF((int)(size.Width / 2f + 10), 512);
+			_pasteButton.ClientRectangle.Location = new PointF((int)(size.Width / 2f - 192 / 2f), 512 - 64 - 20);
 		}
 	}
 }
