@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using OpenTK.Input;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class GuiScreen : Gui
 	{
@@ -21,6 +22,21 @@ namespace Blox_Saber_Editor
 			}
 		}
 
+		public virtual bool AllowInput()
+		{
+			return true;
+		}
+
+		public virtual void OnKeyTyped(char key)
+		{
+
+		}
+
+		public virtual void OnKeyDown(Key key, bool control)
+		{
+
+		}
+
 		public virtual void OnMouseMove(float x, float y)
 		{
 
@@ -32,6 +48,8 @@ namespace Blox_Saber_Editor
 			{
 				if (button.IsMouseOver)
 				{
+					button.OnMouseClick(x, y);
+
 					EditorWindow.Instance.SoundPlayer.Play("click", 0.4f);
 					OnButtonClicked(button.ID);
 					break;

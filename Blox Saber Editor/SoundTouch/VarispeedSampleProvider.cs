@@ -1,7 +1,7 @@
 ﻿using System;
 using NAudio.Wave;
 
-namespace VarispeedDemo.SoundTouch
+namespace Blox_Saber_Editor.SoundTouch
 {
     class VarispeedSampleProvider : ISampleProvider, IDisposable
     {

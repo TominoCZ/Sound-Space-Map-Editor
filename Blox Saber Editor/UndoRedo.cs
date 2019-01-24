@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Blox_Saber_Editor.Gui;
 
 namespace Blox_Saber_Editor
 {

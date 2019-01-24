@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using FreeTypeWrap;
 using OpenTK.Graphics.OpenGL;
 
-namespace FreeType
+namespace Blox_Saber_Editor
 {
 
     /// <summary>The font class for 2D text printing in a OpenGL scene.</summary>

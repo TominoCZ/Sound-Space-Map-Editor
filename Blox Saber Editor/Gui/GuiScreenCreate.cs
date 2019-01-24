@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using System.Windows.Forms;
 using OpenTK.Input;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class GuiScreenCreate : GuiScreen
 	{
@@ -42,12 +37,12 @@ namespace Blox_Saber_Editor
 			_lbl.Render(delta, mouseX, mouseY);
 		}
 
-		public void OnKeyTyped(char key)
+		public override void OnKeyTyped(char key)
 		{
 			_tb.OnKeyTyped(key);
 		}
 
-		public void OnKeyDown(Key key, bool control)
+		public override void OnKeyDown(Key key, bool control)
 		{
 			_tb.OnKeyDown(key, control);
 		}

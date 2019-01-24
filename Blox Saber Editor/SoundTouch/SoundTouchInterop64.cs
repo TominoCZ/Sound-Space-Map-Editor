@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace VarispeedDemo.SoundTouch
+namespace Blox_Saber_Editor.SoundTouch
 {
     class SoundTouchInterop64
     {

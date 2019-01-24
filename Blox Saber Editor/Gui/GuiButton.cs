@@ -1,7 +1,6 @@
-﻿using System;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class GuiButton : Gui
 	{
@@ -65,6 +64,11 @@ namespace Blox_Saber_Editor
 
 			GL.Color3(1f, 1, 1);
 			fr.Render(Text, (int)(ClientRectangle.X + ClientRectangle.Width / 2 - width / 2f), (int)(ClientRectangle.Y + ClientRectangle.Height / 2 - height / 2f), 24);
+		}
+
+		public virtual void OnMouseClick(float x, float y)
+		{
+
 		}
 	}
 }

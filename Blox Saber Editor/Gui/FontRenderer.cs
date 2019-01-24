@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FreeType;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class FontRenderer
 	{

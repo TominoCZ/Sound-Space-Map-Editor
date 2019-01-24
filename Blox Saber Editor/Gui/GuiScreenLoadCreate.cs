@@ -1,9 +1,8 @@
 ﻿using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class GuiScreenLoadCreate : GuiScreen
 	{

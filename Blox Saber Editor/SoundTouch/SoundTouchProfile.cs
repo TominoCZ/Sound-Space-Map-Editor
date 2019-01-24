@@ -1,4 +1,4 @@
-namespace VarispeedDemo.SoundTouch
+namespace Blox_Saber_Editor.SoundTouch
 {
     internal class SoundTouchProfile
     {

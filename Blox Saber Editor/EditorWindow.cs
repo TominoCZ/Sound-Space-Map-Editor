@@ -5,8 +5,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Blox_Saber_Editor.Gui;
 using Blox_Saber_Editor.Properties;
 using OpenTK;
 using OpenTK.Graphics;
@@ -33,11 +35,12 @@ namespace Blox_Saber_Editor
 
 		private WindowState _lastWindowState;
 
-		private readonly UndoRedo _undoRedo = new UndoRedo();
+		public readonly UndoRedo UndoRedo = new UndoRedo();
 
 		public bool IsDraggingNoteOnTimeLine => _draggingNoteTimeline && _draggedNotes.Count > 0 && _draggedNotes[0].DragStartMs != _draggedNotes[0].Ms;
 		public List<Note> SelectedNotes = new List<Note>();
 		private List<Note> _draggedNotes = new List<Note>();
+		private Note _draggedNote;
 		private Note _lastPlayedNote;
 
 		private DateTime _lastTempoChange = DateTime.Now;
@@ -49,6 +52,8 @@ namespace Blox_Saber_Editor
 
 		private int _dragStartX;
 		private int _dragStartMs;
+		private int _dragNoteStartMs;
+		private int _dragNoteDragStartMs;
 
 		private int _dragStartIndexX;
 		private int _dragStartIndexY;
@@ -271,12 +276,10 @@ namespace Blox_Saber_Editor
 
 		protected override void OnMouseDown(MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButton.Right)
-			{
-				_clickedMouse = e.Position;
+			_clickedMouse = e.Position;
 
+			if (e.Button == MouseButton.Right)
 				_rightDown = true;
-			}
 
 			GuiScreen?.OnMouseClick(e.X, e.Y);
 
@@ -291,18 +294,29 @@ namespace Blox_Saber_Editor
 					_dragStartX = e.X;
 					tn.DragStartMs = tn.Ms;
 
+					_draggedNote = tn;
+
 					if (!_draggedNotes.Contains(tn))
+					{
+						if (_draggedNotes.Count == 1 || !SelectedNotes.Contains(tn))
+							_draggedNotes.Clear();
+
 						_draggedNotes.Add(tn);
+					}
 
 					if (!SelectedNotes.Contains(tn))
+					{
+						SelectedNotes.Clear();
+
 						SelectedNotes.Add(tn);
+					}
 
 					foreach (var note in _draggedNotes)
 					{
 						note.DragStartMs = note.Ms;
 					}
 
-					//_noteDragStartMs = note.Ms;
+					_dragNoteStartMs = tn.Ms;
 				}
 				else if (editor.Grid.MouseOverNote is Note gn)
 				{
@@ -313,9 +327,20 @@ namespace Blox_Saber_Editor
 					_dragStartIndexX = gn.X;
 					_dragStartIndexY = gn.Y;
 
-					_draggedNotes.Add(gn);
+					if (!_draggedNotes.Contains(gn))
+					{
+						if (_draggedNotes.Count == 1 || !SelectedNotes.Contains(gn))
+							_draggedNotes.Clear();
 
-					SelectedNotes.Add(gn);
+						_draggedNotes.Add(gn);
+					}
+
+					if (!SelectedNotes.Contains(gn))
+					{
+						SelectedNotes.Clear();
+
+						SelectedNotes.Add(gn);
+					}
 				}
 				else if (editor.Track.ClientRectangle.Contains(e.Position))
 				{
@@ -378,7 +403,7 @@ namespace Blox_Saber_Editor
 
 						var saveState = _saved;
 
-						_undoRedo.AddUndoRedo(() =>
+						UndoRedo.AddUndoRedo(() =>
 						{
 							for (var index = 0; index < notes.Count; index++)
 							{
@@ -426,7 +451,7 @@ namespace Blox_Saber_Editor
 				{
 					var saveState = _saved;
 
-					_undoRedo.AddUndoRedo(() =>
+					UndoRedo.AddUndoRedo(() =>
 					{
 						note.X = startX;
 						note.Y = startY;
@@ -483,23 +508,11 @@ namespace Blox_Saber_Editor
 
 		protected override void OnKeyPress(KeyPressEventArgs e)
 		{
-			if (GuiScreen is GuiScreenCreate create)
-			{
-				create.OnKeyTyped(e.KeyChar);
-			}
+			GuiScreen.OnKeyTyped(e.KeyChar);
 		}
 
 		protected override void OnKeyDown(KeyboardKeyEventArgs e)
 		{
-			if (e.Key == Key.A && e.Control)
-			{
-				Notes.Sort();
-
-				SelectedNotes = Notes.ToList();
-				_draggedNotes = Notes.ToList();
-
-				return;
-			}
 			if (e.Key == Key.F11)
 			{
 				if (WindowState != WindowState.Fullscreen)
@@ -515,9 +528,19 @@ namespace Blox_Saber_Editor
 				return;
 			}
 
-			if (GuiScreen is GuiScreenCreate create)
+			GuiScreen.OnKeyDown(e.Key, e.Control);
+
+			if (GuiScreen is GuiScreen gs && !gs.AllowInput())
+				return;
+
+			if (e.Key == Key.A && e.Control)
 			{
-				create.OnKeyDown(e.Key, e.Control);
+				Notes.Sort();
+
+				SelectedNotes = Notes.ToList();
+				_draggedNotes = Notes.ToList();
+
+				return;
 			}
 
 			if (GuiScreen is GuiScreenEditor editor)
@@ -557,20 +580,20 @@ namespace Blox_Saber_Editor
 				{
 					if (e.Key == Key.Z)
 					{
-						if (_undoRedo.CanUndo)
+						if (UndoRedo.CanUndo)
 						{
 							MusicPlayer.Pause();
 
-							_undoRedo.Undo();
+							UndoRedo.Undo();
 						}
 					}
 					else if (e.Key == Key.Y)
 					{
-						if (_undoRedo.CanRedo)
+						if (UndoRedo.CanRedo)
 						{
 							MusicPlayer.Pause();
 
-							_undoRedo.Redo();
+							UndoRedo.Redo();
 						}
 					}
 				}
@@ -626,7 +649,7 @@ namespace Blox_Saber_Editor
 						Notes.Add(note);
 
 						var saveState = _saved;
-						_undoRedo.AddUndoRedo(() =>
+						UndoRedo.AddUndoRedo(() =>
 						{
 							Notes.Remove(note);
 
@@ -652,7 +675,7 @@ namespace Blox_Saber_Editor
 							Notes.RemoveAll(toRemove);
 
 							var saveState = _saved;
-							_undoRedo.AddUndoRedo(() =>
+							UndoRedo.AddUndoRedo(() =>
 							{
 								Notes.AddAll(toRemove);
 
@@ -739,20 +762,125 @@ namespace Blox_Saber_Editor
 			SoundPlayer.Dispose();
 		}
 
+		private int GetClosestBeat(Note note)
+		{
+			var lastDiffMs = int.MaxValue;
+			var closestMs = int.MaxValue;
+
+			List<int> beats = new List<int>();
+
+			if (GuiScreen is GuiScreenEditor gui)
+			{
+				var rect = gui.Track.ClientRectangle;
+
+				var audioTime = MusicPlayer.CurrentTime.TotalMilliseconds;
+				var posX = (float)audioTime / 1000 * CubeStep;
+
+				var screenX = gui.Track.ScreenX;
+
+				var bpm = gui.Track.BPM;
+				var bpmOffset = gui.Track.BPMOffset;
+				var beatDivisor = gui.Track.BeatDivisor;
+
+				var lineSpace = 60 / bpm * CubeStep;
+				var stepSmall = lineSpace / beatDivisor;
+
+				var lineX = screenX - posX + bpmOffset / 1000 * CubeStep;
+				if (lineX < 0)
+					lineX %= lineSpace;
+
+				while (lineSpace > 0 && lineX < rect.Width)
+				{
+					//bpm line
+					var timelineMs = gui.Track.BPMOffset + (lineX - screenX + posX) / CubeStep * 1000;
+
+					if ((int)timelineMs != int.MaxValue && (int)timelineMs != int.MinValue)
+						beats.Add((int)timelineMs);
+
+					for (int j = 1; j <= beatDivisor; j++)
+					{
+						var xo = lineX + j * stepSmall;
+
+						if (j < beatDivisor)
+						{
+							//divided bpm line
+							timelineMs = gui.Track.BPMOffset + (xo - screenX + posX) / CubeStep * 1000;
+
+							if ((int)timelineMs != int.MaxValue && (int)timelineMs != int.MinValue)
+								beats.Add((int)timelineMs);
+						}
+					}
+
+					lineX += lineSpace;
+				}
+			}
+
+			foreach (var lineMs in beats)
+			{
+				var diffMs = Math.Abs(lineMs - note.Ms);
+
+				if (diffMs < lastDiffMs)
+				{
+					lastDiffMs = diffMs;
+
+					closestMs = lineMs;
+				}
+			}
+
+			return closestMs;
+		}
+
 		private void OnDraggingTimelineNotes(int mouseX)
 		{
 			var pixels = mouseX - _dragStartX;
 			var msDiff = pixels / CubeStep * 1000;
 
-			foreach (var note in _draggedNotes)
+			var audioTime = MusicPlayer.CurrentTime.TotalMilliseconds;
+
+			if (GuiScreen is GuiScreenEditor gui && _draggedNote != null)
 			{
-				var time = note.DragStartMs + (int)msDiff;
+				var clickMs = (int)(Math.Max(0, _clickedMouse.X - gui.Track.ScreenX + (float)audioTime / 1000 * CubeStep) / CubeStep * 1000);
+				var clickOff = clickMs - _dragNoteStartMs;
+				var cursorMs = (int)(Math.Max(0, mouseX - gui.Track.ScreenX + (float)audioTime / 1000 * CubeStep) / CubeStep * 1000) - clickOff;
 
-				time = (int)Math.Max(0, Math.Min(MusicPlayer.TotalTime.TotalMilliseconds, time));
+				if (_draggedNotes.Count > 0)
+				{
+					var snappedMs = GetClosestBeat(_draggedNote);
 
-				note.Ms = time;
+					if (Math.Abs(snappedMs - cursorMs) / 1000f * CubeStep <= 5)
+						msDiff = -(_draggedNote.DragStartMs - snappedMs);
+				}
+
+				foreach (var note in _draggedNotes)
+				{
+					var time = note.DragStartMs + (int)msDiff;
+
+					time = (int)Math.Max(0, Math.Min(MusicPlayer.TotalTime.TotalMilliseconds, time));
+
+					note.Ms = time;
+				}
+				/*
+				if (_draggedNotes.Count > 0)
+				{
+					var snappedMs = GetClosestBeat(_draggedNote);
+	
+					if (Math.Abs(snappedMs - _draggedNote.Ms) / 1000f * CubeStep <= 5)
+					{
+						var diff = snappedMs - _draggedNote.Ms;
+	
+						//_draggedNote.Ms = snappedMs;
+	
+						foreach (var note in _draggedNotes)
+						{
+							note.Ms = MathHelper.Clamp(note.Ms + diff, 0, totalTime);
+						}
+						
+						//Console.WriteLine("snap");
+					}
+				}*/
+
+				Notes.Sort();
 			}
-			Notes.Sort();
 		}
 
 		private void OnDraggingGridNote(Point pos)
@@ -802,28 +930,34 @@ namespace Blox_Saber_Editor
 
 			var splits = Regex.Matches(data, "([^,]+)");
 
-			var ID = splits[0];
-
-			for (int i = 1; i < splits.Count; i++)
+			try
 			{
-				var chunk = splits[i];
+				var ID = splits[0];
 
-				var chunkSplit = Regex.Matches(chunk.Value, "([^|]+)");
+				for (int i = 1; i < splits.Count; i++)
+				{
+					var chunk = splits[i];
 
-				var x = 2 - int.Parse(chunkSplit[0].Value);
-				var y = 2 - int.Parse(chunkSplit[1].Value);
-				var ms = int.Parse(chunkSplit[2].Value);
+					var chunkSplit = Regex.Matches(chunk.Value, "([^|]+)");
 
-				Notes.Add(new Note(x, y, ms));
+					var x = 2 - int.Parse(chunkSplit[0].Value);
+					var y = 2 - int.Parse(chunkSplit[1].Value);
+					var ms = int.Parse(chunkSplit[2].Value);
+
+					Notes.Add(new Note(x, y, ms));
+				}
+				if (long.TryParse(ID.Value, out _soundID) && LoadSound(_soundID))
+				{
+					MusicPlayer.Load("assets/cached/" + _soundID + ".asset");
+					OpenGuiScreen(new GuiScreenEditor());
+				}
+				else
+					_soundID = -1;
 			}
-
-			if (long.TryParse(ID.Value, out _soundID) && LoadSound(_soundID))
+			catch
 			{
-				MusicPlayer.Load("assets/cached/" + _soundID + ".asset");
-				OpenGuiScreen(new GuiScreenEditor());
+				return false;
 			}
-			else
-				_soundID = -1;
 
 			return _soundID != -1;
 		}

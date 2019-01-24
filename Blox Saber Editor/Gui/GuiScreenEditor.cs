@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Drawing;
-using System.Security.AccessControl;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class GuiScreenEditor : GuiScreen
 	{
@@ -15,6 +14,9 @@ namespace Blox_Saber_Editor
 		public readonly GuiTrack Track = new GuiTrack(0, 64);
 		public readonly GuiTempo Tempo = new GuiTempo(512, 64);
 		public readonly GuiVolume Volume = new GuiVolume(64, 256);
+		public readonly GuiTextBox BPM;
+		public readonly GuiTextBox Offset;
+		public readonly GuiCheckBox Reposition;
 
 		private GuiLabel _toast;
 		private float _toastTime;
@@ -23,7 +25,23 @@ namespace Blox_Saber_Editor
 		{
 			_toast = new GuiLabel(0, 0, "") { Centered = true, FontSize = 36 };
 
-			Buttons.Add(new GuiButtonPlayPause(0, EditorWindow.Instance.ClientSize.Width - 512 - 64, EditorWindow.Instance.ClientSize.Height - 64, 64, 64));
+			var playPause = new GuiButtonPlayPause(0, EditorWindow.Instance.ClientSize.Width - 512 - 64,
+				EditorWindow.Instance.ClientSize.Height - 64, 64, 64);
+			Reposition = new GuiCheckBox(1, "Reposition", 10, 200, 64, 64, true);
+			BPM = new GuiTextBox(10, 126, 64, 32) { Text = "0", Centered = true, Numeric = true };
+			Offset = new GuiTextBox(10, BPM.ClientRectangle.Bottom + 5, 64, 32) { Text = "0", Centered = true, Numeric = true };
+			var setOffset = new GuiButton(2, Offset.ClientRectangle.Right + 5, Offset.ClientRectangle.Y, 64, 32, "SET");
+
+			BPM.Focused = true;
+			Offset.Focused = true;
+			BPM.OnKeyDown(Key.Right, false);
+			Offset.OnKeyDown(Key.Right, false);
+			BPM.Focused = false;
+			Offset.Focused = false;
+
+			Buttons.Add(playPause);
+			Buttons.Add(Reposition);
+			Buttons.Add(setOffset);
 
 			OnResize(EditorWindow.Instance.ClientSize);
 		}
@@ -56,7 +74,8 @@ namespace Blox_Saber_Editor
 			Track.Render(delta, mouseX, mouseY);
 			Tempo.Render(delta, mouseX, mouseY);
 			Volume.Render(delta, mouseX, mouseY);
-			//TextBox.Render(delta, mouseX, mouseY);
+			BPM.Render(delta, mouseX, mouseY);
+			Offset.Render(delta, mouseX, mouseY);
 
 			var rect = ClientRectangle;
 
@@ -80,14 +99,84 @@ namespace Blox_Saber_Editor
 			base.Render(delta, mouseX, mouseY);
 		}
 
+		public override bool AllowInput()
+		{
+			return !BPM.Focused && !Offset.Focused;
+		}
+
+		public override void OnKeyTyped(char key)
+		{
+			BPM.OnKeyTyped(key);
+			Offset.OnKeyTyped(key);
+
+			UpdateTrack();
+		}
+
+		public override void OnKeyDown(Key key, bool control)
+		{
+			BPM.OnKeyDown(key, control);
+			Offset.OnKeyDown(key, control);
+
+			UpdateTrack();
+		}
+
+		public override void OnMouseClick(float x, float y)
+		{
+			BPM.OnMouseClick(x, y);
+			Offset.OnMouseClick(x, y);
+
+			base.OnMouseClick(x, y);
+		}
+
 		protected override void OnButtonClicked(int id)
 		{
-			if (id == 0)
+			switch (id)
 			{
-				if (EditorWindow.Instance.MusicPlayer.IsPlaying)
-					EditorWindow.Instance.MusicPlayer.Pause();
-				else
-					EditorWindow.Instance.MusicPlayer.Play();
+				case 0:
+					if (EditorWindow.Instance.MusicPlayer.IsPlaying)
+						EditorWindow.Instance.MusicPlayer.Pause();
+					else
+						EditorWindow.Instance.MusicPlayer.Play();
+					break;
+				case 2:
+					int oldOffset = Track.BPMOffset;
+					int.TryParse(Offset.Text, out var newOffset);
+
+					var toggle = Reposition.Toggle;
+
+					void Redo()
+					{
+						if (toggle)
+						{
+							var list = EditorWindow.Instance.Notes.ToList();
+
+							foreach (var note in list)
+							{
+								note.Ms += newOffset - oldOffset;
+							}
+						}
+
+						Track.BPMOffset = newOffset;
+					}
+
+					Redo();
+
+					EditorWindow.Instance.UndoRedo.AddUndoRedo(() =>
+					{
+						if (toggle)
+						{
+							var list = EditorWindow.Instance.Notes.ToList();
+
+							foreach (var note in list)
+							{
+								note.Ms -= newOffset - oldOffset;
+							}
+						}
+
+						Track.BPMOffset = oldOffset;
+					}, Redo);
+
+					break;
 			}
 		}
 
@@ -104,6 +193,28 @@ namespace Blox_Saber_Editor
 			Grid.ClientRectangle = new RectangleF((int)(size.Width / 2f - Grid.ClientRectangle.Width / 2), (int)((size.Height + Track.ClientRectangle.Height - 64) / 2 - Grid.ClientRectangle.Height / 2), Grid.ClientRectangle.Width, Grid.ClientRectangle.Height);
 
 			_toast.ClientRectangle.X = size.Width / 2f;
+		}
+
+		private void UpdateTrack()
+		{
+			if (BPM.Focused)
+			{
+				long.TryParse(BPM.Text, out var bpm);
+
+				Track.BPM = MathHelper.Clamp(bpm, 0, 400);
+
+				if (Track.BPM > 0)
+					BPM.Text = Track.BPM.ToString();
+			}
+			if (Offset.Focused)
+			{
+				long.TryParse(Offset.Text, out var offset);
+
+				offset = Math.Max(0, offset);
+
+				if (offset > 0)
+					Offset.Text = offset.ToString();
+			}
 		}
 
 		public void ShowToast(string text, Color color)

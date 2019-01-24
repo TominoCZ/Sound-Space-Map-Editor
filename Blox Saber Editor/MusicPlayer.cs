@@ -1,6 +1,6 @@
 ﻿using System;
+using Blox_Saber_Editor.SoundTouch;
 using NAudio.Wave;
-using VarispeedDemo.SoundTouch;
 
 namespace Blox_Saber_Editor
 {

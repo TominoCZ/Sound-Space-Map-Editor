@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using OpenTK.Graphics.OpenGL;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class GuiTempo : Gui
 	{

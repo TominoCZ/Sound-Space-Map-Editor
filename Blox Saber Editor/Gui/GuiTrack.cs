@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class GuiTrack : Gui
 	{
@@ -13,6 +11,10 @@ namespace Blox_Saber_Editor
 		public Note MouseOverNote;
 
 		public float ScreenX = 300;
+
+		public float BPM = 0;//150;
+		public int BPMOffset = 0; //in ms
+		public int BeatDivisor = 8;
 
 		public GuiTrack(float y, float sy) : base(0, y, EditorWindow.Instance.ClientSize.Width, sy)
 		{
@@ -42,25 +44,23 @@ namespace Blox_Saber_Editor
 			var posX = (float)audioTime / 1000 * cubeStep;
 			var maxX = (float)EditorWindow.Instance.MusicPlayer.TotalTime.TotalMilliseconds / 1000 * cubeStep;
 
-			var screenSeconds = rect.Width / cubeStep;
+			//var screenSeconds = rect.Width / cubeStep;
 
 			var zoomLvl = (int)EditorWindow.Instance.Zoom;
 			//var lines = Math.Ceiling(screenSeconds + 1) * zoomLvl;
 			var lineSpace = cubeStep / zoomLvl;
-			var stepSmall = lineSpace / 4;
+			//var stepSmall = lineSpace / 4;
 
-			var stepSmallTime = (int)(stepSmall / cubeStep * 1000 * 100) / 100f;
-			var stepText = stepSmallTime.ToString("#,##.##") + "ms";
-			var stepTextW = fr.GetWidth(stepText, 16);
-			var stepTextH = fr.GetHeight(16);
+			//var stepSmallTime = (int)(stepSmall / cubeStep * 1000 * 100) / 100f;
+			//var stepText = stepSmallTime.ToString("#,##.##") + "ms";
+			//var stepTextW = fr.GetWidth(stepText, 16);
+			//var stepTextH = fr.GetHeight(16);
 
 			var lineX = ScreenX - posX;
-
 			if (lineX < 0)
-			{
 				lineX %= lineSpace;
-			}
 
+			//render quarters of a second depending on zoom level
 			while (lineSpace > 0 && lineX < rect.Width)
 			{
 				GL.Color3(0.65f, 0.65f, 0.65f);
@@ -68,13 +68,10 @@ namespace Blox_Saber_Editor
 				GL.Vertex2((int)lineX + 0.5f, rect.Y);
 				GL.Vertex2((int)lineX + 0.5f, rect.Y + rect.Height + 60);
 				GL.End();
-
+				/*
 				for (int j = 1; j <= 4; j++)
 				{
 					var xo = lineX + j * stepSmall;
-
-					//if (xo < ScreenX)
-						//continue;
 
 					GL.Color4(0, 0.75f, 1, 0.75f);
 					fr.Render(stepText, (int)(xo - stepSmall / 2 - stepTextW / 2f), (int)(rect.Y + rect.Height + 50 - stepTextH), 16);
@@ -83,12 +80,12 @@ namespace Blox_Saber_Editor
 					{
 						GL.Color3(0.3f, 0.3f, 0.3f);
 						GL.Begin(PrimitiveType.Lines);
-						GL.Vertex2((int) xo + 0.5f, rect.Y + rect.Height / 2);
-						GL.Vertex2((int) xo + 0.5f, rect.Y + rect.Height + 50);
+						GL.Vertex2((int)xo + 0.5f, rect.Y + rect.Height / 2);
+						GL.Vertex2((int)xo + 0.5f, rect.Y + rect.Height + 50);
 						GL.End();
 					}
 				}
-
+				*/
 				lineX += lineSpace;
 			}
 
@@ -154,6 +151,21 @@ namespace Blox_Saber_Editor
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, alphaMult * 1f);
 				GLU.RenderOutline((int)x, (int)y, (int)noteSize, (int)noteSize);
 
+				var gridGap = 2;
+				for (int j = 0; j < 9; j++)
+				{
+					var indexX = 2 - j % 3;
+					var indexY = 2 - j / 3;
+
+					var gridX = (int)x + indexX * (9 + gridGap) + 5;
+					var gridY = (int)y + indexY * (9 + gridGap) + 5;
+
+					if (note.X == indexX && note.Y == indexY)
+						GLU.RenderQuad(gridX, gridY, 9, 9);
+					else
+						GLU.RenderOutline(gridX, gridY, 9, 9);
+				}
+
 				var numText = $"{(i + 1):#,##}";
 
 				GL.Color3(0, 0.75f, 1f);
@@ -170,6 +182,41 @@ namespace Blox_Saber_Editor
 				GL.End();
 			}
 
+			if (BPM > 33)
+			{
+				lineSpace = 60 / BPM * cubeStep;
+				var stepSmall = lineSpace / BeatDivisor;
+
+				lineX = ScreenX - posX + BPMOffset / 1000f * cubeStep;
+				if (lineX < 0)
+					lineX %= lineSpace;
+
+				//render BPM lines
+				while (lineSpace > 0 && lineX < rect.Width)
+				{
+					GL.Color3(0, 1f, 0);
+					GL.Begin(PrimitiveType.Lines);
+					GL.Vertex2((int) lineX + 0.5f, rect.Bottom);
+					GL.Vertex2((int) lineX + 0.5f, rect.Bottom - 8);
+					GL.End();
+
+					for (int j = 1; j <= BeatDivisor; j++)
+					{
+						var xo = lineX + j * stepSmall;
+
+						if (j < BeatDivisor)
+						{
+							GL.Color3(0, 0.5f, 0);
+							GL.Begin(PrimitiveType.Lines);
+							GL.Vertex2((int) xo + 0.5f, rect.Bottom - 5);
+							GL.Vertex2((int) xo + 0.5f, rect.Bottom);
+							GL.End();
+						}
+					}
+
+					lineX += lineSpace;
+				}
+			}
 			//draw screen line
 			GL.Color3(1f, 0.5f, 0);
 			GL.Begin(PrimitiveType.Lines);
@@ -202,7 +249,7 @@ namespace Blox_Saber_Editor
 			var audioTime = EditorWindow.Instance.MusicPlayer.CurrentTime.TotalMilliseconds;
 
 			var cubeStep = EditorWindow.Instance.CubeStep;
-			var posX = (float) audioTime / 1000 * cubeStep;
+			var posX = (float)audioTime / 1000 * cubeStep;
 
 			for (int i = 0; i < EditorWindow.Instance.Notes.Count; i++)
 			{

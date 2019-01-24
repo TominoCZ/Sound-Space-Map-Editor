@@ -1,8 +1,7 @@
 ﻿using System.Drawing;
-using System.Security.Cryptography.X509Certificates;
 using OpenTK.Graphics.OpenGL;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class GuiVolume : Gui
 	{
@@ -14,7 +13,6 @@ namespace Blox_Saber_Editor
 		{
 			var rect = ClientRectangle;
 			var maxY = rect.Height - rect.Width;
-			var volume = EditorWindow.Instance.MusicPlayer.Volume;
 			var pos = (1 - EditorWindow.Instance.MusicPlayer.Volume) * maxY;
 			var y = rect.Y + rect.Width / 2;
 

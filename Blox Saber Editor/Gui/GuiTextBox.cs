@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Drawing;
-using System.Runtime.InteropServices;
+using System.Numerics;
 using System.Windows.Forms;
-using FreeType;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 
-namespace Blox_Saber_Editor
+namespace Blox_Saber_Editor.Gui
 {
 	class GuiTextBox : Gui
 	{
+		public bool Numeric;
 		public bool Centered;
 
 		private string _text = "";
@@ -35,7 +34,7 @@ namespace Blox_Saber_Editor
 		{
 			var rect = ClientRectangle;
 
-			var x = rect.X + rect.Height / 2;
+			var x = rect.X + rect.Height / 4;
 			var y = rect.Y + rect.Height / 2;
 
 			GL.Color3(0.1f, 0.1f, 0.1f);
@@ -47,12 +46,12 @@ namespace Blox_Saber_Editor
 
 			var renderedText = _text;
 
-			while (fr.GetWidth(renderedText, 24) > rect.Width - rect.Height)
+			while (fr.GetWidth(renderedText, 24) > rect.Width - rect.Height / 2)
 			{
 				renderedText = renderedText.Substring(1, renderedText.Length - 1);
 			}
 
-			var offX = (int)(ClientRectangle.Width / 2 - fr.GetWidth(renderedText, 24) / 2f - rect.Height / 2);
+			var offX = (int)(ClientRectangle.Width / 2 - fr.GetWidth(renderedText, 24) / 2f - rect.Height / 4);
 
 			if (Centered)
 				GL.Translate(offX, 0, 0);
@@ -100,7 +99,12 @@ namespace Blox_Saber_Editor
 			if (!Focused)
 				return;
 
-			_text = _text.Insert(_cursorPos, key.ToString());
+			var keyChar = key.ToString();
+
+			if (Numeric && !byte.TryParse(keyChar, out _))
+				return;
+
+			_text = _text.Insert(_cursorPos, keyChar);
 
 			_cursorPos++;
 		}
