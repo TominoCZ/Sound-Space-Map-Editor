@@ -27,7 +27,7 @@ namespace Blox_Saber_Editor.Gui
 
 			var playPause = new GuiButtonPlayPause(0, EditorWindow.Instance.ClientSize.Width - 512 - 64,
 				EditorWindow.Instance.ClientSize.Height - 64, 64, 64);
-			Reposition = new GuiCheckBox(1, "Reposition", 10, 200, 64, 64, true);
+			Reposition = new GuiCheckBox(1, "Reposition", 10, 200, 64, 64, false);
 			BPM = new GuiTextBox(10, 126, 64, 32) { Text = "0", Centered = true, Numeric = true };
 			Offset = new GuiTextBox(10, BPM.ClientRectangle.Bottom + 5, 64, 32) { Text = "0", Centered = true, Numeric = true };
 			var setOffset = new GuiButton(2, Offset.ClientRectangle.Right + 5, Offset.ClientRectangle.Y, 64, 32, "SET");

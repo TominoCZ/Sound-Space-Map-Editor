@@ -41,8 +41,8 @@ namespace Blox_Saber_Editor.Gui
 			var audioTime = EditorWindow.Instance.MusicPlayer.CurrentTime.TotalMilliseconds;
 
 			var cubeStep = EditorWindow.Instance.CubeStep;
-			var posX = (float)audioTime / 1000 * cubeStep;
-			var maxX = (float)EditorWindow.Instance.MusicPlayer.TotalTime.TotalMilliseconds / 1000 * cubeStep;
+			var posX = (int)(audioTime / 1000 * cubeStep);
+			var maxX = (int)(EditorWindow.Instance.MusicPlayer.TotalTime.TotalMilliseconds / 1000 * cubeStep);
 
 			//var screenSeconds = rect.Width / cubeStep;
 
@@ -63,46 +63,31 @@ namespace Blox_Saber_Editor.Gui
 			//render quarters of a second depending on zoom level
 			while (lineSpace > 0 && lineX < rect.Width)
 			{
-				GL.Color3(0.65f, 0.65f, 0.65f);
+				GL.Color3(0.85f, 0.85f, 0.85f);
 				GL.Begin(PrimitiveType.Lines);
 				GL.Vertex2((int)lineX + 0.5f, rect.Y);
-				GL.Vertex2((int)lineX + 0.5f, rect.Y + rect.Height + 60);
+				GL.Vertex2((int)lineX + 0.5f, rect.Y + 5);
 				GL.End();
-				/*
-				for (int j = 1; j <= 4; j++)
-				{
-					var xo = lineX + j * stepSmall;
 
-					GL.Color4(0, 0.75f, 1, 0.75f);
-					fr.Render(stepText, (int)(xo - stepSmall / 2 - stepTextW / 2f), (int)(rect.Y + rect.Height + 50 - stepTextH), 16);
-
-					if (j < 4)
-					{
-						GL.Color3(0.3f, 0.3f, 0.3f);
-						GL.Begin(PrimitiveType.Lines);
-						GL.Vertex2((int)xo + 0.5f, rect.Y + rect.Height / 2);
-						GL.Vertex2((int)xo + 0.5f, rect.Y + rect.Height + 50);
-						GL.End();
-					}
-				}
-				*/
 				lineX += lineSpace;
 			}
 
 			var mouseOver = false;
 
 			//draw start line
+			GL.LineWidth(2);
 			GL.Color4(0f, 1f, 0f, 1);
 			GL.Begin(PrimitiveType.Lines);
-			GL.Vertex2((int)(ScreenX - posX) + 0.5f, rect.Y);
-			GL.Vertex2((int)(ScreenX - posX) + 0.5f, rect.Y + rect.Height + 8);
+			GL.Vertex2((int)(ScreenX - posX), rect.Y);
+			GL.Vertex2((int)(ScreenX - posX), rect.Y + rect.Height);
 			GL.End();
 			//draw end line
 			GL.Color4(1f, 0f, 0f, 1);
 			GL.Begin(PrimitiveType.Lines);
-			GL.Vertex2((int)(ScreenX - posX + maxX) + 0.5f, rect.Y);
-			GL.Vertex2((int)(ScreenX - posX + maxX) + 0.5f, rect.Y + rect.Height + 8);
+			GL.Vertex2((int)(ScreenX - posX + maxX), rect.Y);
+			GL.Vertex2((int)(ScreenX - posX + maxX), rect.Y + rect.Height);
 			GL.End();
+			GL.LineWidth(1);
 
 			MouseOverNote = null;
 
@@ -171,14 +156,14 @@ namespace Blox_Saber_Editor.Gui
 				GL.Color3(0, 0.75f, 1f);
 				fr.Render(numText, (int)x + 3, (int)(rect.Y + rect.Height) + 3, 16);
 
-				GL.Color3(0, 1f, 0.5f);
+				GL.Color3(0, 1f, 0.45f);
 				fr.Render($"{note.Ms:#,##}ms", (int)x + 3, (int)(rect.Y + rect.Height + fr.GetHeight(16)) + 3 + 2, 16);
 
 				//draw line
 				GL.Color4(1f, 1f, 1f, alphaMult);
 				GL.Begin(PrimitiveType.Lines);
-				GL.Vertex2((int)x + 0.5f, rect.Y + rect.Height - 4);
-				GL.Vertex2((int)x + 0.5f, rect.Y + rect.Height + 30);
+				GL.Vertex2((int)x + 0.5f, rect.Y + rect.Height + 3);
+				GL.Vertex2((int)x + 0.5f, rect.Y + rect.Height + 28);
 				GL.End();
 			}
 
@@ -196,8 +181,8 @@ namespace Blox_Saber_Editor.Gui
 				{
 					GL.Color3(0, 1f, 0);
 					GL.Begin(PrimitiveType.Lines);
-					GL.Vertex2((int) lineX + 0.5f, rect.Bottom);
-					GL.Vertex2((int) lineX + 0.5f, rect.Bottom - 8);
+					GL.Vertex2((int)lineX + 0.5f, rect.Bottom);
+					GL.Vertex2((int)lineX + 0.5f, rect.Bottom - 11);
 					GL.End();
 
 					for (int j = 1; j <= BeatDivisor; j++)
@@ -206,10 +191,10 @@ namespace Blox_Saber_Editor.Gui
 
 						if (j < BeatDivisor)
 						{
-							GL.Color3(0, 0.5f, 0);
+							GL.Color3(0, 0.75f, 0);
 							GL.Begin(PrimitiveType.Lines);
-							GL.Vertex2((int) xo + 0.5f, rect.Bottom - 5);
-							GL.Vertex2((int) xo + 0.5f, rect.Bottom);
+							GL.Vertex2((int)xo + 0.5f, rect.Bottom - (j == BeatDivisor / 2 && j % 2 == 0 ? 7 : 3));
+							GL.Vertex2((int)xo + 0.5f, rect.Bottom);
 							GL.End();
 						}
 					}

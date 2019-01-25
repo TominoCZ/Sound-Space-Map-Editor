@@ -220,6 +220,22 @@ namespace Blox_Saber_Editor
 
 			GuiScreen?.OnMouseMove(e.X, e.Y);
 
+			if (_rightDown && GuiScreen is GuiScreenEditor g)
+			{
+				var x = Math.Min(_lastMouse.X, _clickedMouse.X);
+				var y = Math.Min(_lastMouse.Y, _clickedMouse.Y);
+
+				var w = Math.Max(_lastMouse.X, _clickedMouse.X) - x;
+				var h = Math.Min((int)g.Track.ClientRectangle.Height, Math.Max(_lastMouse.Y, _clickedMouse.Y)) - y;
+
+				var rect = new Rectangle(x, y, w, h);
+
+				var list = g.Track.GetNotesInRect(rect);
+
+				SelectedNotes = list;
+				_draggedNotes = new List<Note>(list);
+			}
+
 			if (GuiScreen is GuiScreenEditor editor)
 			{
 				if (_draggingCursor)
@@ -482,23 +498,9 @@ namespace Blox_Saber_Editor
 					MusicPlayer.Play();
 			}
 
-			if (_rightDown && e.Button == MouseButton.Right && GuiScreen is GuiScreenEditor g)
-			{
-				var x = Math.Min(_lastMouse.X, _clickedMouse.X);
-				var y = Math.Min(_lastMouse.Y, _clickedMouse.Y);
-
-				var w = Math.Max(_lastMouse.X, _clickedMouse.X) - x;
-				var h = Math.Min((int)g.Track.ClientRectangle.Height, Math.Max(_lastMouse.Y, _clickedMouse.Y)) - y;
-
-				var rect = new Rectangle(x, y, w, h);
-
-				var list = g.Track.GetNotesInRect(rect);
-
-				SelectedNotes = list;
-				_draggedNotes = new List<Note>(list);
-
+			if (e.Button == MouseButton.Right)
 				_rightDown = false;
-			}
+
 			_draggingVolume = false;
 			_draggingNoteTimeline = false;
 			_draggingNoteGrid = false;
@@ -849,7 +851,7 @@ namespace Blox_Saber_Editor
 				{
 					var snappedMs = GetClosestBeat(_draggedNote);
 
-					if (Math.Abs(snappedMs - cursorMs) / 1000f * CubeStep <= 5)
+					if (Math.Abs(snappedMs - cursorMs) / 1000f * CubeStep <= 8) //8 pixels
 						msDiff = -(_draggedNote.DragStartMs - snappedMs);
 				}
 
