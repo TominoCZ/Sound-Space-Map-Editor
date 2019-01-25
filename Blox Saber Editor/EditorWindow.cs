@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Blox_Saber_Editor.Gui;
@@ -51,9 +52,9 @@ namespace Blox_Saber_Editor
 		private float _brigthness;
 
 		private int _dragStartX;
-		private int _dragStartMs;
-		private int _dragNoteStartMs;
-		private int _dragNoteDragStartMs;
+		private long _dragStartMs;
+		private long _dragNoteStartMs;
+		private long _dragNoteDragStartMs;
 
 		private int _dragStartIndexX;
 		private int _dragStartIndexY;
@@ -394,11 +395,11 @@ namespace Blox_Saber_Editor
 					{
 						Notes.Sort();
 
-						int[] _startMs = new int[notes.Count];
+						long[] startMs = new long[notes.Count];
 
-						for (var i = 0; i < _startMs.Length; i++)
+						for (var i = 0; i < startMs.Length; i++)
 						{
-							_startMs[i] = notes[i].DragStartMs;
+							startMs[i] = notes[i].DragStartMs;
 						}
 
 						var saveState = _saved;
@@ -409,7 +410,7 @@ namespace Blox_Saber_Editor
 							{
 								var note1 = notes[index];
 
-								start = _startMs[index];
+								start = startMs[index];
 								note1.Ms = start;
 							}
 
@@ -422,7 +423,7 @@ namespace Blox_Saber_Editor
 							{
 								var note1 = notes[index];
 
-								start = _startMs[index];
+								start = startMs[index];
 								note1.Ms = start + diff;
 							}
 
@@ -545,7 +546,7 @@ namespace Blox_Saber_Editor
 
 			if (GuiScreen is GuiScreenEditor editor)
 			{
-				if (e.Key == Key.S)
+				if (e.Key == Key.S && e.Control)
 				{
 					if (e.Shift || !_saved && _file == null)
 					{
@@ -762,12 +763,12 @@ namespace Blox_Saber_Editor
 			SoundPlayer.Dispose();
 		}
 
-		private int GetClosestBeat(Note note)
+		private long GetClosestBeat(Note note)
 		{
-			var lastDiffMs = int.MaxValue;
-			var closestMs = int.MaxValue;
+			var lastDiffMs = long.MaxValue;
+			var closestMs = long.MaxValue;
 
-			List<int> beats = new List<int>();
+			List<long> beats = new List<long>();
 
 			if (GuiScreen is GuiScreenEditor gui)
 			{
@@ -784,18 +785,19 @@ namespace Blox_Saber_Editor
 
 				var lineSpace = 60 / bpm * CubeStep;
 				var stepSmall = lineSpace / beatDivisor;
-
-				var lineX = screenX - posX + bpmOffset / 1000 * CubeStep;
+				
+				var lineX = screenX - posX + bpmOffset / 1000f * CubeStep;
 				if (lineX < 0)
 					lineX %= lineSpace;
+
 
 				while (lineSpace > 0 && lineX < rect.Width)
 				{
 					//bpm line
-					var timelineMs = gui.Track.BPMOffset + (lineX - screenX + posX) / CubeStep * 1000;
+					var timelineMs = (long)((lineX - screenX + posX) / CubeStep * 1000);
 
-					if ((int)timelineMs != int.MaxValue && (int)timelineMs != int.MinValue)
-						beats.Add((int)timelineMs);
+					if (timelineMs != long.MaxValue && timelineMs != long.MinValue)
+						beats.Add(timelineMs);
 
 					for (int j = 1; j <= beatDivisor; j++)
 					{
@@ -804,10 +806,10 @@ namespace Blox_Saber_Editor
 						if (j < beatDivisor)
 						{
 							//divided bpm line
-							timelineMs = gui.Track.BPMOffset + (xo - screenX + posX) / CubeStep * 1000;
+							timelineMs = (long)((xo - screenX + posX) / CubeStep * 1000);
 
-							if ((int)timelineMs != int.MaxValue && (int)timelineMs != int.MinValue)
-								beats.Add((int)timelineMs);
+							if (timelineMs != long.MaxValue && timelineMs != long.MinValue)
+								beats.Add(timelineMs);
 						}
 					}
 
@@ -942,7 +944,7 @@ namespace Blox_Saber_Editor
 
 					var x = 2 - int.Parse(chunkSplit[0].Value);
 					var y = 2 - int.Parse(chunkSplit[1].Value);
-					var ms = int.Parse(chunkSplit[2].Value);
+					var ms = long.Parse(chunkSplit[2].Value);
 
 					Notes.Add(new Note(x, y, ms));
 				}
@@ -954,8 +956,9 @@ namespace Blox_Saber_Editor
 				else
 					_soundID = -1;
 			}
-			catch
+			catch (Exception e)
 			{
+				Console.WriteLine(e.StackTrace);
 				return false;
 			}
 
@@ -1001,25 +1004,27 @@ namespace Blox_Saber_Editor
 			if (file == null)
 				return false;
 
-			using (var fs = File.OpenWrite(file))
+			try
 			{
-				using (var sw = new StreamWriter(fs))
+				var sb = new StringBuilder();
+
+				sb.Append(_soundID.ToString());
+
+				for (int i = 0; i < Notes.Count; i++)
 				{
-					sw.Write(_soundID.ToString());
+					Note note = Notes[i];
 
-					for (int i = 0; i < Notes.Count; i++)
-					{
-						Note note = Notes[i];
+					var gridX = 2 - note.X;
+					var gridY = 2 - note.Y;
 
-						var gridX = 2 - note.X;
-						var gridY = 2 - note.Y;
-
-						sw.Write($",{gridX}|{gridY}|{note.Ms}");
-					}
-
-					return true;
+					sb.Append($",{gridX}|{gridY}|{note.Ms}");
 				}
+
+				File.WriteAllText(file, sb.ToString(), Encoding.UTF8);
 			}
+			catch { return false; }
+
+			return true;
 		}
 
 		private bool LoadSound(long id)

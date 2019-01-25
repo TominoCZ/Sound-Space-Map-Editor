@@ -139,8 +139,8 @@ namespace Blox_Saber_Editor.Gui
 						EditorWindow.Instance.MusicPlayer.Play();
 					break;
 				case 2:
-					int oldOffset = Track.BPMOffset;
-					int.TryParse(Offset.Text, out var newOffset);
+					long oldOffset = Track.BPMOffset;
+					long.TryParse(Offset.Text, out var newOffset);
 
 					var toggle = Reposition.Toggle;
 
