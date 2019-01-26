@@ -19,7 +19,7 @@ namespace Blox_Saber_Editor.Gui
 			float us = b ? 0.5f : 0;
 			
 			GL.Color3(1, 1, 1f);
-			GLU.RenderTexturedQuad(rect.X, rect.Y, rect.Width, rect.Height, us, 0, us + 0.5f, 0.5f, Texture);
+			Glu.RenderTexturedQuad(rect.X, rect.Y, rect.Width, rect.Height, us, 0, us + 0.5f, 0.5f, Texture);
 		}
 	}
 }

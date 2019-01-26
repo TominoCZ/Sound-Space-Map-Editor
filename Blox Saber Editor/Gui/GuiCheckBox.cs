@@ -12,7 +12,7 @@ namespace Blox_Saber_Editor.Gui
 
 		public GuiCheckBox(int id, float x, float y, float sx, float sy, bool toggle) : base(id, x, y, sx, sy)
 		{
-			ID = id;
+			Id = id;
 
 			Toggle = toggle;
 		}
@@ -29,9 +29,9 @@ namespace Blox_Saber_Editor.Gui
 			IsMouseOver = rect.Contains(mouseX, mouseY);
 
 			GL.Color3(0.05f, 0.05f, 0.05f);
-			GLU.RenderQuad(rect);
+			Glu.RenderQuad(rect);
 			GL.Color3(0.2f, 0.2f, 0.2f);
-			GLU.RenderOutline(rect);
+			Glu.RenderOutline(rect);
 
 			_alpha = Toggle ? Math.Min(1, _alpha + delta * 8) : Math.Max(0, _alpha - delta * 8);
 
@@ -41,7 +41,7 @@ namespace Blox_Saber_Editor.Gui
 			if (checkSize > 0)
 			{
 				GL.Color4(0, 1f, 0.1f, Math.Pow(_alpha, 4));
-				GLU.RenderQuad(rect.X + gap, rect.Y + gap, checkSize, checkSize);
+				Glu.RenderQuad(rect.X + gap, rect.Y + gap, checkSize, checkSize);
 			}
 
 			var fr = EditorWindow.Instance.FontRenderer;

@@ -22,7 +22,7 @@ namespace Blox_Saber_Editor.Gui
 			var mouseOver = false;
 
 			GL.Color3(0.1f, 0.1f, 0.1f);
-			GLU.RenderQuad(rect.X, rect.Y, rect.Width, rect.Height);
+			Glu.RenderQuad(rect.X, rect.Y, rect.Width, rect.Height);
 
 			var cellSize = rect.Width / 3f;
 			var noteSize = cellSize * 0.75f;
@@ -37,14 +37,14 @@ namespace Blox_Saber_Editor.Gui
 			{
 				var ly = y * cellSize;
 
-				GLU.RenderQuad((int)(rect.X), (int)(rect.Y + ly), rect.Width + 1, 1);
+				Glu.RenderQuad((int)(rect.X), (int)(rect.Y + ly), rect.Width + 1, 1);
 			}
 
 			for (int x = 0; x <= 3; x++)
 			{
 				var lx = x * cellSize;
 
-				GLU.RenderQuad((int)(rect.X + lx), (int)(rect.Y), 1, rect.Height + 1);
+				Glu.RenderQuad((int)(rect.X + lx), (int)(rect.Y), 1, rect.Height + 1);
 			}
 
 			var fr = EditorWindow.Instance.FontRenderer;
@@ -81,10 +81,10 @@ namespace Blox_Saber_Editor.Gui
 
 				var noteRect = new RectangleF(x, y, noteSize, noteSize);
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, progress * 0.2f);
-				GLU.RenderQuad(noteRect);
+				Glu.RenderQuad(noteRect);
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, progress);
-				GLU.RenderOutline(noteRect);
-				GLU.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2, outlineSize,
+				Glu.RenderOutline(noteRect);
+				Glu.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2, outlineSize,
 					outlineSize);
 
 				GL.Color4(1, 1, 1, progress);
@@ -104,7 +104,7 @@ namespace Blox_Saber_Editor.Gui
 					outlineSize = noteSize + 8;
 
 					GL.Color4(0, 0.5f, 1f, progress);
-					GLU.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2,
+					Glu.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2,
 						outlineSize, outlineSize);
 				}
 
@@ -114,7 +114,7 @@ namespace Blox_Saber_Editor.Gui
 					mouseOver = true;
 
 					GL.Color3(0, 1, 0.25f);
-					GLU.RenderOutline(x - 4, y - 4, noteSize + 8, noteSize + 8);
+					Glu.RenderOutline(x - 4, y - 4, noteSize + 8, noteSize + 8);
 				}
 			}
 		}

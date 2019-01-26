@@ -5,35 +5,35 @@ namespace Blox_Saber_Editor.SoundTouch
 {
     class VarispeedSampleProvider : ISampleProvider, IDisposable
     {
-        private readonly ISampleProvider sourceProvider;
-        private readonly SoundTouch soundTouch;
-        private readonly float[] sourceReadBuffer;
-        private readonly float[] soundTouchReadBuffer;
-        private readonly int channelCount;
-        private float playbackRate = 1.0f;
-        private SoundTouchProfile currentSoundTouchProfile;
-        private bool repositionRequested;
+        private readonly ISampleProvider _sourceProvider;
+        private readonly SoundTouch _soundTouch;
+        private readonly float[] _sourceReadBuffer;
+        private readonly float[] _soundTouchReadBuffer;
+        private readonly int _channelCount;
+        private float _playbackRate = 1.0f;
+        private SoundTouchProfile _currentSoundTouchProfile;
+        private bool _repositionRequested;
 
         public VarispeedSampleProvider(ISampleProvider sourceProvider, int readDurationMilliseconds, SoundTouchProfile soundTouchProfile)
         {
-            soundTouch = new SoundTouch();
+            _soundTouch = new SoundTouch();
             // explore what the default values are before we change them:
             //Debug.WriteLine(String.Format("SoundTouch Version {0}", soundTouch.VersionString));
             //Debug.WriteLine("Use QuickSeek: {0}", soundTouch.GetUseQuickSeek());
             //Debug.WriteLine("Use AntiAliasing: {0}", soundTouch.GetUseAntiAliasing());
 
             SetSoundTouchProfile(soundTouchProfile);
-            this.sourceProvider = sourceProvider;
-            soundTouch.SetSampleRate(WaveFormat.SampleRate);
-            channelCount = WaveFormat.Channels;
-            soundTouch.SetChannels(channelCount);
-            sourceReadBuffer = new float[(WaveFormat.SampleRate * channelCount * (long)readDurationMilliseconds) / 1000];
-            soundTouchReadBuffer = new float[sourceReadBuffer.Length * 10]; // support down to 0.1 speed
+            this._sourceProvider = sourceProvider;
+            _soundTouch.SetSampleRate(WaveFormat.SampleRate);
+            _channelCount = WaveFormat.Channels;
+            _soundTouch.SetChannels(_channelCount);
+            _sourceReadBuffer = new float[(WaveFormat.SampleRate * _channelCount * (long)readDurationMilliseconds) / 1000];
+            _soundTouchReadBuffer = new float[_sourceReadBuffer.Length * 10]; // support down to 0.1 speed
         }
 
         public int Read(float[] buffer, int offset, int count)
         {
-            if (playbackRate == 0) // play silence
+            if (_playbackRate == 0) // play silence
             {
                 for (int n = 0; n < count; n++)
                 {
@@ -42,57 +42,57 @@ namespace Blox_Saber_Editor.SoundTouch
                 return count;
             }
 
-            if (repositionRequested)
+            if (_repositionRequested)
             {
-                soundTouch.Clear();
-                repositionRequested = false;
+                _soundTouch.Clear();
+                _repositionRequested = false;
             }
 
             int samplesRead = 0;
             bool reachedEndOfSource = false;
             while (samplesRead < count)
             {
-                if (soundTouch.NumberOfSamplesAvailable == 0)
+                if (_soundTouch.NumberOfSamplesAvailable == 0)
                 {
-                    var readFromSource = sourceProvider.Read(sourceReadBuffer, 0, sourceReadBuffer.Length);
+                    var readFromSource = _sourceProvider.Read(_sourceReadBuffer, 0, _sourceReadBuffer.Length);
                     if (readFromSource > 0)
                     {
-                        soundTouch.PutSamples(sourceReadBuffer, readFromSource/channelCount);
+                        _soundTouch.PutSamples(_sourceReadBuffer, readFromSource/_channelCount);
                     }
                     else
                     {
                         reachedEndOfSource = true;
                         // we've reached the end, tell SoundTouch we're done
-                        soundTouch.Flush();
+                        _soundTouch.Flush();
                     }
                 }
-                var desiredSampleFrames = (count - samplesRead)/channelCount;
+                var desiredSampleFrames = (count - samplesRead)/_channelCount;
 
-                var received = soundTouch.ReceiveSamples(soundTouchReadBuffer, desiredSampleFrames)*channelCount;
+                var received = _soundTouch.ReceiveSamples(_soundTouchReadBuffer, desiredSampleFrames)*_channelCount;
                 // use loop instead of Array.Copy due to WaveBuffer
                 for (int n = 0; n < received; n++)
                 {
-                    buffer[offset+samplesRead++] = soundTouchReadBuffer[n];
+                    buffer[offset+samplesRead++] = _soundTouchReadBuffer[n];
                 }
                 if (received == 0 && reachedEndOfSource) break;
             }
             return samplesRead;
         }
 
-        public WaveFormat WaveFormat => sourceProvider.WaveFormat;
+        public WaveFormat WaveFormat => _sourceProvider.WaveFormat;
 
         public float PlaybackRate
         {
             get
             {
-                return playbackRate;
+                return _playbackRate;
             }
             set
             {
-                if (playbackRate != value)
+                if (_playbackRate != value)
                 {
                     UpdatePlaybackRate(value);
-                    playbackRate = value;
+                    _playbackRate = value;
                 }
             }
         }
@@ -101,48 +101,48 @@ namespace Blox_Saber_Editor.SoundTouch
         {
             if (value != 0)
             {
-                if (currentSoundTouchProfile.UseTempo)
+                if (_currentSoundTouchProfile.UseTempo)
                 {
-                    soundTouch.SetTempo(value);
+                    _soundTouch.SetTempo(value);
                 }
                 else
                 {
-                    soundTouch.SetRate(value);
+                    _soundTouch.SetRate(value);
                 }
             }
         }
 
         public void Dispose()
         {
-            soundTouch.Dispose();
+            _soundTouch.Dispose();
         }
 
         public void SetSoundTouchProfile(SoundTouchProfile soundTouchProfile)
         {
-            if (currentSoundTouchProfile != null && 
-                playbackRate != 1.0f && 
-                soundTouchProfile.UseTempo != currentSoundTouchProfile.UseTempo)
+            if (_currentSoundTouchProfile != null && 
+                _playbackRate != 1.0f && 
+                soundTouchProfile.UseTempo != _currentSoundTouchProfile.UseTempo)
             {
                 if (soundTouchProfile.UseTempo)
                 {
-                    soundTouch.SetRate(1.0f);
-                    soundTouch.SetPitchOctaves(0f);
-                    soundTouch.SetTempo(playbackRate);
+                    _soundTouch.SetRate(1.0f);
+                    _soundTouch.SetPitchOctaves(0f);
+                    _soundTouch.SetTempo(_playbackRate);
                 }
                 else
                 {
-                    soundTouch.SetTempo(1.0f);
-                    soundTouch.SetRate(playbackRate);
+                    _soundTouch.SetTempo(1.0f);
+                    _soundTouch.SetRate(_playbackRate);
                 }
             }
-            currentSoundTouchProfile = soundTouchProfile;
-            soundTouch.SetUseAntiAliasing(soundTouchProfile.UseAntiAliasing);
-            soundTouch.SetUseQuickSeek(soundTouchProfile.UseQuickSeek);
+            _currentSoundTouchProfile = soundTouchProfile;
+            _soundTouch.SetUseAntiAliasing(soundTouchProfile.UseAntiAliasing);
+            _soundTouch.SetUseQuickSeek(soundTouchProfile.UseQuickSeek);
         }
 
         public void Reposition()
         {
-            repositionRequested = true;            
+            _repositionRequested = true;            
         }
     }
 }

@@ -61,9 +61,9 @@ namespace Blox_Saber_Editor.Gui
 				case 0:
 					var text = _tb.Text.Trim();
 
-					if (long.TryParse(text, out var ID))
+					if (long.TryParse(text, out var parsed))
 					{
-						EditorWindow.Instance.CreateMap(ID);
+						EditorWindow.Instance.CreateMap(parsed);
 					}
 					else
 					{

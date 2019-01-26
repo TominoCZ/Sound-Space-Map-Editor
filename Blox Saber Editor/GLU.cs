@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Blox_Saber_Editor
 {
-	static class GLU
+	static class Glu
 	{
 		public static void RenderQuad(double x, double y, double sx, double sy)
 		{

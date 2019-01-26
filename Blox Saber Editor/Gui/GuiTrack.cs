@@ -12,8 +12,8 @@ namespace Blox_Saber_Editor.Gui
 
 		public float ScreenX = 300;
 
-		public float BPM = 0;//150;
-		public long BPMOffset = 0; //in ms
+		public float Bpm = 0;//150;
+		public long BpmOffset = 0; //in ms
 		public int BeatDivisor = 4;
 
 		public GuiTrack(float y, float sy) : base(0, y, EditorWindow.Instance.ClientSize.Width, sy)
@@ -27,9 +27,9 @@ namespace Blox_Saber_Editor.Gui
 
 			var rect = ClientRectangle;
 
-			GLU.RenderQuad(rect);
+			Glu.RenderQuad(rect);
 			GL.Color3(0.2f, 0.2f, 0.2f);
-			GLU.RenderQuad((int)rect.X, (int)rect.Y + rect.Height, (int)rect.Width, 1);
+			Glu.RenderQuad((int)rect.X, (int)rect.Y + rect.Height, (int)rect.Width, 1);
 
 			var fr = EditorWindow.Instance.FontRenderer;
 
@@ -128,13 +128,13 @@ namespace Blox_Saber_Editor.Gui
 						GL.Color3(0, 0.5f, 1);
 					}
 
-					GLU.RenderOutline((int)(x - 4), (int)(y - 4), (int)(noteSize + 8), (int)(noteSize + 8));
+					Glu.RenderOutline((int)(x - 4), (int)(y - 4), (int)(noteSize + 8), (int)(noteSize + 8));
 				}
 
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, alphaMult * 0.2f);
-				GLU.RenderQuad((int)x, (int)y, (int)noteSize, (int)noteSize);
+				Glu.RenderQuad((int)x, (int)y, (int)noteSize, (int)noteSize);
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, alphaMult * 1f);
-				GLU.RenderOutline((int)x, (int)y, (int)noteSize, (int)noteSize);
+				Glu.RenderOutline((int)x, (int)y, (int)noteSize, (int)noteSize);
 
 				var gridGap = 2;
 				for (int j = 0; j < 9; j++)
@@ -146,9 +146,9 @@ namespace Blox_Saber_Editor.Gui
 					var gridY = (int)y + indexY * (9 + gridGap) + 5;
 
 					if (note.X == indexX && note.Y == indexY)
-						GLU.RenderQuad(gridX, gridY, 9, 9);
+						Glu.RenderQuad(gridX, gridY, 9, 9);
 					else
-						GLU.RenderOutline(gridX, gridY, 9, 9);
+						Glu.RenderOutline(gridX, gridY, 9, 9);
 				}
 
 				var numText = $"{(i + 1):#,##}";
@@ -167,12 +167,12 @@ namespace Blox_Saber_Editor.Gui
 				GL.End();
 			}
 
-			if (BPM > 33)
+			if (Bpm > 33)
 			{
-				lineSpace = 60 / BPM * cubeStep;
+				lineSpace = 60 / Bpm * cubeStep;
 				var stepSmall = lineSpace / BeatDivisor;
 
-				lineX = ScreenX - posX + BPMOffset / 1000f * cubeStep;
+				lineX = ScreenX - posX + BpmOffset / 1000f * cubeStep;
 				if (lineX < 0)
 					lineX %= lineSpace;
 

@@ -13,7 +13,7 @@ namespace Blox_Saber_Editor
     {
 
         // The number of precompiled character.
-        private static readonly int CHARACTER_RANGE = 400;
+        private static readonly int CharacterRange = 400;
 
         // ###############################################################################
         // ### A T T R I B U T E S
@@ -58,7 +58,7 @@ namespace Blox_Saber_Editor
         /// <param name="size">The requested font size.</param>
         public FtFont(string font, int size)
         {
-            if (sizeof(FT_Long) != IntPtr.Size)
+            if (sizeof(FtLong) != IntPtr.Size)
             {
                 Console.WriteLine("Wrong compilation options!");
                 if (IntPtr.Size == 4)
@@ -73,60 +73,60 @@ namespace Blox_Saber_Editor
             _fontSize = size;
 
 			// We begin by creating a library pointer
-			int ret = FT_Library.FT_Init_FreeType(out IntPtr libptr);
+			int ret = FtLibrary.FT_Init_FreeType(out IntPtr libptr);
 			if (ret != 0)
                 return;
 
             //Once we have the library we create and load the font face
-	        int retb = FT_Face.FT_New_Face(libptr, font, 0, out IntPtr faceptr);
+	        int retb = FtFace.FT_New_Face(libptr, font, 0, out IntPtr faceptr);
 			if (retb != 0)
                 return;
 
-            var face = (FT_Face)Marshal.PtrToStructure(faceptr, typeof(FT_Face));
-            if ((((int)face.face_flags) & ((int)((FT_Long)FT_FACE_FLAGS.FT_FACE_FLAG_HORIZONTAL))) !=
-                (int)((FT_Long)FT_FACE_FLAGS.FT_FACE_FLAG_HORIZONTAL))
+            var face = (FtFace)Marshal.PtrToStructure(faceptr, typeof(FtFace));
+            if ((((int)face.face_flags) & ((int)((FtLong)FtFaceFlags.FtFaceFlagHorizontal))) !=
+                (int)((FtLong)FtFaceFlags.FtFaceFlagHorizontal))
                 Console.WriteLine("WARNING! The font '" + font + "' is not suitable for horizontal left-to-right text output.");
 
-            if ((((int)face.face_flags) & ((int)((FT_Long)FT_FACE_FLAGS.FT_FACE_FLAG_FIXED_WIDTH))) !=
-                (int)((FT_Long)FT_FACE_FLAGS.FT_FACE_FLAG_FIXED_WIDTH))
+            if ((((int)face.face_flags) & ((int)((FtLong)FtFaceFlags.FtFaceFlagFixedWidth))) !=
+                (int)((FtLong)FtFaceFlags.FtFaceFlagFixedWidth))
                 _monospace = false;
             else
                 _monospace = true;
             uint tmp = (((('u' << 8) | 'n') << 8 | 'i') << 8 | 'c');
-            if (FT_Face.FT_Select_CharMap(faceptr, tmp)!=0)
+            if (FtFace.FT_Select_CharMap(faceptr, tmp)!=0)
             {
                 throw new Exception("Cannot set unicode");
             }
 
             // Freetype measures the font size in 1/64th of pixels for accuracy 
             // so we need to request characters in size*64
-            FT_Face.FT_Set_Char_Size(faceptr, size << 6, size << 6, 96, 96);
+            FtFace.FT_Set_Char_Size(faceptr, size << 6, size << 6, 96, 96);
 
             // Provide a reasonably accurate estimate for expected pixel sizes
             // when we later on create the bitmaps for the font.
-            FT_Face.FT_Set_Pixel_Sizes(faceptr, size, size);
+            FtFace.FT_Set_Pixel_Sizes(faceptr, size, size);
 
 
 
-            FT_Size ft_size = Marshal.PtrToStructure<FT_Size>(face.size);
-            _baseLine = ((int)ft_size.metrics.ascender+(int)ft_size.metrics.descender)/64;// (int)ft_size.metrics.ascender/64;
+            FtSize ftSize = Marshal.PtrToStructure<FtSize>(face.size);
+            _baseLine = ((int)ftSize.metrics.ascender+(int)ftSize.metrics.descender)/64;// (int)ft_size.metrics.ascender/64;
             
             
             // Once we have the face loaded and sized, we generate opengl textures 
             // from the glyphs for each printable character.
-            _textures = new int[CHARACTER_RANGE];
-            _extentsX = new int[CHARACTER_RANGE];
-            _listBase = GL.GenLists(CHARACTER_RANGE);
-            GL.GenTextures(CHARACTER_RANGE, _textures);
+            _textures = new int[CharacterRange];
+            _extentsX = new int[CharacterRange];
+            _listBase = GL.GenLists(CharacterRange);
+            GL.GenTextures(CharacterRange, _textures);
             Console.WriteLine($"{font} {size}");
-            for (int c = 0; c < CHARACTER_RANGE; c++)
+            for (int c = 0; c < CharacterRange; c++)
             {
                 CompileCharacter(face, faceptr, c);
             }
 
             // Dispose of these as we don't need
-            FT_Face.FT_Done_Face(faceptr);
-            FT_Library.FT_Done_FreeType(libptr);
+            FtFace.FT_Done_Face(faceptr);
+            FtLibrary.FT_Done_FreeType(libptr);
         }
 
         #endregion Construction	
@@ -147,8 +147,8 @@ namespace Blox_Saber_Editor
 
         public void Dispose()
         {
-            GL.DeleteLists(_listBase, CHARACTER_RANGE);
-            GL.DeleteTextures(CHARACTER_RANGE, _textures);
+            GL.DeleteLists(_listBase, CharacterRange);
+            GL.DeleteTextures(CharacterRange, _textures);
             _textures = null;
             _extentsX = null;
         }
@@ -166,11 +166,11 @@ namespace Blox_Saber_Editor
         /// <param name="faceptr">The font face pointer, associated with the character to compile.</param>
         /// <param name="c">The character to compile to a list of GL commands, that draw the character's glyph bitmap.</param>
         /// <remarks>For details see: http://www.freetype.org/freetype2/docs/tutorial/step2.html</remarks>
-        public void CompileCharacter(FT_Face face, IntPtr faceptr, int c)
+        public void CompileCharacter(FtFace face, IntPtr faceptr, int c)
         {
             int result;
             // Convert the number index to a character index.
-            int index = FT_Face.FT_Get_Char_Index(faceptr, Convert.ToChar(c));
+            int index = FtFace.FT_Get_Char_Index(faceptr, Convert.ToChar(c));
 
             // Load a single glyph (indicated by the index of the glyph in the font file) into the glyph slot of a face object.
             // The FT_LOAD_TYPES.FT_LOAD_DEFAULT controls:
@@ -179,7 +179,7 @@ namespace Blox_Saber_Editor
             // - ALTERNATIVELY: Look for a scalable outline, load it from the font file, scale it to device pixels, ‘hint’ it to the
             //                  pixel grid (in order to optimize it), provide outline data to the glyph slot and return integer 0.
             // - FALLBACK: Return integer != 0.
-            result = FT_Face.FT_Load_Glyph(faceptr, index, /*get metrics in 1/64th of pixels*/ FT_LOAD_TYPES.FT_LOAD_DEFAULT);
+            result = FtFace.FT_Load_Glyph(faceptr, index, /*get metrics in 1/64th of pixels*/ FtLoadTypes.FtLoadDefault);
             if (result != 0)
                 return;
 
@@ -193,14 +193,14 @@ namespace Blox_Saber_Editor
             // Convert a given glyph object to a bitmap glyph object.
             // The bitmap glyph object must be released with FT_Done_Glyph().
             result = Glyph.FT_Glyph_To_Bitmap(out glyphPointer,
-                                               /*8-bit anti-aliased pixmap*/ FT_RENDER_MODES.FT_RENDER_MODE_NORMAL,
-                                               /*origin*/ new FT_Vector(0, 0),
-                                               /*destroy non-bitmap glyph before replacing*/ (FT_Bool)1);
+                                               /*8-bit anti-aliased pixmap*/ FtRenderModes.FtRenderModeNormal,
+                                               /*origin*/ new FtVector(0, 0),
+                                               /*destroy non-bitmap glyph before replacing*/ (FtBool)1);
             if (result != 0)
                 return;
 
             // Incorporate glyph bitmap structure into managed code.
-            FT_BitmapGlyph bitmapglyphStructure = (FT_BitmapGlyph)Marshal.PtrToStructure(glyphPointer, typeof(FT_BitmapGlyph));
+            FtBitmapGlyph bitmapglyphStructure = (FtBitmapGlyph)Marshal.PtrToStructure(glyphPointer, typeof(FtBitmapGlyph));
             uint size = (bitmapglyphStructure.bitmap.width * bitmapglyphStructure.bitmap.rows);
             if (size <= 0)
             {

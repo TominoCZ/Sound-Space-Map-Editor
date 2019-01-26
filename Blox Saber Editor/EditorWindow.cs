@@ -49,12 +49,11 @@ namespace Blox_Saber_Editor
 		private Point _clickedMouse;
 		private Point _lastMouse;
 
-		private float _brigthness;
+		private float _brightness;
 
 		private int _dragStartX;
 		private long _dragStartMs;
 		private long _dragNoteStartMs;
-		private long _dragNoteDragStartMs;
 
 		private int _dragStartIndexX;
 		private int _dragStartIndexY;
@@ -71,7 +70,7 @@ namespace Blox_Saber_Editor
 
 		private string _file;
 
-		private long _soundID = -1;
+		private long _soundId = -1;
 
 		public NoteList Notes = new NoteList();
 
@@ -159,15 +158,15 @@ namespace Blox_Saber_Editor
 
 						if (closest != null)
 						{
-							SoundPlayer.Play("hit", gse.SFXVolume.Value / (float)gse.SFXVolume.MaxValue);
-							_brigthness = 0.2f;
+							SoundPlayer.Play("hit", gse.SfxVolume.Value / (float)gse.SfxVolume.MaxValue);
+							_brightness = 0.2f;
 						}
 					}
 				}
 			}
 
-			GL.ClearColor(_brigthness, 0, _brigthness, 1);
-			_brigthness = (float)Math.Max(0, _brigthness - e.Time);
+			GL.ClearColor(_brightness, 0, _brightness, 1);
+			_brightness = (float)Math.Max(0, _brightness - e.Time);
 
 			GuiScreen?.Render((float)e.Time, _lastMouse.X, _lastMouse.Y);
 
@@ -181,7 +180,7 @@ namespace Blox_Saber_Editor
 					var noteX = editor.Track.ScreenX - posX + draggedNote.DragStartMs / 1000f * CubeStep;
 
 					GL.Color3(0.75f, 0.75f, 0.75f);
-					GLU.RenderQuad((int)noteX, (int)rect.Y, 1, rect.Height);
+					Glu.RenderQuad((int)noteX, (int)rect.Y, 1, rect.Height);
 				}
 			}
 
@@ -196,9 +195,9 @@ namespace Blox_Saber_Editor
 					var h = Math.Min((int)g.Track.ClientRectangle.Height, Math.Max(_lastMouse.Y, _clickedMouse.Y)) - y;
 
 					GL.Color4(0, 1, 0.2f, 0.2f);
-					GLU.RenderQuad(x, y, w, h);
+					Glu.RenderQuad(x, y, w, h);
 					GL.Color4(0, 1, 0.2f, 1);
-					GLU.RenderOutline(x, y, w, h);
+					Glu.RenderOutline(x, y, w, h);
 				}
 			}
 
@@ -288,15 +287,15 @@ namespace Blox_Saber_Editor
 					MusicPlayer.Volume = Math.Max(0,
 						Math.Min(1, (float)tick / editor.MasterVolume.MaxValue));
 				}
-				if (editor.SFXVolume.Dragging)
+				if (editor.SfxVolume.Dragging)
 				{
-					var rect = editor.SFXVolume.ClientRectangle;
+					var rect = editor.SfxVolume.ClientRectangle;
 					var lineSize = rect.Height - rect.Width;
-					var step = lineSize / editor.SFXVolume.MaxValue;
+					var step = lineSize / editor.SfxVolume.MaxValue;
 
-					var tick = MathHelper.Clamp(Math.Round((lineSize - (e.Y - rect.Y - rect.Width / 2)) / step), 0, editor.SFXVolume.MaxValue);
+					var tick = MathHelper.Clamp(Math.Round((lineSize - (e.Y - rect.Y - rect.Width / 2)) / step), 0, editor.SfxVolume.MaxValue);
 
-					editor.SFXVolume.Value = (int)tick;
+					editor.SfxVolume.Value = (int)tick;
 				}
 				if (editor.BeatSnapDivisor.Dragging)
 				{
@@ -432,9 +431,9 @@ namespace Blox_Saber_Editor
 					editor.MasterVolume.Dragging = true;
 					OnMouseMove(new MouseMoveEventArgs(e.X, e.Y, 0, 0));
 				}
-				else if (editor.SFXVolume.ClientRectangle.Contains(e.Position))
+				else if (editor.SfxVolume.ClientRectangle.Contains(e.Position))
 				{
-					editor.SFXVolume.Dragging = true;
+					editor.SfxVolume.Dragging = true;
 					OnMouseMove(new MouseMoveEventArgs(e.X, e.Y, 0, 0));
 				}
 				else if (editor.BeatSnapDivisor.ClientRectangle.Contains(e.Position))
@@ -575,17 +574,17 @@ namespace Blox_Saber_Editor
 
 			if (GuiScreen is GuiScreenEditor gui)
 			{
-				if (gui.MasterVolume.Dragging || gui.SFXVolume.Dragging)
+				if (gui.MasterVolume.Dragging || gui.SfxVolume.Dragging)
 				{
 					Settings.Default.MasterVolume = (decimal)gui.MasterVolume.Value / gui.MasterVolume.MaxValue;
-					Settings.Default.SFXVolume = (decimal)gui.SFXVolume.Value / gui.SFXVolume.MaxValue;
+					Settings.Default.SFXVolume = (decimal)gui.SfxVolume.Value / gui.SfxVolume.MaxValue;
 
 					Settings.Default.Save();
 				}
 
 				gui.BeatSnapDivisor.Dragging = false;
 				gui.MasterVolume.Dragging = false;
-				gui.SFXVolume.Dragging = false;
+				gui.SfxVolume.Dragging = false;
 				gui.Timeline.Dragging = false;
 				gui.Tempo.Dragging = false;
 			}
@@ -845,7 +844,7 @@ namespace Blox_Saber_Editor
 
 		public bool WillClose()
 		{
-			if (!_saved && _soundID != -1)
+			if (!_saved && _soundId != -1)
 			{
 				var wasPlaying = MusicPlayer.IsPlaying;
 
@@ -886,8 +885,8 @@ namespace Blox_Saber_Editor
 
 				var screenX = gui.Track.ScreenX;
 
-				var bpm = gui.Track.BPM;
-				var bpmOffset = gui.Track.BPMOffset;
+				var bpm = gui.Track.Bpm;
+				var bpmOffset = gui.Track.BpmOffset;
 				var beatDivisor = gui.Track.BeatDivisor;
 
 				var lineSpace = 60 / bpm * CubeStep;
@@ -1047,7 +1046,7 @@ namespace Blox_Saber_Editor
 
 			try
 			{
-				var ID = splits[0];
+				var id = splits[0];
 
 				for (int i = 1; i < splits.Count; i++)
 				{
@@ -1061,13 +1060,13 @@ namespace Blox_Saber_Editor
 
 					Notes.Add(new Note(x, y, ms));
 				}
-				if (long.TryParse(ID.Value, out _soundID) && LoadSound(_soundID))
+				if (long.TryParse(id.Value, out _soundId) && LoadSound(_soundId))
 				{
-					MusicPlayer.Load("assets/cached/" + _soundID + ".asset");
+					MusicPlayer.Load("assets/cached/" + _soundId + ".asset");
 					OpenGuiScreen(new GuiScreenEditor());
 				}
 				else
-					_soundID = -1;
+					_soundId = -1;
 			}
 			catch (Exception e)
 			{
@@ -1075,7 +1074,7 @@ namespace Blox_Saber_Editor
 				return false;
 			}
 
-			return _soundID != -1;
+			return _soundId != -1;
 		}
 
 		public void CreateMap(long id)
@@ -1121,7 +1120,7 @@ namespace Blox_Saber_Editor
 			{
 				var sb = new StringBuilder();
 
-				sb.Append(_soundID.ToString());
+				sb.Append(_soundId.ToString());
 
 				for (int i = 0; i < Notes.Count; i++)
 				{

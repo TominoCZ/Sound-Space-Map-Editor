@@ -63,7 +63,7 @@ namespace Blox_Saber_Editor.Gui
 			var rect = ClientRectangle;
 
 			GL.Color3(1, 1, 1f);
-			GLU.RenderTexturedQuad(rect.X + rect.Width / 2 - 256, 0, 512, 512, 0, 0, 1, 1, _textureId);
+			Glu.RenderTexturedQuad(rect.X + rect.Width / 2 - 256, 0, 512, 512, 0, 0, 1, 1, _textureId);
 
 			for (var index = _particles.Count - 1; index >= 0; index--)
 			{
@@ -174,9 +174,9 @@ namespace Blox_Saber_Editor.Gui
 			GL.Color4(RotationOrientation == 1 ? Color.FromArgb((int)(alpha * 0.2f), 255, 0, 0) : Color.FromArgb((int)(alpha * 0.2f), 0, 255, 255));
 			GL.Translate(X, Y, 0);
 			GL.Rotate(Angle, 0, 0, 1);
-			GLU.RenderQuad(-size / 2, -size / 2, size, size);
+			Glu.RenderQuad(-size / 2, -size / 2, size, size);
 			GL.Color4(RotationOrientation == 1 ? Color.FromArgb(alpha, 255, 0, 0) : Color.FromArgb(alpha, 0, 255, 255));
-			GLU.RenderOutline(-size / 2, -size / 2, size, size);
+			Glu.RenderOutline(-size / 2, -size / 2, size, size);
 			GL.Rotate(-Angle, 0, 0, 1);
 			GL.Translate(-X, -Y, 0);
 		}

@@ -6,14 +6,14 @@ namespace Blox_Saber_Editor.SoundTouch
 {
     class SoundTouch : IDisposable
     {
-        private IntPtr handle;
-        private string versionString;
-        private readonly bool is64Bit;
+        private IntPtr _handle;
+        private string _versionString;
+        private readonly bool _is64Bit;
         public SoundTouch()
         {
-            is64Bit = Marshal.SizeOf<IntPtr>() == 8;
+            _is64Bit = Marshal.SizeOf<IntPtr>() == 8;
 
-            handle = is64Bit ? SoundTouchInterop64.soundtouch_createInstance() :
+            _handle = _is64Bit ? SoundTouchInterop64.soundtouch_createInstance() :
                 SoundTouchInterop32.soundtouch_createInstance();
         }
 
@@ -21,52 +21,52 @@ namespace Blox_Saber_Editor.SoundTouch
         {
             get
             {
-                if (versionString == null)
+                if (_versionString == null)
                 {
                     var s = new StringBuilder(100);
-                    if (is64Bit)
+                    if (_is64Bit)
                         SoundTouchInterop64.soundtouch_getVersionString2(s, s.Capacity);
                     else
                         SoundTouchInterop32.soundtouch_getVersionString2(s, s.Capacity);
-                    versionString = s.ToString();
+                    _versionString = s.ToString();
                 }
-                return versionString;
+                return _versionString;
             }
         }
 
         public void SetPitchOctaves(float pitchOctaves)
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_setPitchOctaves(handle, pitchOctaves);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_setPitchOctaves(_handle, pitchOctaves);
             else
-                SoundTouchInterop32.soundtouch_setPitchOctaves(handle, pitchOctaves);
+                SoundTouchInterop32.soundtouch_setPitchOctaves(_handle, pitchOctaves);
         }
 
         public void SetSampleRate(int sampleRate)
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_setSampleRate(handle, (uint) sampleRate);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_setSampleRate(_handle, (uint) sampleRate);
             else 
-                SoundTouchInterop32.soundtouch_setSampleRate(handle, (uint)sampleRate);
+                SoundTouchInterop32.soundtouch_setSampleRate(_handle, (uint)sampleRate);
         }
 
         public void SetChannels(int channels)
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_setChannels(handle, (uint) channels);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_setChannels(_handle, (uint) channels);
             else
-                SoundTouchInterop32.soundtouch_setChannels(handle, (uint)channels);
+                SoundTouchInterop32.soundtouch_setChannels(_handle, (uint)channels);
         }
 
         private void DestroyInstance()
         {
-            if (handle != IntPtr.Zero)
+            if (_handle != IntPtr.Zero)
             {
-                if (is64Bit)
-                    SoundTouchInterop64.soundtouch_destroyInstance(handle);
+                if (_is64Bit)
+                    SoundTouchInterop64.soundtouch_destroyInstance(_handle);
                 else
-                    SoundTouchInterop32.soundtouch_destroyInstance(handle);
-                handle = IntPtr.Zero;
+                    SoundTouchInterop32.soundtouch_destroyInstance(_handle);
+                _handle = IntPtr.Zero;
             }
         }
 
@@ -83,26 +83,26 @@ namespace Blox_Saber_Editor.SoundTouch
 
         public void PutSamples(float[] samples, int numSamples)
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_putSamples(handle, samples, numSamples);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_putSamples(_handle, samples, numSamples);
             else
-                SoundTouchInterop32.soundtouch_putSamples(handle, samples, numSamples);
+                SoundTouchInterop32.soundtouch_putSamples(_handle, samples, numSamples);
         }
 
         public int ReceiveSamples(float[] outBuffer, int maxSamples)
         {
-            if (is64Bit)
-                return (int)SoundTouchInterop64.soundtouch_receiveSamples(handle, outBuffer, (uint)maxSamples);
-            return (int)SoundTouchInterop32.soundtouch_receiveSamples(handle, outBuffer, (uint)maxSamples);
+            if (_is64Bit)
+                return (int)SoundTouchInterop64.soundtouch_receiveSamples(_handle, outBuffer, (uint)maxSamples);
+            return (int)SoundTouchInterop32.soundtouch_receiveSamples(_handle, outBuffer, (uint)maxSamples);
         }
 
         public bool IsEmpty
         {
             get
             {
-                if (is64Bit)
-                    return SoundTouchInterop64.soundtouch_isEmpty(handle) != 0;
-                return SoundTouchInterop32.soundtouch_isEmpty(handle) != 0;
+                if (_is64Bit)
+                    return SoundTouchInterop64.soundtouch_isEmpty(_handle) != 0;
+                return SoundTouchInterop32.soundtouch_isEmpty(_handle) != 0;
             }
         }
 
@@ -110,9 +110,9 @@ namespace Blox_Saber_Editor.SoundTouch
         {
             get
             {
-                if (is64Bit)
-                   return (int)SoundTouchInterop64.soundtouch_numSamples(handle);
-                return (int)SoundTouchInterop32.soundtouch_numSamples(handle);
+                if (_is64Bit)
+                   return (int)SoundTouchInterop64.soundtouch_numSamples(_handle);
+                return (int)SoundTouchInterop32.soundtouch_numSamples(_handle);
             }
         }
 
@@ -120,72 +120,72 @@ namespace Blox_Saber_Editor.SoundTouch
         {
             get
             {
-                if (is64Bit)
-                    return SoundTouchInterop64.soundtouch_numUnprocessedSamples(handle);
-                return SoundTouchInterop32.soundtouch_numUnprocessedSamples(handle);
+                if (_is64Bit)
+                    return SoundTouchInterop64.soundtouch_numUnprocessedSamples(_handle);
+                return SoundTouchInterop32.soundtouch_numUnprocessedSamples(_handle);
             }
         }
 
         public void Flush()
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_flush(handle);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_flush(_handle);
             else
-                SoundTouchInterop32.soundtouch_flush(handle);
+                SoundTouchInterop32.soundtouch_flush(_handle);
         }
 
         public void Clear()
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_clear(handle);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_clear(_handle);
             else
-                SoundTouchInterop32.soundtouch_clear(handle);
+                SoundTouchInterop32.soundtouch_clear(_handle);
         }
 
         public void SetRate(float newRate)
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_setRate(handle, newRate);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_setRate(_handle, newRate);
             else
-                SoundTouchInterop32.soundtouch_setRate(handle, newRate);
+                SoundTouchInterop32.soundtouch_setRate(_handle, newRate);
         }
 
         public void SetTempo(float newTempo)
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_setTempo(handle, newTempo);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_setTempo(_handle, newTempo);
             else
-                SoundTouchInterop32.soundtouch_setTempo(handle, newTempo);
+                SoundTouchInterop32.soundtouch_setTempo(_handle, newTempo);
         }
 
         public int GetUseAntiAliasing()
         {
-            if (is64Bit)
-                return SoundTouchInterop64.soundtouch_getSetting(handle, SoundTouchSettings.UseAaFilter);
-            return SoundTouchInterop32.soundtouch_getSetting(handle, SoundTouchSettings.UseAaFilter);
+            if (_is64Bit)
+                return SoundTouchInterop64.soundtouch_getSetting(_handle, SoundTouchSettings.UseAaFilter);
+            return SoundTouchInterop32.soundtouch_getSetting(_handle, SoundTouchSettings.UseAaFilter);
         }
 
         public void SetUseAntiAliasing(bool useAntiAliasing)
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_setSetting(handle, SoundTouchSettings.UseAaFilter, useAntiAliasing ? 1 : 0);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_setSetting(_handle, SoundTouchSettings.UseAaFilter, useAntiAliasing ? 1 : 0);
             else
-                SoundTouchInterop32.soundtouch_setSetting(handle, SoundTouchSettings.UseAaFilter, useAntiAliasing ? 1 : 0);
+                SoundTouchInterop32.soundtouch_setSetting(_handle, SoundTouchSettings.UseAaFilter, useAntiAliasing ? 1 : 0);
         }
 
         public void SetUseQuickSeek(bool useQuickSeek)
         {
-            if (is64Bit)
-                SoundTouchInterop64.soundtouch_setSetting(handle, SoundTouchSettings.UseQuickSeek, useQuickSeek ? 1 : 0);
+            if (_is64Bit)
+                SoundTouchInterop64.soundtouch_setSetting(_handle, SoundTouchSettings.UseQuickSeek, useQuickSeek ? 1 : 0);
             else
-                SoundTouchInterop32.soundtouch_setSetting(handle, SoundTouchSettings.UseQuickSeek, useQuickSeek ? 1 : 0);
+                SoundTouchInterop32.soundtouch_setSetting(_handle, SoundTouchSettings.UseQuickSeek, useQuickSeek ? 1 : 0);
         }
 
         public int GetUseQuickSeek()
         {
-            if (is64Bit)
-                return SoundTouchInterop64.soundtouch_getSetting(handle, SoundTouchSettings.UseQuickSeek);
-            return SoundTouchInterop32.soundtouch_getSetting(handle, SoundTouchSettings.UseQuickSeek);
+            if (_is64Bit)
+                return SoundTouchInterop64.soundtouch_getSetting(_handle, SoundTouchSettings.UseQuickSeek);
+            return SoundTouchInterop32.soundtouch_getSetting(_handle, SoundTouchSettings.UseQuickSeek);
         }
     }
 }

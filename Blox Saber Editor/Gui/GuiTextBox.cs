@@ -39,9 +39,9 @@ namespace Blox_Saber_Editor.Gui
 			var y = rect.Y + rect.Height / 2;
 
 			GL.Color3(0.1f, 0.1f, 0.1f);
-			GLU.RenderQuad(rect);
+			Glu.RenderQuad(rect);
 			GL.Color3(0.5f, 0.5f, 0.5f);
-			GLU.RenderOutline(rect);
+			Glu.RenderOutline(rect);
 
 			var fr = EditorWindow.Instance.FontRenderer;
 
@@ -71,7 +71,7 @@ namespace Blox_Saber_Editor.Gui
 				var alpha = (float)(Math.Sin(_timer * MathHelper.TwoPi) + 1) / 2;
 
 				GL.Color4(0, 1f, 0, alpha);
-				GLU.RenderQuad(x + textToCursorSize, y - cursorHeight / 2, 1, cursorHeight);
+				Glu.RenderQuad(x + textToCursorSize, y - cursorHeight / 2, 1, cursorHeight);
 
 				_timer += delta * 1.25f;
 			}

@@ -41,9 +41,9 @@ namespace Blox_Saber_Editor.Gui
 			_alpha = MathHelper.Clamp(_alpha + (mouseClose ? 10 : -10) * delta, 0, 1);
 
 			GL.Color4(0, 1f, 1f, 0.75f);
-			GLU.RenderQuad(lineRect);
+			Glu.RenderQuad(lineRect);
 			GL.Color4(0, 1f, 1f, 1f);
-			GLU.RenderOutline(lineRect);
+			Glu.RenderOutline(lineRect);
 
 			//GL.LineWidth(2);
 			//cursor

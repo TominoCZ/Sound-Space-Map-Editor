@@ -7,7 +7,7 @@ namespace Blox_Saber_Editor.Gui
 	class GuiButton : Gui
 	{
 		public bool IsMouseOver { get; protected set; }
-		public int ID;
+		public int Id;
 		public string Text = "";
 
 		protected int Texture;
@@ -16,7 +16,7 @@ namespace Blox_Saber_Editor.Gui
 
 		public GuiButton(int id, float x, float y, float sx, float sy) : base(x, y, sx, sy)
 		{
-			ID = id;
+			Id = id;
 		}
 
 		public GuiButton(int id, float x, float y, float sx, float sy, int texture) : this(id, x, y, sx, sy)
@@ -42,19 +42,17 @@ namespace Blox_Saber_Editor.Gui
 				else
 					GL.Color3(1f, 1, 1);
 
-				//GLU.RenderQuad(ClientRectangle);
-
-				GLU.RenderTexturedQuad(ClientRectangle, 0, 0, 1, 1, Texture);
+				Glu.RenderTexturedQuad(ClientRectangle, 0, 0, 1, 1, Texture);
 			}
 			else
 			{
 				var d = 0.075f * _alpha;
 
 				GL.Color3(0.1f + d, 0.1f + d, 0.1f + d);
-				GLU.RenderQuad(ClientRectangle);
+				Glu.RenderQuad(ClientRectangle);
 
 				GL.Color3(0.2f + d, 0.2f + d, 0.2f + d);
-				GLU.RenderOutline(ClientRectangle);
+				Glu.RenderOutline(ClientRectangle);
 			}
 
 			var fr = EditorWindow.Instance.FontRenderer;
