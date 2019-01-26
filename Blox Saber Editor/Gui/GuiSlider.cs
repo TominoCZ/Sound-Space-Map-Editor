@@ -7,13 +7,17 @@ namespace Blox_Saber_Editor.Gui
 {
 	class GuiSlider : Gui
 	{
-		public int MaxValues = 7;
+		public int MaxValue = 7;
 
 		public int Value = 0;
 
+		public float Progress;
+
 		public bool Dragging;
 
-		private bool _vertical;
+		public bool Snap = true;
+
+		private readonly bool _vertical;
 
 		private float _alpha;
 
@@ -27,10 +31,10 @@ namespace Blox_Saber_Editor.Gui
 			var rect = ClientRectangle;
 			var lineSize = _vertical ? rect.Height - rect.Width : rect.Width - rect.Height;
 
-			var step = lineSize / MaxValues;
-
+			var step = lineSize / MaxValue;
+			var pos = Snap ? step * Value : Progress * lineSize;
 			var lineRect = new RectangleF(rect.X + (_vertical ? rect.Width / 2 - 1 : rect.Height / 2), rect.Y + (_vertical ? rect.Width / 2 : rect.Height / 2 - 1), _vertical ? 2 : lineSize, _vertical ? lineSize : 2);
-			var cursorPos = new PointF(rect.X + (_vertical ? rect.Width / 2 : rect.Height / 2 + step * Value), _vertical ? rect.Bottom - rect.Width / 2 - step * Value : rect.Y + rect.Height / 2);
+			var cursorPos = new PointF(rect.X + (_vertical ? rect.Width / 2 : rect.Height / 2 + pos), _vertical ? rect.Bottom - rect.Width / 2 - pos : rect.Y + rect.Height / 2);
 
 			var mouseClose = Dragging || Math.Sqrt(Math.Pow(mouseX - cursorPos.X, 2) + Math.Pow(mouseY - cursorPos.Y, 2)) <= 12;
 
