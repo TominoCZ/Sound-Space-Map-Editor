@@ -1,4 +1,6 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using System;
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace Blox_Saber_Editor.Gui
 {
@@ -9,6 +11,8 @@ namespace Blox_Saber_Editor.Gui
 		public string Text = "";
 
 		protected int Texture;
+
+		private float _alpha;
 
 		public GuiButton(int id, float x, float y, float sx, float sy) : base(x, y, sx, sy)
 		{
@@ -29,6 +33,8 @@ namespace Blox_Saber_Editor.Gui
 		{
 			IsMouseOver = ClientRectangle.Contains(mouseX, mouseY);
 
+			_alpha = MathHelper.Clamp(_alpha + (IsMouseOver ? 10 : -10) * delta, 0, 1);
+
 			if (Texture > 0)
 			{
 				if (IsMouseOver)
@@ -42,21 +48,14 @@ namespace Blox_Saber_Editor.Gui
 			}
 			else
 			{
-				if (IsMouseOver)
-					GL.Color3(0.15f, 0.15f, 0.15f);
-				else
-					GL.Color3(0.1f, 0.1f, 0.1f);
+				var d = 0.075f * _alpha;
 
+				GL.Color3(0.1f + d, 0.1f + d, 0.1f + d);
 				GLU.RenderQuad(ClientRectangle);
 
-				if (IsMouseOver)
-					GL.Color3(0.25f, 0.25f, 0.25f);
-				else
-					GL.Color3(0.2f, 0.2f, 0.2f);
-
+				GL.Color3(0.2f + d, 0.2f + d, 0.2f + d);
 				GLU.RenderOutline(ClientRectangle);
 			}
-
 
 			var fr = EditorWindow.Instance.FontRenderer;
 			var width = fr.GetWidth(Text, 24);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Numerics;
 using System.Windows.Forms;
 using OpenTK;
@@ -56,7 +57,7 @@ namespace Blox_Saber_Editor.Gui
 			if (Centered)
 				GL.Translate(offX, 0, 0);
 
-			GL.Color3(1, 1, 1f);
+			GL.Color3(Color.FromArgb(0, 180, 255));
 			fr.Render(renderedText, (int)x, (int)(y - fr.GetHeight(24) / 2f), 24);
 
 			if (Focused)

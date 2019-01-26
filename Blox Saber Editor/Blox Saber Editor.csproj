@@ -71,7 +71,7 @@
     <Compile Include="Gui\GuiScreenCreate.cs" />
     <Compile Include="Gui\GuiScreenLoadCreate.cs" />
     <Compile Include="Gui\GuiScreenEditor.cs" />
-    <Compile Include="Gui\GuiVolume.cs" />
+    <Compile Include="Gui\GuiSlider.cs" />
     <Compile Include="Gui\GuiTempo.cs" />
     <Compile Include="Gui\GuiTextBox.cs" />
     <Compile Include="Gui\GuiTrack.cs" />

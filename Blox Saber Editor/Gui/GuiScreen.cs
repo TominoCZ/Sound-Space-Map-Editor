@@ -50,7 +50,7 @@ namespace Blox_Saber_Editor.Gui
 				{
 					button.OnMouseClick(x, y);
 
-					EditorWindow.Instance.SoundPlayer.Play("click", 0.4f);
+					EditorWindow.Instance.SoundPlayer.Play("click", 0.25f);
 					OnButtonClicked(button.ID);
 					break;
 				}

@@ -14,7 +14,7 @@ namespace Blox_Saber_Editor.Gui
 
 		public float BPM = 0;//150;
 		public long BPMOffset = 0; //in ms
-		public int BeatDivisor = 8;
+		public int BeatDivisor = 4;
 
 		public GuiTrack(float y, float sy) : base(0, y, EditorWindow.Instance.ClientSize.Width, sy)
 		{
@@ -84,8 +84,8 @@ namespace Blox_Saber_Editor.Gui
 			//draw end line
 			GL.Color4(1f, 0f, 0f, 1);
 			GL.Begin(PrimitiveType.Lines);
-			GL.Vertex2((int)(ScreenX - posX + maxX), rect.Y);
-			GL.Vertex2((int)(ScreenX - posX + maxX), rect.Y + rect.Height);
+			GL.Vertex2((int)(ScreenX - posX + maxX + 1), rect.Y);
+			GL.Vertex2((int)(ScreenX - posX + maxX + 1), rect.Y + rect.Height);
 			GL.End();
 			GL.LineWidth(1);
 
@@ -191,9 +191,11 @@ namespace Blox_Saber_Editor.Gui
 
 						if (j < BeatDivisor)
 						{
-							GL.Color3(0, 0.75f, 0);
+							var half = j == BeatDivisor / 2 && BeatDivisor % 2 == 0;
+
+							GL.Color3(0, 0.75f, half ? 0.2f : 0.5f);
 							GL.Begin(PrimitiveType.Lines);
-							GL.Vertex2((int)xo + 0.5f, rect.Bottom - (j == BeatDivisor / 2 && j % 2 == 0 ? 7 : 3));
+							GL.Vertex2((int)xo + 0.5f, rect.Bottom - (half ? 7 : 3));
 							GL.Vertex2((int)xo + 0.5f, rect.Bottom);
 							GL.End();
 						}

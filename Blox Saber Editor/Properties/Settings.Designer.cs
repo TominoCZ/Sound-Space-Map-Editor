@@ -8,26 +8,42 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using System.CodeDom.Compiler;
-using System.Configuration;
-using System.Runtime.CompilerServices;
-
-namespace Blox_Saber_Editor.Properties
-{
-
-
-    [CompilerGenerated()]
-    [GeneratedCode("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "11.0.0.0")]
-    internal sealed partial class Settings : ApplicationSettingsBase
-    {
-
-        private static Settings defaultInstance = ((Settings)(Synchronized(new Settings())));
-
-        public static Settings Default
-        {
-            get
-            {
+namespace Blox_Saber_Editor.Properties {
+    
+    
+    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.9.0.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+        
+        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
+        
+        public static Settings Default {
+            get {
                 return defaultInstance;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.2")]
+        public decimal MasterVolume {
+            get {
+                return ((decimal)(this["MasterVolume"]));
+            }
+            set {
+                this["MasterVolume"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.35")]
+        public decimal SFXVolume {
+            get {
+                return ((decimal)(this["SFXVolume"]));
+            }
+            set {
+                this["SFXVolume"] = value;
             }
         }
     }

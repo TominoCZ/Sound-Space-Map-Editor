@@ -1,7 +1,12 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
-  <Settings />
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Blox_Saber_Editor.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="MasterVolume" Type="System.Decimal" Scope="User">
+      <Value Profile="(Default)">0.2</Value>
+    </Setting>
+    <Setting Name="SFXVolume" Type="System.Decimal" Scope="User">
+      <Value Profile="(Default)">0.35</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>

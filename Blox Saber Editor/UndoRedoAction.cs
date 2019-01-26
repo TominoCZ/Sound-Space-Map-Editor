@@ -9,8 +9,12 @@ namespace Blox_Saber_Editor
 
 		public bool Undone;
 
-		public UndoRedoAction(Action undo, Action redo)
+		public string Label;
+
+		public UndoRedoAction(string label, Action undo, Action redo)
 		{
+			Label = label;
+
 			Undo = undo;
 			Redo = redo;
 		}

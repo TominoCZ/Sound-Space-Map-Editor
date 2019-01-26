@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using OpenTK.Graphics.OpenGL;
 
 namespace Blox_Saber_Editor.Gui
@@ -44,11 +45,10 @@ namespace Blox_Saber_Editor.Gui
 			}
 
 			var fr = EditorWindow.Instance.FontRenderer;
-			//var width = fr.GetWidth(Text, 24);
-			var height = fr.GetHeight(32);
+			var height = fr.GetHeight(24);
 
-			GL.Color4(1f, 1, 1, 1);
-			fr.Render(Text, (int)(rect.Right + rect.Height / 4), (int)(rect.Y + rect.Height / 2 - height / 2f), 32);
+			GL.Color3(Color.FromArgb(0, 255, 64));
+			fr.Render(Text, (int)(rect.Right + rect.Height / 4), (int)(rect.Y + rect.Height / 2 - height / 2f), 24);
 		}
 
 		public override void OnMouseClick(float x, float y)

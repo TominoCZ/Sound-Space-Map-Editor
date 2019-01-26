@@ -13,10 +13,10 @@ namespace Blox_Saber_Editor
 		public bool CanUndo => _actions.LastOrDefault(a => !a.Undone) != null;
 		public bool CanRedo => _actions.FirstOrDefault(a => a.Undone) != null;
 
-		public void AddUndoRedo(Action undo, Action redo)
+		public void AddUndoRedo(string label, Action undo, Action redo)
 		{
 			_actions.RemoveAll(a => a.Undone);
-			_actions.Add(new UndoRedoAction(undo, redo));
+			_actions.Add(new UndoRedoAction(label, undo, redo));
 		}
 
 		public void Undo()
@@ -27,7 +27,7 @@ namespace Blox_Saber_Editor
 				return;
 
 			if (EditorWindow.Instance.GuiScreen is GuiScreenEditor editor)
-				editor.ShowToast("UNDO", Color.Chartreuse);
+				editor.ShowToast("UNDONE: " + action.Label, Color.Chartreuse);
 
 			action.Undo?.Invoke();
 			action.Undone = true;
@@ -41,7 +41,7 @@ namespace Blox_Saber_Editor
 				return;
 
 			if (EditorWindow.Instance.GuiScreen is GuiScreenEditor editor)
-				editor.ShowToast("REDO", Color.Chartreuse);
+				editor.ShowToast("REDONE: " + action.Label, Color.Chartreuse);
 
 			action.Redo?.Invoke();
 			action.Undone = false;
