@@ -18,7 +18,7 @@ namespace Blox_Saber_Editor.Gui
 
 		public override void Render(float delta, float mouseX, float mouseY)
 		{
-			GL.Color3(Color);
+			GL.Color4(Color);
 
 			var fr = EditorWindow.Instance.FontRenderer;
 

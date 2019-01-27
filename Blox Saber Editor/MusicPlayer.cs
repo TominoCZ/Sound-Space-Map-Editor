@@ -1,5 +1,6 @@
 ﻿using System;
 using Blox_Saber_Editor.SoundTouch;
+using NAudio.Utils;
 using NAudio.Wave;
 
 namespace Blox_Saber_Editor
@@ -27,10 +28,10 @@ namespace Blox_Saber_Editor
 
 			var reader = new AudioFileReader(file);
 			_music = reader;
-			_volumeStream = new WaveChannel32(_music);
+			_volumeStream = new WaveChannel32(_music, Volume, 0);
 			_player = new WaveOutEvent();
 
-			_speedControl = new VarispeedSampleProvider(reader, 1000, new SoundTouchProfile(true, true));
+			_speedControl = new VarispeedSampleProvider(reader, 150, new SoundTouchProfile(true, true));
 
 			Init();
 
@@ -40,18 +41,23 @@ namespace Blox_Saber_Editor
 		public void Init() => _player.Init(_speedControl);
 		public void Play()
 		{
-			if (TotalTime == CurrentTime)
+			if (TotalTime <= CurrentTime)
 			{
 				CurrentTime = TimeSpan.Zero;
 			}
-			
-			_time.Start();
+
+			_speedControl.Reposition();
+
 			_player.Play();
+			_time.Start();
 		}
 		public void Pause()
 		{
 			_time.Stop();
 			_player.Pause();
+
+			Console.WriteLine("my timer:" + _time.Elapsed.TotalMilliseconds);
+			Console.WriteLine("naudio timer:" + _player.GetPositionTimeSpan().TotalMilliseconds);
 		}
 		public void Stop()
 		{

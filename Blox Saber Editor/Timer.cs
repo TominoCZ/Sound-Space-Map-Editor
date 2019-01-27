@@ -24,6 +24,7 @@ namespace Blox_Saber_Editor
 			set
 			{
 				_elapsed = value.Ticks;
+				_lastTime = _elapsed;
 
 				Update(EditorWindow.Instance.MusicPlayer.Speed);
 			}

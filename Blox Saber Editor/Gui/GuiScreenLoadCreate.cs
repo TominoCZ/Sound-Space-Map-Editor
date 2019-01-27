@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenTK.Graphics.OpenGL;
 using Color = System.Drawing.Color;
@@ -31,7 +32,7 @@ namespace Blox_Saber_Editor.Gui
 			_createButton = new GuiButton(0, 0, 0, 192, 64, "CREATE MAP");
 			_loadButton = new GuiButton(1, 0, 0, 192, 64, "LOAD MAP");
 			_pasteButton = new GuiButton(2, 0, 0, 192, 64, "PASTE MAP");
-		
+
 			Buttons.Add(_createButton);
 			Buttons.Add(_loadButton);
 			Buttons.Add(_pasteButton);
@@ -91,7 +92,7 @@ namespace Blox_Saber_Editor.Gui
 						Title = "Load map",
 						Filter = "Text Documents (*.txt)|*.txt"
 					};
-
+					
 					var result = ofd.ShowDialog();
 
 					if (result == DialogResult.OK)
@@ -108,6 +109,11 @@ namespace Blox_Saber_Editor.Gui
 					}
 					break;
 			}
+		}
+
+		public override bool AllowInput()
+		{
+			return false;
 		}
 
 		public override void OnResize(Size size)

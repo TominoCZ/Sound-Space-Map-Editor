@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Windows.Forms;
 using Blox_Saber_Editor.Properties;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -19,20 +20,33 @@ namespace Blox_Saber_Editor.Gui
 		public readonly GuiTextBox Bpm;
 		public readonly GuiTextBox Offset;
 		public readonly GuiCheckBox Reposition;
+		public readonly GuiCheckBox ApproachSquares;
+		public readonly GuiCheckBox GridNumbers;
 		public readonly GuiButton BackButton;
+		public readonly GuiButton CopyButton;
+		public readonly GuiButton SetOffset;
 
 		private readonly GuiLabel _toast;
 		private float _toastTime;
 
 		public GuiScreenEditor() : base(0, EditorWindow.Instance.ClientSize.Height - 64, EditorWindow.Instance.ClientSize.Width - 512 - 64, 64)
 		{
-			_toast = new GuiLabel(0, 0, "") { Centered = true, FontSize = 36 };
+			_toast = new GuiLabel(0, 0, "")
+			{
+				Centered = true,
+				FontSize = 36
+			};
 
 			var playPause = new GuiButtonPlayPause(0, EditorWindow.Instance.ClientSize.Width - 512 - 64, EditorWindow.Instance.ClientSize.Height - 64, 64, 64);
-			Bpm = new GuiTextBox(10, 160, 128, 32) { Text = "0", Centered = true, Numeric = true };
-			Offset = new GuiTextBox(10, Bpm.ClientRectangle.Bottom + 5 + 24 + 10, 128, 32) { Text = "0", Centered = true, Numeric = true };
-			Reposition = new GuiCheckBox(1, "Reposition", 10, Offset.ClientRectangle.Bottom + 5, 32, 32, false);
-			BeatSnapDivisor = new GuiSlider(0, 0, 256, 64);
+			Bpm = new GuiTextBox(0, 0, 128, 32) { Text = "0", Centered = true, Numeric = true };
+			Offset = new GuiTextBox(0, 0, 128, 32)
+			{
+				Text = "0",
+				Centered = true,
+				Numeric = true
+			};
+			Reposition = new GuiCheckBox(1, "Reposition", 10, 0, 32, 32, false);
+			BeatSnapDivisor = new GuiSlider(0, 0, 256, 40);
 			Timeline = new GuiSlider(0, 0, EditorWindow.Instance.ClientSize.Width, 64);
 			Tempo = new GuiSlider(0, 0, 512, 64)
 			{
@@ -42,20 +56,23 @@ namespace Blox_Saber_Editor.Gui
 
 			Timeline.Snap = false;
 			BeatSnapDivisor.Value = Track.BeatDivisor - 1;
+			BeatSnapDivisor.MaxValue = 23;
 
 			MasterVolume = new GuiSlider(0, 0, 40, 256)
 			{
-				MaxValue = 50,
-				Value = 10
+				MaxValue = 50
 			};
 			SfxVolume = new GuiSlider(0, 0, 40, 256)
 			{
-				MaxValue = 50,
-				Value = 12
+				MaxValue = 50
 			};
 
-			var btnSetOffset = new GuiButton(2, Offset.ClientRectangle.Right + 5, Offset.ClientRectangle.Y, 64, 32, "SET");
-			BackButton = new GuiButton(3, 0, 0, Grid.ClientRectangle.Width, 32, "MAIN MENU");
+			SetOffset = new GuiButton(2, 0, 0, 64, 32, "SET");
+			BackButton = new GuiButton(3, 0, 0, Grid.ClientRectangle.Width + 1, 42, "BACK TO MENU");
+			CopyButton = new GuiButton(4, 0, 0, Grid.ClientRectangle.Width + 1, 42, "COPY DATA");
+
+			ApproachSquares = new GuiCheckBox(5, "Approach Squares", 0, 0, 32, 32, Settings.Default.ApproachSquares);
+			GridNumbers = new GuiCheckBox(5, "Grid Numbers", 0, 0, 32, 32, Settings.Default.GridNumbers);
 
 			Bpm.Focused = true;
 			Offset.Focused = true;
@@ -65,11 +82,22 @@ namespace Blox_Saber_Editor.Gui
 			Offset.Focused = false;
 
 			Buttons.Add(playPause);
+			Buttons.Add(Timeline);
+			Buttons.Add(Tempo);
+			Buttons.Add(MasterVolume);
+			Buttons.Add(SfxVolume);
+			Buttons.Add(BeatSnapDivisor);
+			Buttons.Add(playPause);
 			Buttons.Add(Reposition);
-			Buttons.Add(btnSetOffset);
+			Buttons.Add(ApproachSquares);
+			Buttons.Add(GridNumbers);
+			Buttons.Add(SetOffset);
 			Buttons.Add(BackButton);
+			Buttons.Add(CopyButton);
 
 			OnResize(EditorWindow.Instance.ClientSize);
+
+			EditorWindow.Instance.MusicPlayer.Volume = (float)Settings.Default.MasterVolume;
 
 			MasterVolume.Value = (int)(Settings.Default.MasterVolume * MasterVolume.MaxValue);
 			SfxVolume.Value = (int)(Settings.Default.SFXVolume * SfxVolume.MaxValue);
@@ -94,27 +122,23 @@ namespace Blox_Saber_Editor.Gui
 			var fr = EditorWindow.Instance.FontRenderer;
 			var h = fr.GetHeight(_toast.FontSize);
 
-			_toast.ClientRectangle.Y = size.Height - toastOffY * h * 3.5f + h / 2;
-
-			base.Render(delta, mouseX, mouseY);
-
-			Grid.Render(delta, mouseX, mouseY);
-
-			_toast.Render(delta, mouseX, mouseY);
-
-			Track.Render(delta, mouseX, mouseY);
-			Tempo.Render(delta, mouseX, mouseY);
-			MasterVolume.Render(delta, mouseX, mouseY);
-			SfxVolume.Render(delta, mouseX, mouseY);
-			Bpm.Render(delta, mouseX, mouseY);
-			Offset.Render(delta, mouseX, mouseY);
-			BeatSnapDivisor.Render(delta, mouseX, mouseY);
-			Timeline.Render(delta, mouseX, mouseY);
+			_toast.ClientRectangle.Y = size.Height - toastOffY * h * 3.25f + h / 2;
+			_toast.Color = Color.FromArgb((int)(Math.Pow(toastOffY, 3) * 255), _toast.Color);
 
 			GL.Color3(Color.FromArgb(0, 255, 64));
 			fr.Render("BPM:", (int)Bpm.ClientRectangle.X, (int)Bpm.ClientRectangle.Y - 24, 24);
 			fr.Render("Offset[ms]:", (int)Offset.ClientRectangle.X, (int)Offset.ClientRectangle.Y - 24, 24);
-			fr.Render($"Beat Divisor (1/{BeatSnapDivisor.Value + 1}):", (int)BeatSnapDivisor.ClientRectangle.X + 32, (int)BeatSnapDivisor.ClientRectangle.Y - 24, 24);
+			fr.Render("Options:", (int)ApproachSquares.ClientRectangle.X, (int)ApproachSquares.ClientRectangle.Y - 26, 24);
+			
+			var divisor = $"Beat Divisor - 1/{BeatSnapDivisor.Value + 1}:";
+			var divisorW = fr.GetWidth(divisor, 24);
+
+			fr.Render(divisor, (int)(BeatSnapDivisor.ClientRectangle.X + BeatSnapDivisor.ClientRectangle.Width / 2 - divisorW / 2f), (int)BeatSnapDivisor.ClientRectangle.Y - 20, 24);
+
+			var tempo = $"TEMPO - {Tempo.Value * 10 + 20}%";
+			var tempoW = fr.GetWidth(tempo, 24);
+
+			fr.Render(tempo, (int)(Tempo.ClientRectangle.X + Tempo.ClientRectangle.Width / 2 - tempoW / 2f), (int)Tempo.ClientRectangle.Bottom - 24, 24);
 
 			var masterW = fr.GetWidth("Master", 18);
 			var sfxW = fr.GetWidth("SFX", 18);
@@ -131,7 +155,7 @@ namespace Blox_Saber_Editor.Gui
 			fr.Render(masterP, (int)(MasterVolume.ClientRectangle.X + SfxVolume.ClientRectangle.Width / 2 - masterPw / 2f), (int)MasterVolume.ClientRectangle.Bottom - 16, 18);
 			fr.Render(sfxP, (int)(SfxVolume.ClientRectangle.X + SfxVolume.ClientRectangle.Width / 2 - sfxPw / 2f), (int)SfxVolume.ClientRectangle.Bottom - 16, 18);
 
-			var rect = ClientRectangle;
+			var rect = Timeline.ClientRectangle;
 
 			var timelinePos = new Vector2(rect.Height / 2f, rect.Height / 2f - 5);
 			var time = EditorWindow.Instance.MusicPlayer.TotalTime;
@@ -140,12 +164,26 @@ namespace Blox_Saber_Editor.Gui
 			var timeString = $"{time.Minutes}:{time.Seconds:0#}";
 			var currentTimeString = $"{currentTime.Minutes}:{currentTime.Seconds:0#}";
 
+			var notesString = $"{EditorWindow.Instance.Notes.Count} Notes";
+			var notesW = fr.GetWidth(notesString, 24);
+
 			var timeW = fr.GetWidth(timeString, 20);
 			var currentTimeW = fr.GetWidth(currentTimeString, 20);
-			
+
+			fr.Render(notesString, (int)(rect.X + rect.Width / 2 - notesW / 2f), (int)(rect.Y + timelinePos.Y + 12), 24);
+
 			GL.Color3(0, 1, 0.5f);
 			fr.Render(timeString, (int)(rect.X + timelinePos.X - timeW / 2f + rect.Width - rect.Height), (int)(rect.Y + timelinePos.Y + 12), 20);
 			fr.Render(currentTimeString, (int)(rect.X + timelinePos.X - currentTimeW / 2f), (int)(rect.Y + timelinePos.Y + 12), 20);
+
+			base.Render(delta, mouseX, mouseY);
+
+			_toast.Render(delta, mouseX, mouseY);
+
+			Grid.Render(delta, mouseX, mouseY);
+			Track.Render(delta, mouseX, mouseY);
+			Bpm.Render(delta, mouseX, mouseY);
+			Offset.Render(delta, mouseX, mouseY);
 		}
 
 		public override bool AllowInput()
@@ -234,6 +272,15 @@ namespace Blox_Saber_Editor.Gui
 						EditorWindow.Instance.OpenGuiScreen(new GuiScreenLoadCreate());
 					}
 					break;
+				case 4:
+					Clipboard.SetText(EditorWindow.Instance.ParseData());
+					ShowToast("COPIED TO CLIPBOARD", Color.Chartreuse);
+					break;
+				case 5:
+					Settings.Default.ApproachSquares = ApproachSquares.Toggle;
+					Settings.Default.GridNumbers = GridNumbers.Toggle;
+					Settings.Default.Save();
+					break;
 			}
 		}
 
@@ -251,12 +298,40 @@ namespace Blox_Saber_Editor.Gui
 			SfxVolume.ClientRectangle.Location = new PointF(MasterVolume.ClientRectangle.X - 64, EditorWindow.Instance.ClientSize.Height - SfxVolume.ClientRectangle.Height - 64);
 
 			Grid.ClientRectangle = new RectangleF((int)(size.Width / 2f - Grid.ClientRectangle.Width / 2), (int)((size.Height + Track.ClientRectangle.Height - 64) / 2 - Grid.ClientRectangle.Height / 2), Grid.ClientRectangle.Width, Grid.ClientRectangle.Height);
-			BackButton.ClientRectangle.Location = new PointF(EditorWindow.Instance.ClientSize.Width / 2f - BackButton.ClientRectangle.Width / 2, Grid.ClientRectangle.Bottom + 10);
+			BackButton.ClientRectangle.Location = new PointF(Grid.ClientRectangle.X, Grid.ClientRectangle.Bottom + 5 + 1);
+			CopyButton.ClientRectangle.Location = new PointF(Grid.ClientRectangle.X, Grid.ClientRectangle.Y - CopyButton.ClientRectangle.Height - 8);
 			BeatSnapDivisor.ClientRectangle.Location = new PointF(EditorWindow.Instance.ClientSize.Width - BeatSnapDivisor.ClientRectangle.Width, Bpm.ClientRectangle.Y);
 			Timeline.ClientRectangle = new RectangleF(0, EditorWindow.Instance.ClientSize.Height - 64, EditorWindow.Instance.ClientSize.Width - 512 - 64, 64);
 			Tempo.ClientRectangle = new RectangleF(EditorWindow.Instance.ClientSize.Width - 512, EditorWindow.Instance.ClientSize.Height - 64, 512, 64);
 
+			//move the side menus
+			Bpm.ClientRectangle.Y = Grid.ClientRectangle.Y + 28;
+			Offset.ClientRectangle.Y = Bpm.ClientRectangle.Bottom + 5 + 24 + 10;
+			SetOffset.ClientRectangle.Y = Offset.ClientRectangle.Y;
+			Reposition.ClientRectangle.Y = Offset.ClientRectangle.Bottom + 10;
+			BeatSnapDivisor.ClientRectangle.Y = Bpm.ClientRectangle.Y;
+
+			ApproachSquares.ClientRectangle.Y = Reposition.ClientRectangle.Bottom + 32 + 20;
+			GridNumbers.ClientRectangle.Y = ApproachSquares.ClientRectangle.Bottom + 10;
+
+			Bpm.ClientRectangle.X = 10;
+			Offset.ClientRectangle.X = Bpm.ClientRectangle.X;
+			SetOffset.ClientRectangle.X = Bpm.ClientRectangle.Right + 5;
+			Reposition.ClientRectangle.X = Bpm.ClientRectangle.X;
+
+			ApproachSquares.ClientRectangle.X = Bpm.ClientRectangle.X;
+			GridNumbers.ClientRectangle.X = Bpm.ClientRectangle.X;
+
 			_toast.ClientRectangle.X = size.Width / 2f;
+		}
+
+		public void OnMouseLeave()
+		{
+			Timeline.Dragging = false;
+			Tempo.Dragging = false;
+			MasterVolume.Dragging = false;
+			SfxVolume.Dragging = false;
+			BeatSnapDivisor.Dragging = false;
 		}
 
 		private void UpdateTrack()

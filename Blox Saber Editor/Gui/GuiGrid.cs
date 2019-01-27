@@ -18,6 +18,8 @@ namespace Blox_Saber_Editor.Gui
 
 		public override void Render(float delta, float mouseX, float mouseY)
 		{
+			var editor = (GuiScreenEditor) EditorWindow.Instance.GuiScreen;
+
 			var rect = ClientRectangle;
 			var mouseOver = false;
 
@@ -75,24 +77,32 @@ namespace Blox_Saber_Editor.Gui
 				var x = rect.X + note.X * cellSize + gap / 2;
 				var y = rect.Y + note.Y * cellSize + gap / 2;
 
-				var progress = (float)(1 - Math.Min(1, (note.Ms - audioTime) / 750.0));
-
-				var outlineSize = 4 + noteSize + noteSize * (1 - progress) * 2;
-
+				var progress = (float)Math.Pow(1 - Math.Min(1, (note.Ms - audioTime) / 750.0), 2);
+				
 				var noteRect = new RectangleF(x, y, noteSize, noteSize);
-				GL.Color4(note.Color.R, note.Color.G, note.Color.B, progress * 0.2f);
+				GL.Color4(note.Color.R, note.Color.G, note.Color.B, progress * 0.15f);
 				Glu.RenderQuad(noteRect);
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, progress);
 				Glu.RenderOutline(noteRect);
-				Glu.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2, outlineSize,
-					outlineSize);
 
-				GL.Color4(1, 1, 1, progress);
-				var s = $"{(index + 1):#,##}";
-				var w = fr.GetWidth(s, 24);
-				var h = fr.GetHeight(24);
+				if (editor.ApproachSquares.Toggle)
+				{
+					var outlineSize = 4 + noteSize + noteSize * (1 - progress) * 2;
+					Glu.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2,
+						outlineSize,
+						outlineSize);
+				}
 
-				fr.Render(s, (int)(noteRect.X + noteRect.Width / 2 - w / 2f), (int)(noteRect.Y + noteRect.Height / 2 - h / 2f), 24);
+				if (editor.GridNumbers.Toggle)
+				{
+					GL.Color4(1, 1, 1, progress);
+					var s = $"{(index + 1):#,##}";
+					var w = fr.GetWidth(s, 24);
+					var h = fr.GetHeight(24);
+
+					fr.Render(s, (int) (noteRect.X + noteRect.Width / 2 - w / 2f),
+						(int) (noteRect.Y + noteRect.Height / 2 - h / 2f), 24);
+				}
 
 				if (!mouseOver)
 				{
@@ -101,7 +111,7 @@ namespace Blox_Saber_Editor.Gui
 
 				if (EditorWindow.Instance.SelectedNotes.Contains(note))
 				{
-					outlineSize = noteSize + 8;
+					var outlineSize = noteSize + 8;
 
 					GL.Color4(0, 0.5f, 1f, progress);
 					Glu.RenderOutline(x - outlineSize / 2 + noteSize / 2, y - outlineSize / 2 + noteSize / 2,

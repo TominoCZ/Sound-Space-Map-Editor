@@ -46,5 +46,29 @@ namespace Blox_Saber_Editor.Properties {
                 this["SFXVolume"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool GridNumbers {
+            get {
+                return ((bool)(this["GridNumbers"]));
+            }
+            set {
+                this["GridNumbers"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ApproachSquares {
+            get {
+                return ((bool)(this["ApproachSquares"]));
+            }
+            set {
+                this["ApproachSquares"] = value;
+            }
+        }
     }
 }

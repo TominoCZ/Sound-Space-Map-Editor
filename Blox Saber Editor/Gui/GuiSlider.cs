@@ -5,7 +5,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Blox_Saber_Editor.Gui
 {
-	class GuiSlider : Gui
+	class GuiSlider : GuiButton
 	{
 		public int MaxValue = 7;
 
@@ -21,7 +21,7 @@ namespace Blox_Saber_Editor.Gui
 
 		private float _alpha;
 
-		public GuiSlider(float x, float y, float sx, float sy) : base(x, y, sx, sy)
+		public GuiSlider(float x, float y, float sx, float sy) : base(int.MinValue, x, y, sx, sy, "")
 		{
 			_vertical = sx < sy;
 		}
@@ -29,6 +29,9 @@ namespace Blox_Saber_Editor.Gui
 		public override void Render(float delta, float mouseX, float mouseY)
 		{
 			var rect = ClientRectangle;
+			
+			IsMouseOver = rect.Contains(mouseX, mouseY);
+
 			var lineSize = _vertical ? rect.Height - rect.Width : rect.Width - rect.Height;
 
 			var step = lineSize / MaxValue;
@@ -44,10 +47,9 @@ namespace Blox_Saber_Editor.Gui
 			Glu.RenderQuad(lineRect);
 			GL.Color4(0, 1f, 1f, 1f);
 			Glu.RenderOutline(lineRect);
-
-			//GL.LineWidth(2);
+			
 			//cursor
-			GL.Translate((int)cursorPos.X, (int)cursorPos.Y, 0);
+			GL.Translate(cursorPos.X, cursorPos.Y, 0);
 			GL.Rotate(_alpha * 90, 0, 0, 1);
 
 			GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
@@ -59,21 +61,21 @@ namespace Blox_Saber_Editor.Gui
 			RenderCircle(0, 0, 12 * _alpha);
 
 			GL.Rotate(-_alpha * 90, 0, 0, 1);
-			GL.Translate(-(int)cursorPos.X, -(int)cursorPos.Y, 0);
+			GL.Translate(-cursorPos.X, -cursorPos.Y, 0);
 
 			GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
 			GL.Color4(1f, 0, 0.25f, 1f);
-			RenderCircle((int)cursorPos.X, (int)cursorPos.Y, 4);
+			RenderCircle(cursorPos.X, cursorPos.Y, 4, 16);
 			//GL.LineWidth(1);
 		}
 
-		private void RenderCircle(float x, float y, float r)
+		private void RenderCircle(float x, float y, float r, int pts = 6)
 		{
 			GL.Begin(PrimitiveType.Polygon);
 
-			for (int i = 0; i < 6; i++)
+			for (int i = 0; i < pts; i++)
 			{
-				var a = i / 6f * MathHelper.TwoPi;
+				var a = i / (float)pts * MathHelper.TwoPi;
 
 				var cx = Math.Cos(a) * r;
 				var cy = -Math.Sin(a) * r;
