@@ -158,13 +158,18 @@ namespace Blox_Saber_Editor
 						if (closest != null)
 						{
 							SoundPlayer.Play("hit", gse.SfxVolume.Value / (float)gse.SfxVolume.MaxValue);
-							_brightness = 1;
+
+							if (gse.AnimateBackground.Toggle)
+							{
+								_brightness = 1;
+							}
 						}
 					}
 				}
 			}
 
 			var b = (float)Math.Pow(_brightness, 7) * 0.25f;
+
 			GL.ClearColor(b, 0, b * 0.5f, 1);
 
 			_brightness = (float)Math.Max(0, _brightness - e.Time);
@@ -261,7 +266,7 @@ namespace Blox_Saber_Editor
 				if (editor.Timeline.Dragging)
 				{
 					editor.Timeline.Progress = Math.Max(0, Math.Min(1, (e.X - editor.ClientRectangle.Height / 2f) /
-					               (editor.ClientRectangle.Width - editor.ClientRectangle.Height)));
+								   (editor.ClientRectangle.Width - editor.ClientRectangle.Height)));
 
 					MusicPlayer.Stop();
 					MusicPlayer.CurrentTime = TimeSpan.FromTicks((long)(MusicPlayer.TotalTime.Ticks * (decimal)editor.Timeline.Progress));
@@ -353,6 +358,8 @@ namespace Blox_Saber_Editor
 			{
 				if (!_rightDown)
 				{
+					_draggedNote = null; //TODO - tis might be a bad idea but idk
+
 					if (editor.Track.MouseOverNote is Note tn)
 					{
 						MusicPlayer.Pause();
@@ -419,7 +426,6 @@ namespace Blox_Saber_Editor
 						_draggingTimeline = true;
 						_dragStartX = e.X;
 						_dragStartMs = (int)MusicPlayer.CurrentTime.TotalMilliseconds;
-
 					}
 					else if (editor.MasterVolume.ClientRectangle.Contains(e.Position))
 					{
@@ -444,11 +450,18 @@ namespace Blox_Saber_Editor
 					else
 					{
 						SelectedNotes.Clear();
+						_draggedNotes.Clear();
+
+						_draggingNoteGrid = false;
+						_draggingNoteTimeline = false;
 					}
 				}
 				else if (editor.Track.ClientRectangle.Contains(e.Position))
 				{
 					SelectedNotes.Clear();
+					_draggedNotes.Clear();
+
+					_draggingNoteTimeline = false;
 				}
 
 				if (editor.ClientRectangle.Contains(e.Position))
@@ -587,15 +600,15 @@ namespace Blox_Saber_Editor
 				if (editor.Timeline.Dragging)
 				{
 					var wasPlaying = MusicPlayer.IsPlaying;
-					
+
 					//var progress = (e.X - editor.ClientRectangle.Height / 2f) /
-					              //(editor.ClientRectangle.Width - editor.ClientRectangle.Height);
+					//(editor.ClientRectangle.Width - editor.ClientRectangle.Height);
 
 					//progress = Math.Max(0, Math.Min(1, progress));
 
 					MusicPlayer.Stop();
 					MusicPlayer.CurrentTime = TimeSpan.FromTicks((long)(MusicPlayer.TotalTime.Ticks * (decimal)editor.Timeline.Progress));
-					
+
 					if (wasPlaying)
 						MusicPlayer.Play();
 				}
@@ -660,7 +673,30 @@ namespace Blox_Saber_Editor
 
 			if (GuiScreen is GuiScreenEditor editor)
 			{
-				if (e.Key == Key.S && e.Control)
+				if (e.Key == Key.Left || e.Key == Key.Right)
+				{
+					if (MusicPlayer.IsPlaying)
+						MusicPlayer.Pause();
+
+					var bpm = editor.Track.Bpm;
+
+					if (bpm > 0)
+					{
+						var beatDivisor = editor.Track.BeatDivisor;
+
+						var lineSpace = 60 / bpm;
+						var stepSmall = lineSpace / beatDivisor * 1000;
+
+						if (e.Key == Key.Left)
+							stepSmall = -stepSmall;
+
+						long closestBeat =
+							GetClosestBeat((long) (MusicPlayer.CurrentTime.TotalMilliseconds + stepSmall));
+
+						MusicPlayer.CurrentTime = TimeSpan.FromMilliseconds(closestBeat);
+					}
+				}
+				else if (e.Key == Key.S && e.Control)
 				{
 					if (e.Shift || !_saved && _file == null)
 					{
@@ -903,16 +939,16 @@ namespace Blox_Saber_Editor
 			return true;
 		}
 
-		private long GetClosestBeat(Note note)
+		private long GetClosestBeat(long ms)
 		{
 			var lastDiffMs = long.MaxValue;
 			var closestMs = long.MaxValue;
 
 			void CheckCloser(long beat)
 			{
-				var diffMs = Math.Abs(beat - note.Ms);
+				var diffMs = Math.Abs(beat - ms);
 
-				if (diffMs < lastDiffMs)
+				if (diffMs <= lastDiffMs) // TODO - used to only be '='
 				{
 					lastDiffMs = diffMs;
 
@@ -920,50 +956,49 @@ namespace Blox_Saber_Editor
 				}
 			}
 
-			if (GuiScreen is GuiScreenEditor gui)
+			if (!(GuiScreen is GuiScreenEditor gui)) return 0;
+
+			var rect = gui.Track.ClientRectangle;
+
+			var audioTime = MusicPlayer.CurrentTime.TotalMilliseconds;
+			var posX = (float)audioTime / 1000 * CubeStep;
+
+			var screenX = gui.Track.ScreenX;
+
+			var bpm = gui.Track.Bpm;
+			var bpmOffset = gui.Track.BpmOffset;
+			var beatDivisor = gui.Track.BeatDivisor;
+
+			var lineSpace = 60 / bpm * CubeStep;
+			var stepSmall = lineSpace / beatDivisor;
+
+			var lineX = screenX - posX + bpmOffset / 1000f * CubeStep;
+			if (lineX < 0)
+				lineX %= lineSpace;
+
+			while (lineSpace > 0 && lineX < rect.Width)
 			{
-				var rect = gui.Track.ClientRectangle;
+				//bpm line
+				var timelineMs = (long)Math.Floor((decimal)(lineX - screenX + posX) / (decimal)CubeStep * 1000);
 
-				var audioTime = MusicPlayer.CurrentTime.TotalMilliseconds;
-				var posX = (float)audioTime / 1000 * CubeStep;
+				if (timelineMs != long.MaxValue && timelineMs != long.MinValue)
+					CheckCloser(timelineMs);
 
-				var screenX = gui.Track.ScreenX;
-
-				var bpm = gui.Track.Bpm;
-				var bpmOffset = gui.Track.BpmOffset;
-				var beatDivisor = gui.Track.BeatDivisor;
-
-				var lineSpace = 60 / bpm * CubeStep;
-				var stepSmall = lineSpace / beatDivisor;
-
-				var lineX = screenX - posX + bpmOffset / 1000f * CubeStep;
-				if (lineX < 0)
-					lineX %= lineSpace;
-
-				while (lineSpace > 0 && lineX < rect.Width)
+				for (int j = 1; j <= beatDivisor; j++)
 				{
-					//bpm line
-					var timelineMs = (long)Math.Floor((decimal)(lineX - screenX + posX) / (decimal)CubeStep * 1000);
+					var xo = Math.Floor(lineX + j * stepSmall);
 
-					if (timelineMs != long.MaxValue && timelineMs != long.MinValue)
-						CheckCloser(timelineMs);
-
-					for (int j = 1; j <= beatDivisor; j++)
+					if (j < beatDivisor)
 					{
-						var xo = Math.Floor(lineX + j * stepSmall);
+						//divided bpm line
+						timelineMs = (long)Math.Floor((xo - screenX + posX) / CubeStep * 1000);
 
-						if (j < beatDivisor)
-						{
-							//divided bpm line
-							timelineMs = (long)Math.Floor((xo - screenX + posX) / CubeStep * 1000);
-
-							if (timelineMs != long.MaxValue && timelineMs != long.MinValue)
-								CheckCloser(timelineMs); //beats.Add(timelineMs);
-						}
+						if (timelineMs != long.MaxValue && timelineMs != long.MinValue)
+							CheckCloser(timelineMs); //beats.Add(timelineMs);
 					}
-
-					lineX += lineSpace;
 				}
+
+				lineX += lineSpace;
 			}
 
 			return closestMs;
@@ -990,7 +1025,7 @@ namespace Blox_Saber_Editor
 
 					var threshold = (long)MathHelper.Clamp(snap, 1, 6);
 
-					var snappedMs = GetClosestBeat(_draggedNote);
+					var snappedMs = GetClosestBeat(_draggedNote.Ms);
 
 					if (Math.Abs(snappedMs - cursorMs) / 1000f * CubeStep <= threshold) //8 pixels
 						msDiff = -(_draggedNote.DragStartMs - snappedMs);

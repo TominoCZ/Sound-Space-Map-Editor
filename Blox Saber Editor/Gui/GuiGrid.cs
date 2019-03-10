@@ -7,8 +7,6 @@ namespace Blox_Saber_Editor.Gui
 {
 	class GuiGrid : Gui
 	{
-		public List<GuiButton> Buttons = new List<GuiButton>();
-
 		public Note MouseOverNote;
 
 		public GuiGrid(float sx, float sy) : base(EditorWindow.Instance.ClientSize.Width / 2f - sx / 2, EditorWindow.Instance.ClientSize.Height / 2f - sy / 2, sx, sy)

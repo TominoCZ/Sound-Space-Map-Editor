@@ -126,7 +126,7 @@ namespace Blox_Saber_Editor.Gui
 					Glu.RenderOutline((int)(x - 4), (int)(y - 4), (int)(noteSize + 8), (int)(noteSize + 8));
 				}
 
-				var c = Color.FromArgb((int)(20 * alphaMult), note.Color);
+				var c = Color.FromArgb((int)(15 * alphaMult), note.Color);
 
 				GL.Color4(c);
 				Glu.RenderQuad((int)x, (int)y, (int)noteSize, (int)noteSize);

@@ -70,5 +70,17 @@ namespace Blox_Saber_Editor.Properties {
                 this["ApproachSquares"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AnimateBackground {
+            get {
+                return ((bool)(this["AnimateBackground"]));
+            }
+            set {
+                this["AnimateBackground"] = value;
+            }
+        }
     }
 }

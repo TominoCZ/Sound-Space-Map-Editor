@@ -1,6 +1,5 @@
 ﻿using System;
 using Blox_Saber_Editor.SoundTouch;
-using NAudio.Utils;
 using NAudio.Wave;
 
 namespace Blox_Saber_Editor
@@ -11,12 +10,13 @@ namespace Blox_Saber_Editor
 		private WaveChannel32 _volumeStream;
 		private WaveOutEvent _player;
 		private VarispeedSampleProvider _speedControl;
-
-		private readonly Timer _time = new Timer();
+		
+		private readonly BetterTimer _time;
 
 		public MusicPlayer()
 		{
 			_player = new WaveOutEvent();
+			_time = new BetterTimer();
 		}
 
 		public void Load(string file)
@@ -41,12 +41,16 @@ namespace Blox_Saber_Editor
 		public void Init() => _player.Init(_speedControl);
 		public void Play()
 		{
-			if (TotalTime <= CurrentTime)
-			{
-				CurrentTime = TimeSpan.Zero;
-			}
+			var time = CurrentTime;
 
-			_speedControl.Reposition();
+			if (Progress >= 0.999998)
+			{
+				time = TimeSpan.Zero;
+			}
+			
+			Stop();
+
+			CurrentTime = time;
 
 			_player.Play();
 			_time.Start();
@@ -55,9 +59,6 @@ namespace Blox_Saber_Editor
 		{
 			_time.Stop();
 			_player.Pause();
-
-			Console.WriteLine("my timer:" + _time.Elapsed.TotalMilliseconds);
-			Console.WriteLine("naudio timer:" + _player.GetPositionTimeSpan().TotalMilliseconds);
 		}
 		public void Stop()
 		{
@@ -71,9 +72,11 @@ namespace Blox_Saber_Editor
 
 			set
 			{
-				var wasPlaying = IsPlaying;
 
+				var wasPlaying = IsPlaying;
+				
 				Pause();
+				_time.SetSpeed(value);
 				var time = _time.Elapsed;
 				Stop();
 
@@ -102,11 +105,6 @@ namespace Blox_Saber_Editor
 			_music.CurrentTime = TimeSpan.Zero;
 		}
 
-		public void Update()
-		{
-			_time.Update(Speed);
-		}
-
 		public bool IsPlaying => _player.PlaybackState == PlaybackState.Playing;
 		public bool IsPaused => _player.PlaybackState == PlaybackState.Paused;
 
@@ -119,11 +117,9 @@ namespace Blox_Saber_Editor
 				if (_music == null)
 					return TimeSpan.Zero;
 
-				Update();
-
 				var time = _time.Elapsed;
 
-				time = time > _music.TotalTime ? _music.TotalTime : time;
+				time = time > _music.TotalTime ? TotalTime : time;
 
 				return time;
 			}

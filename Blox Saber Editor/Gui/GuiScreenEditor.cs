@@ -22,6 +22,7 @@ namespace Blox_Saber_Editor.Gui
 		public readonly GuiCheckBox Reposition;
 		public readonly GuiCheckBox ApproachSquares;
 		public readonly GuiCheckBox GridNumbers;
+		public readonly GuiCheckBox AnimateBackground;
 		public readonly GuiButton BackButton;
 		public readonly GuiButton CopyButton;
 		public readonly GuiButton SetOffset;
@@ -45,7 +46,7 @@ namespace Blox_Saber_Editor.Gui
 				Centered = true,
 				Numeric = true
 			};
-			Reposition = new GuiCheckBox(1, "Reposition", 10, 0, 32, 32, false);
+			Reposition = new GuiCheckBox(1, "Reposition Notes", 10, 0, 32, 32, false);
 			BeatSnapDivisor = new GuiSlider(0, 0, 256, 40);
 			Timeline = new GuiSlider(0, 0, EditorWindow.Instance.ClientSize.Width, 64);
 			Tempo = new GuiSlider(0, 0, 512, 64)
@@ -73,6 +74,7 @@ namespace Blox_Saber_Editor.Gui
 
 			ApproachSquares = new GuiCheckBox(5, "Approach Squares", 0, 0, 32, 32, Settings.Default.ApproachSquares);
 			GridNumbers = new GuiCheckBox(5, "Grid Numbers", 0, 0, 32, 32, Settings.Default.GridNumbers);
+			AnimateBackground = new GuiCheckBox(5, "Animate Background", 0, 0, 32, 32, Settings.Default.AnimateBackground);
 
 			Bpm.Focused = true;
 			Offset.Focused = true;
@@ -91,6 +93,7 @@ namespace Blox_Saber_Editor.Gui
 			Buttons.Add(Reposition);
 			Buttons.Add(ApproachSquares);
 			Buttons.Add(GridNumbers);
+			Buttons.Add(AnimateBackground);
 			Buttons.Add(SetOffset);
 			Buttons.Add(BackButton);
 			Buttons.Add(CopyButton);
@@ -163,18 +166,23 @@ namespace Blox_Saber_Editor.Gui
 
 			var timeString = $"{time.Minutes}:{time.Seconds:0#}";
 			var currentTimeString = $"{currentTime.Minutes}:{currentTime.Seconds:0#}";
+			var currentMsString = $"{(long) currentTime.TotalMilliseconds:##,###}ms";
+			if ((long) currentTime.TotalMilliseconds == 0)
+				currentMsString = "0ms";
 
 			var notesString = $"{EditorWindow.Instance.Notes.Count} Notes";
 			var notesW = fr.GetWidth(notesString, 24);
 
 			var timeW = fr.GetWidth(timeString, 20);
 			var currentTimeW = fr.GetWidth(currentTimeString, 20);
+			var currentMsW = fr.GetWidth(currentMsString, 20);
 
 			fr.Render(notesString, (int)(rect.X + rect.Width / 2 - notesW / 2f), (int)(rect.Y + timelinePos.Y + 12), 24);
 
 			GL.Color3(0, 1, 0.5f);
 			fr.Render(timeString, (int)(rect.X + timelinePos.X - timeW / 2f + rect.Width - rect.Height), (int)(rect.Y + timelinePos.Y + 12), 20);
 			fr.Render(currentTimeString, (int)(rect.X + timelinePos.X - currentTimeW / 2f), (int)(rect.Y + timelinePos.Y + 12), 20);
+			fr.Render(currentMsString, (int)(rect.X + rect.Height / 2 + (rect.Width - rect.Height) * Timeline.Progress - currentMsW / 2f), (int)rect.Y, 20);
 
 			base.Render(delta, mouseX, mouseY);
 
@@ -279,6 +287,7 @@ namespace Blox_Saber_Editor.Gui
 				case 5:
 					Settings.Default.ApproachSquares = ApproachSquares.Toggle;
 					Settings.Default.GridNumbers = GridNumbers.Toggle;
+					Settings.Default.AnimateBackground = AnimateBackground.Toggle;
 					Settings.Default.Save();
 					break;
 			}
@@ -313,6 +322,7 @@ namespace Blox_Saber_Editor.Gui
 
 			ApproachSquares.ClientRectangle.Y = Reposition.ClientRectangle.Bottom + 32 + 20;
 			GridNumbers.ClientRectangle.Y = ApproachSquares.ClientRectangle.Bottom + 10;
+			AnimateBackground.ClientRectangle.Y = GridNumbers.ClientRectangle.Bottom + 10;
 
 			Bpm.ClientRectangle.X = 10;
 			Offset.ClientRectangle.X = Bpm.ClientRectangle.X;
@@ -321,6 +331,7 @@ namespace Blox_Saber_Editor.Gui
 
 			ApproachSquares.ClientRectangle.X = Bpm.ClientRectangle.X;
 			GridNumbers.ClientRectangle.X = Bpm.ClientRectangle.X;
+			AnimateBackground.ClientRectangle.X = Bpm.ClientRectangle.X;
 
 			_toast.ClientRectangle.X = size.Width / 2f;
 		}
