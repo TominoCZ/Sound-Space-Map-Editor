@@ -83,7 +83,7 @@ namespace Blox_Saber_Editor
 
 		public float CubeStep => 50 * 10 * Zoom;
 
-		public EditorWindow() : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Blox Saber Map Editor")
+		public EditorWindow() : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Blox Saber Map Editor v1.1")
 		{
 			Instance = this;
 
@@ -182,8 +182,8 @@ namespace Blox_Saber_Editor
 
 				foreach (var draggedNote in _draggedNotes)
 				{
-					var posX = (float)MusicPlayer.CurrentTime.TotalSeconds * CubeStep;
-					var noteX = editor.Track.ScreenX - posX + draggedNote.DragStartMs / 1000f * CubeStep;
+					var posX = (decimal)(MusicPlayer.CurrentTime.TotalSeconds * CubeStep);
+					var noteX = editor.Track.ScreenX - posX + draggedNote.DragStartMs / (decimal)1000 * (decimal)CubeStep;
 
 					GL.Color3(0.75f, 0.75f, 0.75f);
 					Glu.RenderQuad((int)noteX, (int)rect.Y, 1, rect.Height);
@@ -691,7 +691,7 @@ namespace Blox_Saber_Editor
 							stepSmall = -stepSmall;
 
 						long closestBeat =
-							GetClosestBeat((long) (MusicPlayer.CurrentTime.TotalMilliseconds + stepSmall));
+							GetClosestBeat((long)((decimal)MusicPlayer.CurrentTime.TotalMilliseconds + stepSmall));
 
 						MusicPlayer.CurrentTime = TimeSpan.FromMilliseconds(closestBeat);
 					}
@@ -866,7 +866,7 @@ namespace Blox_Saber_Editor
 
 						var offset = (bpmDivided + editor.Track.BpmOffset) % bpmDivided;
 
-						time += (long)(e.DeltaPrecise * bpmDivided);
+						time += (long)((decimal)e.DeltaPrecise * bpmDivided);
 
 						time = (long)((long)Math.Round(time / (decimal)bpmDivided) * bpmDivided + offset);
 					}
@@ -960,23 +960,23 @@ namespace Blox_Saber_Editor
 
 			var rect = gui.Track.ClientRectangle;
 
-			var audioTime = MusicPlayer.CurrentTime.TotalMilliseconds;
-			var posX = (float)audioTime / 1000 * CubeStep;
+			decimal audioTime = (decimal)MusicPlayer.CurrentTime.TotalMilliseconds;
+			decimal posX = audioTime / 1000 * (decimal)CubeStep;
 
 			var screenX = gui.Track.ScreenX;
 
 			var bpm = gui.Track.Bpm;
-			var bpmOffset = gui.Track.BpmOffset;
+			decimal bpmOffset = gui.Track.BpmOffset;
 			var beatDivisor = gui.Track.BeatDivisor;
 
-			var lineSpace = 60 / bpm * CubeStep;
+			var lineSpace = 60 / bpm * (decimal)CubeStep;
 			var stepSmall = lineSpace / beatDivisor;
 
-			var lineX = screenX - posX + bpmOffset / 1000f * CubeStep;
+			var lineX = screenX - posX + bpmOffset / 1000 * (decimal)CubeStep;
 			if (lineX < 0)
 				lineX %= lineSpace;
 
-			while (lineSpace > 0 && lineX < rect.Width)
+			while (lineSpace > 0 && lineX < (decimal)rect.Width)
 			{
 				//bpm line
 				var timelineMs = (long)Math.Floor((decimal)(lineX - screenX + posX) / (decimal)CubeStep * 1000);
@@ -991,7 +991,7 @@ namespace Blox_Saber_Editor
 					if (j < beatDivisor)
 					{
 						//divided bpm line
-						timelineMs = (long)Math.Floor((xo - screenX + posX) / CubeStep * 1000);
+						timelineMs = (long)Math.Floor((xo - screenX + posX) / (decimal)CubeStep * 1000);
 
 						if (timelineMs != long.MaxValue && timelineMs != long.MinValue)
 							CheckCloser(timelineMs); //beats.Add(timelineMs);
@@ -1009,25 +1009,30 @@ namespace Blox_Saber_Editor
 			var pixels = mouseX - _dragStartX;
 			var msDiff = pixels / CubeStep * 1000;
 
-			var audioTime = MusicPlayer.CurrentTime.TotalMilliseconds;
+			var audioTime = (decimal)MusicPlayer.CurrentTime.TotalMilliseconds;
 
 			if (GuiScreen is GuiScreenEditor gui && _draggedNote != null)
 			{
-				var clickMs = (int)(Math.Max(0, _clickedMouse.X - gui.Track.ScreenX + (float)audioTime / 1000 * CubeStep) / CubeStep * 1000);
+				var clickMs = (int)(Math.Max(0, _clickedMouse.X - gui.Track.ScreenX + audioTime / 1000 * (decimal)CubeStep) / (decimal)CubeStep * 1000);
 				var clickOff = clickMs - _dragNoteStartMs;
-				var cursorMs = (int)(Math.Max(0, mouseX - gui.Track.ScreenX + (float)audioTime / 1000 * CubeStep) / CubeStep * 1000) - clickOff;
+				var cursorMs = (int)(Math.Max(0, mouseX - gui.Track.ScreenX + audioTime / 1000 * (decimal)CubeStep) / (decimal)CubeStep * 1000) - clickOff;
 
 				if (_draggedNotes.Count > 0)
 				{
-					var lineSpace = 60 / gui.Track.Bpm * CubeStep;
+					var lineSpace = 60 / gui.Track.Bpm * (decimal)CubeStep;
 					var stepSmall = lineSpace / gui.Track.BeatDivisor;
-					var snap = stepSmall / 1.75;
+					var snap = stepSmall / (decimal)1.75;
 
-					var threshold = (long)MathHelper.Clamp(snap, 1, 6);
+					decimal threshold = snap;
+
+					if (snap < 1)
+						threshold = 1;
+					else if (snap > 6)
+						threshold = 6;
 
 					var snappedMs = GetClosestBeat(_draggedNote.Ms);
 
-					if (Math.Abs(snappedMs - cursorMs) / 1000f * CubeStep <= threshold) //8 pixels
+					if (Math.Abs(snappedMs - cursorMs) / (decimal)1000 * (decimal)CubeStep <= threshold) //8 pixels
 						msDiff = -(_draggedNote.DragStartMs - snappedMs);
 				}
 
@@ -1129,6 +1134,7 @@ namespace Blox_Saber_Editor
 				if (long.TryParse(id.Value, out _soundId) && LoadSound(_soundId))
 				{
 					MusicPlayer.Load("assets/cached/" + _soundId + ".asset");
+
 					OpenGuiScreen(new GuiScreenEditor());
 				}
 				else

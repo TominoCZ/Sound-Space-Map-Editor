@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Numerics;
 using System.Windows.Forms;
 using OpenTK;
@@ -11,13 +13,15 @@ namespace Blox_Saber_Editor.Gui
 	class GuiTextBox : Gui
 	{
 		public bool Numeric;
+		public bool Decimal;
 		public bool Centered;
 
+		private bool _focused;
 		private string _text = "";
 		private int _cursorPos;
 
 		private float _timer;
-		
+
 		public string Text
 		{
 			get => _text;
@@ -25,10 +29,57 @@ namespace Blox_Saber_Editor.Gui
 			set => _cursorPos = Math.Min(_cursorPos, (_text = value).Length);
 		}
 
-		public bool Focused;
+		public bool Focused
+		{
+			get => _focused;
+			set
+			{
+				_focused = value;
+
+				OnFocus(value);
+			}
+		}
 
 		public GuiTextBox(float x, float y, float sx, float sy) : base(x, y, sx, sy)
 		{
+		}
+
+		private void OnFocus(bool flag)
+		{
+			if (flag)
+				return;
+
+			var hasDecimalPoint = _text.Contains(CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
+
+			if (Numeric)
+			{
+				if (string.IsNullOrWhiteSpace(_text))
+				{
+					Text = "0";
+					return;
+				}
+				if (Decimal)
+				{
+					if (hasDecimalPoint)
+					{
+						var text = Text.Trim('0');
+
+						if (text.Length > 0 && text[text.Length - 1].ToString() == CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator)
+						{
+							text += 0;
+						}
+
+						if (decimal.TryParse(text, out var parsed))
+						{
+							Text = parsed.ToString();
+						}
+					}
+					if (decimal.TryParse(_text, out var num) && num == (long)num)
+					{
+						Text = ((long)num).ToString();
+					}
+				}
+			}
 		}
 
 		public override void Render(float delta, float mouseX, float mouseY)
@@ -102,10 +153,36 @@ namespace Blox_Saber_Editor.Gui
 
 			var keyChar = key.ToString();
 
-			if (Numeric && !byte.TryParse(keyChar, out _))
-				return;
+			if (Numeric && !byte.TryParse(keyChar, out _)) //if not a number
+			{
+				if (Decimal)
+				{
+					if (keyChar != "." && keyChar != ",") // if not a number and not a decimal splitter
+					{
+						return;
+					}
+					if (_text.Contains(".") || _text.Contains(","))
+					{
+						return;
+					}
 
-			_text = _text.Insert(_cursorPos, keyChar);
+					//if a decimal splitter
+					keyChar = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+				}
+				else
+				{
+					return;
+				}
+			}
+
+			try
+			{
+				_text = _text.Insert(_cursorPos, keyChar);
+			}
+			catch
+			{
+
+			}
 
 			_cursorPos++;
 		}
@@ -118,7 +195,7 @@ namespace Blox_Saber_Editor.Gui
 			switch (key)
 			{
 				case Key.C when control:
-					//TODO maybe?
+					//TODO maybe? edit: NO
 					break;
 				case Key.V when control:
 					var clipboard = Clipboard.GetText();
@@ -133,7 +210,14 @@ namespace Blox_Saber_Editor.Gui
 					_cursorPos = Math.Max(0, _cursorPos - 1);
 					break;
 				case Key.Right:
-					_cursorPos = Math.Min(_text.Length, _cursorPos + 1);
+					try
+					{
+						_cursorPos = Math.Min(_text.Length, _cursorPos + 1);
+					}
+					catch //was too lazy
+					{
+
+					}
 					break;
 				case Key.BackSpace:
 					if (control)
@@ -142,14 +226,28 @@ namespace Blox_Saber_Editor.Gui
 					}
 					else if (_text.Length > 0 && _cursorPos > 0)
 					{
-						_cursorPos = Math.Max(0, _cursorPos - 1);
-						_text = _text.Remove(_cursorPos, 1);
+						try
+						{
+							_cursorPos = Math.Max(0, _cursorPos - 1);
+							_text = _text.Remove(_cursorPos, 1);
+						}
+						catch //was too lazy
+						{
+
+						}
 					}
 					break;
 				case Key.Delete:
 					if (_text.Length > 0 && _cursorPos < _text.Length)
 					{
-						_text = _text.Remove(Math.Min(_cursorPos, _text.Length - 1), 1);
+						try
+						{
+							_text = _text.Remove(Math.Min(_cursorPos, _text.Length - 1), 1);
+						}
+						catch //was too lazy
+						{
+
+						}
 					}
 					break;
 			}

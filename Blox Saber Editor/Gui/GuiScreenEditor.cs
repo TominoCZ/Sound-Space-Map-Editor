@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
 using Blox_Saber_Editor.Properties;
 using OpenTK;
@@ -39,7 +41,13 @@ namespace Blox_Saber_Editor.Gui
 			};
 
 			var playPause = new GuiButtonPlayPause(0, EditorWindow.Instance.ClientSize.Width - 512 - 64, EditorWindow.Instance.ClientSize.Height - 64, 64, 64);
-			Bpm = new GuiTextBox(0, 0, 128, 32) { Text = "0", Centered = true, Numeric = true };
+			Bpm = new GuiTextBox(0, 0, 128, 32)
+			{
+				Text = "0",
+				Centered = true,
+				Numeric = true,
+				Decimal = true
+			};
 			Offset = new GuiTextBox(0, 0, 128, 32)
 			{
 				Text = "0",
@@ -349,11 +357,27 @@ namespace Blox_Saber_Editor.Gui
 		{
 			if (Bpm.Focused)
 			{
-				long.TryParse(Bpm.Text, out var bpm);
+				var text = Bpm.Text;
+				var decimalPont = false;
 
-				Track.Bpm = MathHelper.Clamp(bpm, 0, 400);
+				if (text.Length > 0 && text[text.Length - 1].ToString() ==
+				    CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator)
+				{
+					text = text + 0;
 
-				if (Track.Bpm > 0)
+					decimalPont = true;
+				}
+
+				decimal.TryParse(text, out var bpm);
+
+				if (bpm < 0)
+					bpm = 0;
+				else if (bpm > 400)
+					bpm = 400;
+
+				Track.Bpm = bpm;
+
+				if (Track.Bpm > 0 && !decimalPont)
 					Bpm.Text = Track.Bpm.ToString();
 			}
 			if (Offset.Focused)

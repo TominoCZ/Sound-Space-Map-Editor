@@ -11,9 +11,9 @@ namespace Blox_Saber_Editor.Gui
 
 		public Note MouseOverNote;
 
-		public float ScreenX = 300;
+		public decimal ScreenX = 300;
 
-		public float Bpm = 0;//150;
+		public decimal Bpm = 0;//150;
 		public long BpmOffset = 0; //in ms
 		public int BeatDivisor = 8;
 
@@ -34,26 +34,26 @@ namespace Blox_Saber_Editor.Gui
 
 			var fr = EditorWindow.Instance.FontRenderer;
 
-			var cellSize = rect.Height;
-			var noteSize = cellSize * 0.65f;
+			decimal cellSize = (decimal)rect.Height;
+			decimal noteSize = cellSize * (decimal)0.65;
 
 			var gap = cellSize - noteSize;
 
-			var audioTime = EditorWindow.Instance.MusicPlayer.CurrentTime.TotalMilliseconds;
+			decimal audioTime = (decimal)EditorWindow.Instance.MusicPlayer.CurrentTime.TotalMilliseconds;
 
-			var cubeStep = EditorWindow.Instance.CubeStep;
-			var posX = (float)audioTime / 1000 * cubeStep;
-			var maxX = EditorWindow.Instance.MusicPlayer.TotalTime.TotalMilliseconds / 1000 * cubeStep;
+			decimal cubeStep = (decimal)EditorWindow.Instance.CubeStep;
+			decimal posX = audioTime / 1000 * cubeStep;
+			decimal maxX = (decimal)EditorWindow.Instance.MusicPlayer.TotalTime.TotalMilliseconds / 1000 * cubeStep;
 
 			var zoomLvl = (int)EditorWindow.Instance.Zoom;
-			var lineSpace = cubeStep / zoomLvl;
+			decimal lineSpace = cubeStep / zoomLvl;
 
-			var lineX = ScreenX - posX;
+			decimal lineX = ScreenX - posX;
 			if (lineX < 0)
 				lineX %= lineSpace;
 
 			//render quarters of a second depending on zoom level
-			while (lineSpace > 0 && lineX < rect.Width)
+			while (lineSpace > 0 && lineX < (decimal)rect.Width)
 			{
 				GL.Color3(0.85f, 0.85f, 0.85f);
 				GL.Begin(PrimitiveType.Lines);
@@ -92,9 +92,9 @@ namespace Blox_Saber_Editor.Gui
 				Note note = EditorWindow.Instance.Notes[i];
 				note.Color = _cs.Next();
 
-				var x = ScreenX - posX + note.Ms / 1000f * cubeStep;
+				decimal x = ScreenX - posX + note.Ms / (decimal)1000 * cubeStep;
 
-				if (x < rect.X - noteSize || x > rect.Width)
+				if (x < (decimal)rect.X - noteSize || x > (decimal)rect.Width)
 					continue;
 
 				var alphaMult = 1f;
@@ -104,9 +104,9 @@ namespace Blox_Saber_Editor.Gui
 					alphaMult = 0.35f;
 				}
 
-				var y = rect.Y + gap / 2;
+				var y = (decimal)rect.Y + gap / 2;
 
-				var noteRect = new RectangleF((int)x, (int)y, noteSize, noteSize);
+				var noteRect = new RectangleF((int)x, (int)y, (float)noteSize, (float)noteSize);
 
 				var b = MouseOverNote == null && !mouseOver && noteRect.Contains(mouseX, mouseY);
 
@@ -169,12 +169,12 @@ namespace Blox_Saber_Editor.Gui
 				lineSpace = 60 / Bpm * cubeStep;
 				var stepSmall = lineSpace / BeatDivisor;
 
-				lineX = ScreenX - posX + BpmOffset / 1000f * cubeStep;
+				lineX = ScreenX - posX + BpmOffset / (decimal)1000 * cubeStep;
 				if (lineX < 0)
 					lineX %= lineSpace;
 
 				//render BPM lines
-				while (lineSpace > 0 && lineX < rect.Width)
+				while (lineSpace > 0 && lineX < (decimal)rect.Width)
 				{
 					GL.Color3(0, 1f, 0);
 					GL.Begin(PrimitiveType.Lines);
@@ -190,9 +190,13 @@ namespace Blox_Saber_Editor.Gui
 						{
 							var half = j == BeatDivisor / 2 && BeatDivisor % 2 == 0;
 
-							GL.Color3(0, 0.75f, half ? 0.2f : 0.5f);
+							if (half)
+								GL.Color3(0.15f, 0.75f, 0);
+							else
+								GL.Color3(0, 0.5f, 0.5f);
+
 							GL.Begin(PrimitiveType.Lines);
-							GL.Vertex2((int)xo + 0.5f, rect.Bottom - (half ? 7 : 3));
+							GL.Vertex2((int)xo + 0.5f, rect.Bottom - (half ? 7 : 4));
 							GL.Vertex2((int)xo + 0.5f, rect.Bottom);
 							GL.End();
 						}
@@ -204,8 +208,8 @@ namespace Blox_Saber_Editor.Gui
 			//draw screen line
 			GL.Color3(1f, 0.5f, 0);
 			GL.Begin(PrimitiveType.Lines);
-			GL.Vertex2(rect.X + ScreenX + 0.5f, rect.Y + 4);
-			GL.Vertex2(rect.X + ScreenX + 0.5f, rect.Y + rect.Height - 4);
+			GL.Vertex2(rect.X + (float)ScreenX + 0.5, rect.Y + 4);
+			GL.Vertex2(rect.X + (float)ScreenX + 0.5, rect.Y + rect.Height - 4);
 			GL.End();
 
 			//GL.Color3(1, 1, 1f);
@@ -216,7 +220,7 @@ namespace Blox_Saber_Editor.Gui
 		{
 			ClientRectangle = new RectangleF(0, ClientRectangle.Y, size.Width, ClientRectangle.Height);
 
-			ScreenX = ClientRectangle.Width / 2.5f;
+			ScreenX = (decimal)(ClientRectangle.Width / 2.5);
 		}
 
 		public List<Note> GetNotesInRect(RectangleF selectionRect)
@@ -225,29 +229,29 @@ namespace Blox_Saber_Editor.Gui
 
 			var rect = ClientRectangle;
 
-			var cellSize = rect.Height;
-			var noteSize = cellSize * 0.65f;
+			decimal cellSize = (decimal)rect.Height;
+			decimal noteSize = cellSize * (decimal)0.65;
 
-			var gap = cellSize - noteSize;
+			decimal gap = cellSize - noteSize;
 
-			var audioTime = EditorWindow.Instance.MusicPlayer.CurrentTime.TotalMilliseconds;
+			decimal audioTime = (decimal)EditorWindow.Instance.MusicPlayer.CurrentTime.TotalMilliseconds;
 
-			var cubeStep = EditorWindow.Instance.CubeStep;
-			var posX = (float)audioTime / 1000 * cubeStep;
+			decimal cubeStep = (decimal)EditorWindow.Instance.CubeStep;
+			decimal posX = audioTime / 1000 * cubeStep;
 
 			for (int i = 0; i < EditorWindow.Instance.Notes.Count; i++)
 			{
 				Note note = EditorWindow.Instance.Notes[i];
 				note.Color = _cs.Next();
 
-				var x = ScreenX - posX + note.Ms / 1000f * cubeStep;
+				decimal x = ScreenX - posX + note.Ms / (decimal)1000 * cubeStep;
 
-				if (x < rect.X - noteSize || x > rect.Width)
+				if (x < (decimal)rect.X - noteSize || x > (decimal)rect.Width)
 					continue;
 
-				var y = rect.Y + gap / 2;
+				decimal y = (decimal)rect.Y + gap / 2;
 
-				var noteRect = new RectangleF(x, y, noteSize, noteSize);
+				var noteRect = new RectangleF((float)x, (float)y, (float)noteSize, (float)noteSize);
 
 				if (selectionRect.IntersectsWith(noteRect))
 					notes.Add(note);
