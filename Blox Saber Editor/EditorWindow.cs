@@ -38,7 +38,7 @@ namespace Blox_Saber_Editor
 
 		public readonly UndoRedo UndoRedo = new UndoRedo();
 
-		public bool IsDraggingNoteOnTimeLine => _draggingNoteTimeline && _draggedNotes.Count > 0 && _draggedNotes[0].DragStartMs != _draggedNotes[0].Ms;
+		public bool IsDraggingNoteOnTimeLine => _draggingNoteTimeline && _draggedNotes.FirstOrDefault() is Note n && n.DragStartMs != n.Ms;
 		public List<Note> SelectedNotes = new List<Note>();
 		private List<Note> _draggedNotes = new List<Note>();
 		private Note _draggedNote;
@@ -73,17 +73,17 @@ namespace Blox_Saber_Editor
 
 		public NoteList Notes = new NoteList();
 
-		private float _zoom = 1;
+		private decimal _zoom = 1;
 
-		public float Zoom
+		public decimal Zoom
 		{
 			get => _zoom;
-			set => _zoom = Math.Max(1, Math.Min(4, value));
+			set => _zoom = Math.Max((decimal)0.1, Math.Min(4, value));
 		}
 
-		public float CubeStep => 50 * 10 * Zoom;
+		public decimal CubeStep => 50 * 10 * Zoom;
 
-		public EditorWindow() : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Blox Saber Map Editor v1.1")
+		public EditorWindow() : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Blox Saber Map Editor v1.2")
 		{
 			Instance = this;
 
@@ -182,7 +182,7 @@ namespace Blox_Saber_Editor
 
 				foreach (var draggedNote in _draggedNotes)
 				{
-					var posX = (decimal)(MusicPlayer.CurrentTime.TotalSeconds * CubeStep);
+					var posX = (decimal)MusicPlayer.CurrentTime.TotalSeconds * CubeStep;
 					var noteX = editor.Track.ScreenX - posX + draggedNote.DragStartMs / (decimal)1000 * (decimal)CubeStep;
 
 					GL.Color3(0.75f, 0.75f, 0.75f);
@@ -491,81 +491,82 @@ namespace Blox_Saber_Editor
 				{
 					var notes = _draggedNotes.ToList();
 
-					var note = notes[0];
-					var start = note.DragStartMs;
-					var diff = note.Ms - start;
-
-					if (diff != 0)
+					if (notes.FirstOrDefault() is Note note)
 					{
-						Notes.Sort();
+						var start = note.DragStartMs;
+						var diff = note.Ms - start;
 
-						long[] startMs = new long[notes.Count];
-
-						for (var i = 0; i < startMs.Length; i++)
+						if (diff != 0)
 						{
-							startMs[i] = notes[i].DragStartMs;
-						}
-
-						var saveState = _saved;
-
-						UndoRedo.AddUndoRedo("MOVE NOTE" + (_draggedNotes.Count > 1 ? "S" : ""), () =>
-						{
-							for (var index = 0; index < notes.Count; index++)
-							{
-								var note1 = notes[index];
-
-								start = startMs[index];
-								note1.Ms = start;
-							}
-
 							Notes.Sort();
 
-							_saved = saveState;
-						}, () =>
-						{
-							for (var index = 0; index < notes.Count; index++)
-							{
-								var note1 = notes[index];
+							long[] startMs = new long[notes.Count];
 
-								start = startMs[index];
-								note1.Ms = start + diff;
+							for (var i = 0; i < startMs.Length; i++)
+							{
+								startMs[i] = notes[i].DragStartMs;
 							}
 
-							Notes.Sort();
+							var saveState = _saved;
+
+							UndoRedo.AddUndoRedo("MOVE NOTE" + (_draggedNotes.Count > 1 ? "S" : ""), () =>
+							{
+								for (var index = 0; index < notes.Count; index++)
+								{
+									var note1 = notes[index];
+
+									start = startMs[index];
+									note1.Ms = start;
+								}
+
+								Notes.Sort();
+
+								_saved = saveState;
+							}, () =>
+							{
+								for (var index = 0; index < notes.Count; index++)
+								{
+									var note1 = notes[index];
+
+									start = startMs[index];
+									note1.Ms = start + diff;
+								}
+
+								Notes.Sort();
+
+								_saved = false;
+							});
 
 							_saved = false;
-						});
-
-						_saved = false;
+						}
 					}
 				}
 			}
 
-			if (_draggingNoteGrid && _draggedNotes.Count > 0)
+			if (_draggingNoteGrid && _draggedNotes.FirstOrDefault() is Note note2)
 			{
 				MusicPlayer.Pause();
 				OnDraggingGridNote(_lastMouse);
-
-				var note = _draggedNotes[0];
+				
 				var startX = _dragStartIndexX;
 				var startY = _dragStartIndexY;
-				var newX = note.X;
-				var newY = note.Y;
+				var newX = note2.X;
+				var newY = note2.Y;
 
-				if (note.X != _dragStartIndexX || note.Y != _dragStartIndexY)
+				if (note2.X != _dragStartIndexX || note2.Y != _dragStartIndexY)
 				{
 					var saveState = _saved;
 
 					UndoRedo.AddUndoRedo("REPOSITION NOTE", () =>
 					 {
-						 note.X = startX;
-						 note.Y = startY;
+						 note2.X = startX;
+						 note2.Y = startY;
 
 						 _saved = saveState;
 					 }, () =>
 					 {
-						 note.X = newX;
-						 note.Y = newY;
+						 note2.X = newX;
+						 note2.Y = newY;
 
 						 _saved = false;
 					 });
@@ -911,7 +912,9 @@ namespace Blox_Saber_Editor
 			if (GuiScreen is GuiScreenEditor editor)
 			{
 				if (_controlDown)
-					Zoom += e.DeltaPrecise / 2;
+				{
+					Zoom += (decimal)e.DeltaPrecise * (decimal)0.1;
+				}
 				else
 				{
 					MusicPlayer.Pause();
@@ -931,7 +934,7 @@ namespace Blox_Saber_Editor
 					}
 					else
 					{
-						time += (long)(e.DeltaPrecise / 10.0 * 1000 / Zoom * 0.5);
+						time += (long)((decimal)e.DeltaPrecise / 10 * 1000 / Zoom * (decimal)0.5);
 					}
 
 					time = Math.Min(maxTime, Math.Max(0, time));
@@ -1110,7 +1113,7 @@ namespace Blox_Saber_Editor
 
 		private void OnDraggingGridNote(Point pos)
 		{
-			if (GuiScreen is GuiScreenEditor editor)
+			if (GuiScreen is GuiScreenEditor editor && _draggedNotes.FirstOrDefault() is Note note)
 			{
 				var rect = editor.Grid.ClientRectangle;
 				var newX = (int)Math.Floor((pos.X - rect.X) / rect.Width * 3);
@@ -1121,8 +1124,8 @@ namespace Blox_Saber_Editor
 					return;
 				}
 
-				_draggedNotes[0].X = newX;
-				_draggedNotes[0].Y = newY;
+				note.X = newX;
+				note.Y = newY;
 			}
 		}
 

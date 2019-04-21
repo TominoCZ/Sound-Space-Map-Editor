@@ -45,7 +45,7 @@ namespace Blox_Saber_Editor.Gui
 			decimal posX = audioTime / 1000 * cubeStep;
 			decimal maxX = (decimal)EditorWindow.Instance.MusicPlayer.TotalTime.TotalMilliseconds / 1000 * cubeStep;
 
-			var zoomLvl = (int)EditorWindow.Instance.Zoom;
+			var zoomLvl = EditorWindow.Instance.Zoom;
 			decimal lineSpace = cubeStep / zoomLvl;
 
 			decimal lineX = ScreenX - posX;

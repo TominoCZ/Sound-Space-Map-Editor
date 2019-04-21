@@ -137,6 +137,7 @@ namespace Blox_Saber_Editor.Gui
 			_toast.Color = Color.FromArgb((int)(Math.Pow(toastOffY, 3) * 255), _toast.Color);
 
 			GL.Color3(Color.FromArgb(0, 255, 64));
+			fr.Render($"Zoom: {(int)(EditorWindow.Instance.Zoom * 100)}%", (int)Bpm.ClientRectangle.X, (int)Bpm.ClientRectangle.Y - 75, 24);
 			fr.Render("BPM:", (int)Bpm.ClientRectangle.X, (int)Bpm.ClientRectangle.Y - 24, 24);
 			fr.Render("Offset[ms]:", (int)Offset.ClientRectangle.X, (int)Offset.ClientRectangle.Y - 24, 24);
 			fr.Render("Options:", (int)ApproachSquares.ClientRectangle.X, (int)ApproachSquares.ClientRectangle.Y - 26, 24);
