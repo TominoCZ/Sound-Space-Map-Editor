@@ -1,7 +1,9 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 
 namespace Blox_Saber_Editor
 {
+	[Serializable]
 	class Note
 	{
 		public int X;
@@ -17,6 +19,11 @@ namespace Blox_Saber_Editor
 			Y = y;
 
 			Ms = ms;
+		}
+
+		public Note Clone()
+		{
+			return new Note(X, Y, Ms) { Color = Color };
 		}
 	}
 }

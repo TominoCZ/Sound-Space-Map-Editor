@@ -461,6 +461,7 @@ namespace Blox_Saber_Editor
 					SelectedNotes.Clear();
 					_draggedNotes.Clear();
 
+					_draggingNoteGrid = false;
 					_draggingNoteTimeline = false;
 				}
 
@@ -488,7 +489,7 @@ namespace Blox_Saber_Editor
 
 				if (_draggedNotes.Count > 0)
 				{
-					var notes = new List<Note>(_draggedNotes);
+					var notes = _draggedNotes.ToList();
 
 					var note = notes[0];
 					var start = note.DragStartMs;
@@ -540,7 +541,7 @@ namespace Blox_Saber_Editor
 				}
 			}
 
-			if (_draggingNoteGrid)
+			if (_draggingNoteGrid && _draggedNotes.Count > 0)
 			{
 				MusicPlayer.Pause();
 				OnDraggingGridNote(_lastMouse);
@@ -747,6 +748,62 @@ namespace Blox_Saber_Editor
 							UndoRedo.Redo();
 						}
 					}
+					else if (e.Key == Key.C)
+					{
+						var copied = SelectedNotes.Select(n => n.Clone()).ToList();
+
+						Clipboard.SetData("notes", copied);
+
+						editor.ShowToast("COPIED NOTES", Color.Chartreuse);
+					}
+					else if (e.Key == Key.V)
+					{
+						if (Clipboard.ContainsData("notes"))
+						{
+							MusicPlayer.Pause();
+
+							var copied = ((List<Note>)Clipboard.GetData("notes")).ToList();
+
+							var lowest = copied.Min(n => n.Ms);
+
+							copied.ForEach(n => n.Ms = (long)MusicPlayer.CurrentTime.TotalMilliseconds + n.Ms - lowest);
+
+							_draggedNotes.Clear();
+							SelectedNotes.Clear();
+
+							SelectedNotes.AddRange(copied);
+							_draggedNotes.AddRange(copied);
+
+							Notes.AddAll(copied);
+
+							_draggingNoteGrid = false;
+							_draggingNoteTimeline = false;
+
+							var saveState = _saved;
+
+							UndoRedo.AddUndoRedo("PASTE NOTES", () =>
+							{
+								Notes.RemoveAll(copied);
+
+								_saved = saveState;
+							}, () =>
+							{
+								Notes.AddAll(copied);
+
+								_draggedNotes.Clear();
+								SelectedNotes.Clear();
+								SelectedNotes.AddRange(copied);
+								_draggedNotes.AddRange(copied);
+
+								_draggingNoteGrid = false;
+								_draggingNoteTimeline = false;
+
+								_saved = false;
+							});
+
+							_saved = false;
+						}
+					}
 				}
 
 				//make sure to not register input while we're typing into a text box
@@ -841,6 +898,8 @@ namespace Blox_Saber_Editor
 							_saved = false;
 
 							SelectedNotes.Clear();
+							_draggingNoteGrid = false;
+							_draggingNoteTimeline = false;
 						}
 					}
 				}
@@ -1017,7 +1076,7 @@ namespace Blox_Saber_Editor
 				var clickOff = clickMs - _dragNoteStartMs;
 				var cursorMs = (int)(Math.Max(0, mouseX - gui.Track.ScreenX + audioTime / 1000 * (decimal)CubeStep) / (decimal)CubeStep * 1000) - clickOff;
 
-				if (_draggedNotes.Count > 0)
+				if (_draggedNotes.Count > 0 && gui.Track.Bpm > 0)
 				{
 					var lineSpace = 60 / gui.Track.Bpm * (decimal)CubeStep;
 					var stepSmall = lineSpace / gui.Track.BeatDivisor;
@@ -1109,6 +1168,9 @@ namespace Blox_Saber_Editor
 
 			SelectedNotes.Clear();
 			_draggedNotes.Clear();
+
+			_draggingNoteGrid = false;
+			_draggingNoteTimeline = false;
 
 			_draggedNote = null;
 			_lastPlayedNote = null;
