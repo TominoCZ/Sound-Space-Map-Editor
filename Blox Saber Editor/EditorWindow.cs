@@ -33,7 +33,7 @@ namespace Blox_Saber_Editor
 		public readonly Dictionary<Key, Tuple<int, int>> KeyMapping = new Dictionary<Key, Tuple<int, int>>();
 
 		//private readonly GuiScreenEditor _screenEditor;
-		
+
 		private Rectangle _lastWindowRect;
 
 		public readonly UndoRedo UndoRedo = new UndoRedo();
@@ -545,7 +545,7 @@ namespace Blox_Saber_Editor
 			{
 				MusicPlayer.Pause();
 				OnDraggingGridNote(_lastMouse);
-				
+
 				var startX = _dragStartIndexX;
 				var startY = _dragStartIndexY;
 				var newX = note2.X;
@@ -953,7 +953,8 @@ namespace Blox_Saber_Editor
 		{
 			Settings.Default.Save();
 
-			WriteIniFile();
+			if (GuiScreen is GuiScreenEditor)
+				WriteIniFile();
 
 			e.Cancel = !WillClose();
 
