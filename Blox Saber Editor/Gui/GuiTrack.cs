@@ -13,8 +13,8 @@ namespace Blox_Saber_Editor.Gui
 
 		public decimal ScreenX = 300;
 
-		public decimal Bpm = 0;//150;
-		public long BpmOffset = 0; //in ms
+		public static decimal Bpm = 0;//150;
+		public static long BpmOffset = 0; //in ms
 		public int BeatDivisor = 8;
 
 		public GuiTrack(float y, float sy) : base(0, y, EditorWindow.Instance.ClientSize.Width, sy)

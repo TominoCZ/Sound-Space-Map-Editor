@@ -243,7 +243,7 @@ namespace Blox_Saber_Editor.Gui
 						EditorWindow.Instance.MusicPlayer.Play();
 					break;
 				case 2:
-					long oldOffset = Track.BpmOffset;
+					long oldOffset = GuiTrack.BpmOffset;
 
 					long.TryParse(Offset.Text, out var newOffset);
 
@@ -262,7 +262,7 @@ namespace Blox_Saber_Editor.Gui
 							}
 						}
 
-						Track.BpmOffset = newOffset;
+						GuiTrack.BpmOffset = newOffset;
 					}
 
 					Redo();
@@ -279,7 +279,7 @@ namespace Blox_Saber_Editor.Gui
 							}
 						}
 
-						Track.BpmOffset = oldOffset;
+						GuiTrack.BpmOffset = oldOffset;
 					}, Redo);
 					break;
 				case 3:
@@ -376,10 +376,10 @@ namespace Blox_Saber_Editor.Gui
 				else if (bpm > 400)
 					bpm = 400;
 
-				Track.Bpm = bpm;
+				GuiTrack.Bpm = bpm;
 
-				if (Track.Bpm > 0 && !decimalPont)
-					Bpm.Text = Track.Bpm.ToString();
+				if (GuiTrack.Bpm > 0 && !decimalPont)
+					Bpm.Text = GuiTrack.Bpm.ToString();
 			}
 			if (Offset.Focused)
 			{

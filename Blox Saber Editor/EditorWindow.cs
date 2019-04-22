@@ -33,8 +33,8 @@ namespace Blox_Saber_Editor
 		public readonly Dictionary<Key, Tuple<int, int>> KeyMapping = new Dictionary<Key, Tuple<int, int>>();
 
 		//private readonly GuiScreenEditor _screenEditor;
-
-		private WindowState _lastWindowState;
+		
+		private Rectangle _lastWindowRect;
 
 		public readonly UndoRedo UndoRedo = new UndoRedo();
 
@@ -89,8 +89,6 @@ namespace Blox_Saber_Editor
 
 			Icon = Resources.Blox_Saber;
 			VSync = VSyncMode.Off;
-
-			_lastWindowState = WindowState;
 
 			TargetRenderFrequency = 240;
 
@@ -645,14 +643,21 @@ namespace Blox_Saber_Editor
 
 			if (e.Key == Key.F11)
 			{
-				if (WindowState != WindowState.Fullscreen)
+				if (WindowBorder != WindowBorder.Hidden)
 				{
-					_lastWindowState = WindowState;
-					WindowState = WindowState.Fullscreen;
+					_lastWindowRect = new Rectangle(Location, Size);
+
+					WindowBorder = WindowBorder.Hidden;
+
+					Location = Point.Empty;
+					Size = Screen.GetWorkingArea(Location).Size;
 				}
-				else if (WindowState == WindowState.Fullscreen)
+				else
 				{
-					WindowState = _lastWindowState;
+					WindowBorder = WindowBorder.Resizable;
+
+					Location = _lastWindowRect.Location;
+					Size = _lastWindowRect.Size;
 				}
 
 				return;
@@ -680,7 +685,7 @@ namespace Blox_Saber_Editor
 					if (MusicPlayer.IsPlaying)
 						MusicPlayer.Pause();
 
-					var bpm = editor.Track.Bpm;
+					var bpm = GuiTrack.Bpm;
 
 					if (bpm > 0)
 					{
@@ -922,11 +927,11 @@ namespace Blox_Saber_Editor
 					var maxTime = (long)MusicPlayer.TotalTime.TotalMilliseconds;
 					MusicPlayer.Stop();
 
-					if (editor.Track.Bpm > 33)
+					if (GuiTrack.Bpm > 33)
 					{
-						var bpmDivided = 60 / editor.Track.Bpm * 1000 / editor.Track.BeatDivisor;
+						var bpmDivided = 60 / GuiTrack.Bpm * 1000 / editor.Track.BeatDivisor;
 
-						var offset = (bpmDivided + editor.Track.BpmOffset) % bpmDivided;
+						var offset = (bpmDivided + GuiTrack.BpmOffset) % bpmDivided;
 
 						time += (long)((decimal)e.DeltaPrecise * bpmDivided);
 
@@ -947,6 +952,8 @@ namespace Blox_Saber_Editor
 		protected override void OnClosing(CancelEventArgs e)
 		{
 			Settings.Default.Save();
+
+			WriteIniFile();
 
 			e.Cancel = !WillClose();
 
@@ -1027,8 +1034,8 @@ namespace Blox_Saber_Editor
 
 			var screenX = gui.Track.ScreenX;
 
-			var bpm = gui.Track.Bpm;
-			decimal bpmOffset = gui.Track.BpmOffset;
+			var bpm = GuiTrack.Bpm;
+			decimal bpmOffset = GuiTrack.BpmOffset;
 			var beatDivisor = gui.Track.BeatDivisor;
 
 			var lineSpace = 60 / bpm * (decimal)CubeStep;
@@ -1079,9 +1086,9 @@ namespace Blox_Saber_Editor
 				var clickOff = clickMs - _dragNoteStartMs;
 				var cursorMs = (int)(Math.Max(0, mouseX - gui.Track.ScreenX + audioTime / 1000 * (decimal)CubeStep) / (decimal)CubeStep * 1000) - clickOff;
 
-				if (_draggedNotes.Count > 0 && gui.Track.Bpm > 0)
+				if (_draggedNotes.Count > 0 && GuiTrack.Bpm > 0)
 				{
-					var lineSpace = 60 / gui.Track.Bpm * (decimal)CubeStep;
+					var lineSpace = 60 / GuiTrack.Bpm * (decimal)CubeStep;
 					var stepSmall = lineSpace / gui.Track.BeatDivisor;
 					var snap = stepSmall / (decimal)1.75;
 
@@ -1141,11 +1148,11 @@ namespace Blox_Saber_Editor
 				time = (int)Math.Max(0, Math.Min(MusicPlayer.TotalTime.TotalMilliseconds, time));
 
 				//snap
-				if (editor.Track.Bpm > 33 && time >= editor.Track.BpmOffset && time < MusicPlayer.TotalTime.TotalMilliseconds)
+				if (GuiTrack.Bpm > 33 && time >= GuiTrack.BpmOffset && time < MusicPlayer.TotalTime.TotalMilliseconds)
 				{
-					var bpmDivided = 60 / editor.Track.Bpm * 1000 / editor.Track.BeatDivisor;
+					var bpmDivided = 60 / GuiTrack.Bpm * 1000 / editor.Track.BeatDivisor;
 
-					var offset = (bpmDivided + editor.Track.BpmOffset) % bpmDivided;
+					var offset = (bpmDivided + GuiTrack.BpmOffset) % bpmDivided;
 
 					time = (long)((long)(time / (decimal)bpmDivided) * bpmDivided + offset);
 				}
@@ -1162,6 +1169,44 @@ namespace Blox_Saber_Editor
 			{
 				_file = file;
 				_saved = true;
+
+				var ini = Path.ChangeExtension(file, "ini");
+
+				if (File.Exists(ini) && GuiScreen is GuiScreenEditor gse)
+				{
+					var lines = File.ReadAllLines(ini);
+
+					foreach (var line in lines)
+					{
+						if (line.Contains('='))
+						{
+							var splits = line.Split('=');
+
+							if (splits.Length == 2)
+							{
+								var property = splits[0].Trim().ToLower();
+								var value = splits[1].Trim().ToLower();
+
+								if (property == "bpm" && decimal.TryParse(value, out var bpm))
+								{
+									gse.Bpm.Text = bpm.ToString();
+
+									GuiTrack.Bpm = bpm;
+								}
+								else if (property == "offset" && long.TryParse(value, out var offset))
+								{
+									gse.Offset.Text = offset.ToString();
+
+									GuiTrack.BpmOffset = offset;
+								}
+								else if (property == "time" && long.TryParse(value, out var time))
+								{
+									MusicPlayer.CurrentTime = TimeSpan.FromMilliseconds(time);
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 
@@ -1277,10 +1322,22 @@ namespace Blox_Saber_Editor
 				var data = ParseData();
 
 				File.WriteAllText(file, data, Encoding.UTF8);
+
+				WriteIniFile();
 			}
 			catch { return false; }
 
 			return true;
+		}
+
+		private void WriteIniFile()
+		{
+			if (_file == null)
+				return;
+
+			var iniFile = Path.ChangeExtension(_file, ".ini");
+
+			File.WriteAllLines(iniFile, new[] { $@"BPM={GuiTrack.Bpm}", $@"Offset={GuiTrack.BpmOffset}", $@"Time={(long)MusicPlayer.CurrentTime.TotalMilliseconds}" }, Encoding.UTF8);
 		}
 
 		private bool LoadSound(long id)
