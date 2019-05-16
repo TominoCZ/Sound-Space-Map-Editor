@@ -680,7 +680,7 @@ namespace Blox_Saber_Editor
 
 			if (GuiScreen is GuiScreenEditor editor)
 			{
-				if (e.Key == Key.Left || e.Key == Key.Right)
+				if ((e.Key == Key.Left || e.Key == Key.Right) && SelectedNotes.Count == 0)
 				{
 					if (MusicPlayer.IsPlaying)
 						MusicPlayer.Pause();
@@ -1246,7 +1246,9 @@ namespace Blox_Saber_Editor
 				{
 					MusicPlayer.Load("assets/cached/" + _soundId + ".asset");
 
-					OpenGuiScreen(new GuiScreenEditor());
+					var gui = new GuiScreenEditor();
+
+					OpenGuiScreen(gui);
 				}
 				else
 					_soundId = -1;

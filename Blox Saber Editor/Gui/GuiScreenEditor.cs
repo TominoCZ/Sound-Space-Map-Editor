@@ -52,7 +52,8 @@ namespace Blox_Saber_Editor.Gui
 			{
 				Text = "0",
 				Centered = true,
-				Numeric = true
+				Numeric = true,
+				CanBeNegative = true
 			};
 			Reposition = new GuiCheckBox(1, "Reposition Notes", 10, 0, 32, 32, false);
 			BeatSnapDivisor = new GuiSlider(0, 0, 256, 40);

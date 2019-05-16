@@ -15,6 +15,7 @@ namespace Blox_Saber_Editor.Gui
 		public bool Numeric;
 		public bool Decimal;
 		public bool Centered;
+		public bool CanBeNegative;
 
 		private bool _focused;
 		private string _text = "";
@@ -152,8 +153,8 @@ namespace Blox_Saber_Editor.Gui
 				return;
 
 			var keyChar = key.ToString();
-
-			if (Numeric && !byte.TryParse(keyChar, out _)) //if not a number
+			
+			if (Numeric && (!CanBeNegative && !byte.TryParse(keyChar, out _) || CanBeNegative && !sbyte.TryParse(_text.Insert(_cursorPos, keyChar), out _))) //if not a number
 			{
 				if (Decimal)
 				{

@@ -13,6 +13,8 @@ namespace Blox_Saber_Editor
 		
 		private readonly BetterTimer _time;
 
+		private object locker = new object();
+
 		public MusicPlayer()
 		{
 			_player = new WaveOutEvent();
@@ -41,29 +43,38 @@ namespace Blox_Saber_Editor
 		public void Init() => _player.Init(_speedControl);
 		public void Play()
 		{
-			var time = CurrentTime;
-
-			if (Progress >= 0.999998)
+			lock (locker)
 			{
-				time = TimeSpan.Zero;
+				var time = CurrentTime;
+
+				if (Progress >= 0.999998)
+				{
+					time = TimeSpan.Zero;
+				}
+
+				Stop();
+
+				CurrentTime = time;
+
+				_player.Play();
+				_time.Start();
 			}
-			
-			Stop();
-
-			CurrentTime = time;
-
-			_player.Play();
-			_time.Start();
 		}
 		public void Pause()
 		{
-			_time.Stop();
-			_player.Pause();
+			lock (locker)
+			{
+				_time.Stop();
+				_player.Pause();
+			}
 		}
 		public void Stop()
 		{
-			_time.Reset();
-			_player.Stop();
+			lock (locker)
+			{
+				_time.Reset();
+				_player.Stop();
+			}
 		}
 
 		public float Speed
@@ -72,22 +83,24 @@ namespace Blox_Saber_Editor
 
 			set
 			{
+				lock (locker)
+				{
+					var wasPlaying = IsPlaying;
 
-				var wasPlaying = IsPlaying;
-				
-				Pause();
-				_time.SetSpeed(value);
-				var time = _time.Elapsed;
-				Stop();
+					Pause();
+					_time.SetSpeed(value);
+					var time = _time.Elapsed;
+					Stop();
 
-				_speedControl.PlaybackRate = value;
+					_speedControl.PlaybackRate = value;
 
-				CurrentTime = time;
+					CurrentTime = time;
 
-				Init();
+					Init();
 
-				if (wasPlaying)
-					Play();
+					if (wasPlaying)
+						Play();
+				}
 			}
 		}
 
@@ -114,24 +127,34 @@ namespace Blox_Saber_Editor
 		{
 			get
 			{
-				if (_music == null)
-					return TimeSpan.Zero;
+				lock (locker)
+				{
+					if (_music == null)
+						return TimeSpan.Zero;
 
-				var time = _time.Elapsed;
+					var time = _time.Elapsed;
 
-				time = time > _music.TotalTime ? TotalTime : time;
+					time = time > _music.TotalTime ? TotalTime : time;
 
-				return time;
+					return time;
+				}
 			}
 			set
 			{
-				if (_music == null)
-					return;
+				lock (locker)
+				{
+					if (_music == null)
+						return;
 
-				_music.CurrentTime = value;
-				_time.Elapsed = value;
+					Stop();
 
-				_speedControl.Reposition();
+					_music.CurrentTime = value;
+					_time.Elapsed = value;
+
+					_speedControl.Reposition();
+
+					Pause();
+				}
 			}
 		}
 
