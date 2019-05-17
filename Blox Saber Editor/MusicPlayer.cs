@@ -1,171 +1,145 @@
 ﻿using System;
+using System.IO;
 using Blox_Saber_Editor.SoundTouch;
 using NAudio.Wave;
+using Un4seen.Bass;
+using Un4seen.Bass.AddOn.Fx;
 
 namespace Blox_Saber_Editor
 {
 	class MusicPlayer : IDisposable
 	{
-		private WaveStream _music;
-		private WaveChannel32 _volumeStream;
-		private WaveOutEvent _player;
-		private VarispeedSampleProvider _speedControl;
-		
-		private readonly BetterTimer _time;
-
 		private object locker = new object();
+
+		private int streamID;
 
 		public MusicPlayer()
 		{
-			_player = new WaveOutEvent();
-			_time = new BetterTimer();
+			Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);
 		}
 
 		public void Load(string file)
 		{
-			_music?.Dispose();
-			_volumeStream?.Dispose();
-			_player?.Dispose();
-			_speedControl?.Dispose();
+			var stream = Bass.BASS_StreamCreateFile(file, 0, 0, BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_FX_FREESOURCE);
+			var volume = Volume;
+			var tempo = Tempo;
 
-			var reader = new AudioFileReader(file);
-			_music = reader;
-			_volumeStream = new WaveChannel32(_music, Volume, 0);
-			_player = new WaveOutEvent();
+			Bass.BASS_StreamFree(streamID);
 
-			_speedControl = new VarispeedSampleProvider(reader, 150, new SoundTouchProfile(true, true));
+			streamID = BassFx.BASS_FX_TempoCreate(stream, BASSFlag.BASS_DEFAULT);
 
-			Init();
+			Volume = volume;
+			Tempo = tempo;
 
 			Reset();
 		}
 
-		public void Init() => _player.Init(_speedControl);
 		public void Play()
 		{
-			lock (locker)
+			//lock (locker)
 			{
-				var time = CurrentTime;
-
-				if (Progress >= 0.999998)
-				{
-					time = TimeSpan.Zero;
-				}
-
-				Stop();
-
-				CurrentTime = time;
-
-				_player.Play();
-				_time.Start();
+				Bass.BASS_ChannelPlay(streamID, false);
 			}
 		}
+
 		public void Pause()
 		{
-			lock (locker)
+			//lock (locker)
 			{
-				_time.Stop();
-				_player.Pause();
+				Stop();
+			//	Bass.BASS_ChannelPause(streamID);
 			}
 		}
+
 		public void Stop()
 		{
-			lock (locker)
+			//lock (locker)
 			{
-				_time.Reset();
-				_player.Stop();
+				Bass.BASS_ChannelStop(streamID);
 			}
 		}
 
-		public float Speed
+		public float Tempo
 		{
-			get => _speedControl?.PlaybackRate ?? 1;
-
-			set
+			set => Bass.BASS_ChannelSetAttribute(streamID, BASSAttribute.BASS_ATTRIB_TEMPO, value * 100 - 100);
+			get
 			{
-				lock (locker)
-				{
-					var wasPlaying = IsPlaying;
+				float val = 0;
 
-					Pause();
-					_time.SetSpeed(value);
-					var time = _time.Elapsed;
-					Stop();
+				Bass.BASS_ChannelGetAttribute(streamID, BASSAttribute.BASS_ATTRIB_TEMPO, ref val);
 
-					_speedControl.PlaybackRate = value;
-
-					CurrentTime = time;
-
-					Init();
-
-					if (wasPlaying)
-						Play();
-				}
+				return -(val + 95) / 100;
 			}
 		}
 
 		public float Volume
 		{
-			get => _player.Volume;
+			set => Bass.BASS_ChannelSetAttribute(streamID, BASSAttribute.BASS_ATTRIB_VOL, value);
+			get
+			{
+				float val = 1;
 
-			set => _player.Volume = value;
+				Bass.BASS_ChannelGetAttribute(streamID, BASSAttribute.BASS_ATTRIB_VOL, ref val);
+
+				return val;
+			}
 		}
 
 		public void Reset()
 		{
 			Stop();
 
-			_music.CurrentTime = TimeSpan.Zero;
+			CurrentTime = TimeSpan.Zero;
 		}
 
-		public bool IsPlaying => _player.PlaybackState == PlaybackState.Playing;
-		public bool IsPaused => _player.PlaybackState == PlaybackState.Paused;
+		public bool IsPlaying => Bass.BASS_ChannelIsActive(streamID) == BASSActive.BASS_ACTIVE_PLAYING;
+		public bool IsPaused => Bass.BASS_ChannelIsActive(streamID) == BASSActive.BASS_ACTIVE_PAUSED;
 
-		public TimeSpan TotalTime => _music?.TotalTime ?? TimeSpan.Zero;
+		public TimeSpan TotalTime
+		{
+			get
+			{
+				long len = Bass.BASS_ChannelGetLength(streamID, BASSMode.BASS_POS_BYTES);
+				var time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(streamID, len));
+
+				return time;
+			}
+		}
 
 		public TimeSpan CurrentTime
 		{
 			get
 			{
-				lock (locker)
-				{
-					if (_music == null)
-						return TimeSpan.Zero;
+				long pos = Bass.BASS_ChannelGetPosition(streamID, BASSMode.BASS_POS_BYTES);
+				var time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(streamID, pos));
 
-					var time = _time.Elapsed;
-
-					time = time > _music.TotalTime ? TotalTime : time;
-
-					return time;
-				}
+				return time;
 			}
 			set
 			{
-				lock (locker)
+				//lock (locker)
 				{
-					if (_music == null)
-						return;
+					var pos = Bass.BASS_ChannelSeconds2Bytes(streamID, value.TotalSeconds);
 
-					Stop();
-
-					_music.CurrentTime = value;
-					_time.Elapsed = value;
-
-					_speedControl.Reposition();
-
-					Pause();
+					Bass.BASS_ChannelSetPosition(streamID, pos, BASSMode.BASS_POS_BYTES);
 				}
 			}
 		}
 
-		public double Progress => TotalTime == TimeSpan.Zero ? 0 : Math.Min(1, CurrentTime.TotalMilliseconds / TotalTime.TotalMilliseconds);
+		public double Progress
+		{
+			get
+			{
+				var pos = Bass.BASS_ChannelGetPosition(streamID, BASSMode.BASS_POS_BYTES);
+				var length = Bass.BASS_ChannelGetLength(streamID, BASSMode.BASS_POS_BYTES);
+
+				return (double)(pos / (decimal)length);
+			}
+		}
 
 		public void Dispose()
 		{
-			_player?.Dispose();
-			_speedControl?.Dispose();
-			_music?.Dispose();
-			_volumeStream?.Dispose();
+			Bass.BASS_Free();
 		}
 	}
 }
