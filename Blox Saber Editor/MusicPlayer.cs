@@ -1,7 +1,4 @@
 ﻿using System;
-using System.IO;
-using Blox_Saber_Editor.SoundTouch;
-using NAudio.Wave;
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 
@@ -20,13 +17,16 @@ namespace Blox_Saber_Editor
 
 		public void Load(string file)
 		{
-			var stream = Bass.BASS_StreamCreateFile(file, 0, 0, BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_FX_FREESOURCE);
+			var stream = Bass.BASS_StreamCreateFile(file, 0, 0, BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_STREAM_PRESCAN | BASSFlag.BASS_FX_FREESOURCE);
 			var volume = Volume;
 			var tempo = Tempo;
 
 			Bass.BASS_StreamFree(streamID);
 
-			streamID = BassFx.BASS_FX_TempoCreate(stream, BASSFlag.BASS_DEFAULT);
+			Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_BUFFER, 250);
+			Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_UPDATEPERIOD, 5);
+
+			streamID = BassFx.BASS_FX_TempoCreate(stream, BASSFlag.BASS_STREAM_PRESCAN);
 
 			Volume = volume;
 			Tempo = tempo;
@@ -36,27 +36,25 @@ namespace Blox_Saber_Editor
 
 		public void Play()
 		{
-			//lock (locker)
-			{
-				Bass.BASS_ChannelPlay(streamID, false);
-			}
+			Bass.BASS_ChannelPlay(streamID, false);
 		}
 
 		public void Pause()
 		{
-			//lock (locker)
-			{
-				Stop();
-			//	Bass.BASS_ChannelPause(streamID);
-			}
+			var pos = Bass.BASS_ChannelGetPosition(streamID, BASSMode.BASS_POS_BYTES);
+
+			Bass.BASS_ChannelPause(streamID);
+
+			Bass.BASS_ChannelSetPosition(streamID, pos, BASSMode.BASS_POS_BYTES);
 		}
 
 		public void Stop()
 		{
-			//lock (locker)
-			{
-				Bass.BASS_ChannelStop(streamID);
-			}
+			var pos = Bass.BASS_ChannelGetPosition(streamID, BASSMode.BASS_POS_BYTES);
+
+			Bass.BASS_ChannelStop(streamID);
+
+			Bass.BASS_ChannelSetPosition(streamID, pos, BASSMode.BASS_POS_BYTES);
 		}
 
 		public float Tempo
@@ -91,7 +89,7 @@ namespace Blox_Saber_Editor
 
 			CurrentTime = TimeSpan.Zero;
 		}
-
+		
 		public bool IsPlaying => Bass.BASS_ChannelIsActive(streamID) == BASSActive.BASS_ACTIVE_PLAYING;
 		public bool IsPaused => Bass.BASS_ChannelIsActive(streamID) == BASSActive.BASS_ACTIVE_PAUSED;
 
@@ -110,10 +108,10 @@ namespace Blox_Saber_Editor
 		{
 			get
 			{
-				long pos = Bass.BASS_ChannelGetPosition(streamID, BASSMode.BASS_POS_BYTES);
-				var time = TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(streamID, pos));
+				var pos = Bass.BASS_ChannelGetPosition(streamID, BASSMode.BASS_POS_BYTES);
+				var length = Bass.BASS_ChannelGetLength(streamID, BASSMode.BASS_POS_BYTES);
 
-				return time;
+				return TimeSpan.FromTicks((long)(TotalTime.Ticks * pos / (decimal)length));
 			}
 			set
 			{
@@ -126,14 +124,14 @@ namespace Blox_Saber_Editor
 			}
 		}
 
-		public double Progress
+		public decimal Progress
 		{
 			get
 			{
 				var pos = Bass.BASS_ChannelGetPosition(streamID, BASSMode.BASS_POS_BYTES);
 				var length = Bass.BASS_ChannelGetLength(streamID, BASSMode.BASS_POS_BYTES);
 
-				return (double)(pos / (decimal)length);
+				return pos / (decimal)length;
 			}
 		}
 

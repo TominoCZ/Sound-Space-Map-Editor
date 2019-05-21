@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 using Blox_Saber_Editor.Gui;
 using Blox_Saber_Editor.Properties;
@@ -33,6 +37,8 @@ namespace Blox_Saber_Editor
 
 		//private readonly GuiScreenEditor _screenEditor;
 
+		private Random _rand = new Random();
+
 		private Rectangle _lastWindowRect;
 
 		public readonly UndoRedo UndoRedo = new UndoRedo();
@@ -43,10 +49,10 @@ namespace Blox_Saber_Editor
 		private Note _draggedNote;
 		private Note _lastPlayedNote;
 
-		private DateTime _lastTempoChange = DateTime.Now;
-
 		private Point _clickedMouse;
 		private Point _lastMouse;
+
+		public bool IsFullscreen;
 
 		private float _brightness;
 
@@ -74,6 +80,8 @@ namespace Blox_Saber_Editor
 
 		private decimal _zoom = 1;
 
+		private Thread _processThread;
+
 		public decimal Zoom
 		{
 			get => _zoom;
@@ -82,7 +90,7 @@ namespace Blox_Saber_Editor
 
 		public decimal CubeStep => 50 * 10 * Zoom;
 
-		public EditorWindow() : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Blox Saber Map Editor v1.2")
+		public EditorWindow() : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Blox Saber Map Editor v1.3")
 		{
 			Instance = this;
 
@@ -98,8 +106,6 @@ namespace Blox_Saber_Editor
 
 			OpenGuiScreen(new GuiScreenLoadCreate());
 
-			SoundPlayer.Init();
-
 			SoundPlayer.Cache("hit");
 			SoundPlayer.Cache("click");
 
@@ -114,6 +120,76 @@ namespace Blox_Saber_Editor
 			KeyMapping.Add(Key.Z, new Tuple<int, int>(0, 2));
 			KeyMapping.Add(Key.X, new Tuple<int, int>(1, 2));
 			KeyMapping.Add(Key.C, new Tuple<int, int>(2, 2));
+
+			_processThread = new Thread(ProcessNotes) { IsBackground = true };
+			_processThread.Start();
+		}
+
+		private void ProcessNotes()
+		{
+			var last = DateTime.Now;
+
+			while (true)
+			{
+				var time = DateTime.Now - TimeSpan.FromMilliseconds(5);
+
+				var delta = time - last;
+
+				last = time;
+
+				if (GuiScreen is GuiScreenEditor gse)
+				{
+					gse.Timeline.Progress = (float)MusicPlayer.Progress;
+
+					if (MusicPlayer.IsPlaying)
+					{
+						var closest = Notes.LastOrDefault(n => n.Ms <= (long)(MusicPlayer.CurrentTime.TotalMilliseconds + delta.TotalMilliseconds));
+
+						if (_lastPlayedNote != closest)
+						{
+							_lastPlayedNote = closest;
+
+							if (closest != null)
+							{
+								//Console.WriteLine((long)(closest.Ms - MusicPlayer.CurrentTime.TotalMilliseconds));
+
+								SoundPlayer.Play("hit", gse.SfxVolume.Value / (float)gse.SfxVolume.MaxValue, (float)_rand.NextDouble() * 0.075f + 1.05f);
+
+								if (gse.AnimateBackground.Toggle)
+								{
+									_brightness = 1;
+								}
+							}
+						}
+					}
+				}
+
+				Thread.Sleep(5);
+			}
+		}
+
+		public void ToggleFullscreen()
+		{
+			if (!IsFullscreen)
+			{
+				_lastWindowRect = new Rectangle(Location, Size);
+
+				WindowBorder = WindowBorder.Hidden;
+
+				Location = Point.Empty;
+				Size = Screen.GetBounds(Location).Size;
+
+				IsFullscreen = true;
+			}
+			else
+			{
+				WindowBorder = WindowBorder.Resizable;
+
+				Location = _lastWindowRect.Location;
+				Size = _lastWindowRect.Size;
+
+				IsFullscreen = false;
+			}
 		}
 
 		protected override void OnLoad(EventArgs e)
@@ -128,42 +204,12 @@ namespace Blox_Saber_Editor
 			GL.ActiveTexture(TextureUnit.Texture0);
 		}
 
-		protected override void OnUpdateFrame(FrameEventArgs e)
-		{
-			//MusicPlayer.Update();
-		}
-
 		protected override void OnRenderFrame(FrameEventArgs e)
 		{
 			//MusicPlayer.Update();
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			GL.PushMatrix();
-
-			if (GuiScreen is GuiScreenEditor gse)
-			{
-				gse.Timeline.Progress = (float)MusicPlayer.Progress;
-
-				if (MusicPlayer.IsPlaying)
-				{
-					var closest = Notes.LastOrDefault(n => n.Ms <= (int)MusicPlayer.CurrentTime.TotalMilliseconds);
-
-					if (_lastPlayedNote != closest)
-					{
-						_lastPlayedNote = closest;
-
-						if (closest != null)
-						{
-							SoundPlayer.Play("hit", gse.SfxVolume.Value / (float)gse.SfxVolume.MaxValue);
-
-							if (gse.AnimateBackground.Toggle)
-							{
-								_brightness = 1;
-							}
-						}
-					}
-				}
-			}
 
 			var b = (float)Math.Pow(_brightness, 7) * 0.25f;
 
@@ -310,9 +356,7 @@ namespace Blox_Saber_Editor
 
 					editor.Tempo.Value = tick;
 
-					var tempo = 0.2f + tick * 0.1f;
-
-					TrySetTempo(tempo);
+					MusicPlayer.Tempo = MathHelper.Clamp(0.2f + tick * 0.1f, 0.2f, 1);
 				}
 
 				if (_draggingNoteGrid)
@@ -329,7 +373,7 @@ namespace Blox_Saber_Editor
 
 		protected override void OnMouseLeave(EventArgs e)
 		{
-			_rightDown = false;
+			//_rightDown = false;
 
 			if (GuiScreen is GuiScreenEditor editor)
 				editor.OnMouseLeave();
@@ -631,22 +675,7 @@ namespace Blox_Saber_Editor
 
 			if (e.Key == Key.F11)
 			{
-				if (WindowBorder != WindowBorder.Hidden)
-				{
-					_lastWindowRect = new Rectangle(Location, Size);
-
-					WindowBorder = WindowBorder.Hidden;
-
-					Location = Point.Empty;
-					Size = Screen.GetWorkingArea(Location).Size;
-				}
-				else
-				{
-					WindowBorder = WindowBorder.Resizable;
-
-					Location = _lastWindowRect.Location;
-					Size = _lastWindowRect.Size;
-				}
+				ToggleFullscreen();
 
 				return;
 			}
@@ -867,34 +896,28 @@ namespace Blox_Saber_Editor
 
 					if (e.Key == Key.Delete && SelectedNotes.Count > 0)
 					{
-						var result = MessageBox.Show($"Are you sure you want to delete {(SelectedNotes.Count > 1 ? "these notes" : "this note")}?", $"Delete {(SelectedNotes.Count > 1 ? "notes" : "note")}?",
-							MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+						var toRemove = new List<Note>(SelectedNotes);
 
-						if (result == DialogResult.Yes)
+						Notes.RemoveAll(toRemove);
+
+						var saveState = _saved;
+						UndoRedo.AddUndoRedo("DELETE NOTE" + (toRemove.Count > 1 ? "S" : ""), () =>
 						{
-							var toRemove = new List<Note>(SelectedNotes);
+							Notes.AddAll(toRemove);
 
+							_saved = saveState;
+						}, () =>
+						{
 							Notes.RemoveAll(toRemove);
 
-							var saveState = _saved;
-							UndoRedo.AddUndoRedo("DELETE NOTE" + (toRemove.Count > 1 ? "S" : ""), () =>
-							{
-								Notes.AddAll(toRemove);
-
-								_saved = saveState;
-							}, () =>
-							{
-								Notes.RemoveAll(toRemove);
-
-								_saved = false;
-							});
-
 							_saved = false;
+						});
 
-							SelectedNotes.Clear();
-							_draggingNoteGrid = false;
-							_draggingNoteTimeline = false;
-						}
+						_saved = false;
+
+						SelectedNotes.Clear();
+						_draggingNoteGrid = false;
+						_draggingNoteTimeline = false;
 					}
 				}
 			}
@@ -920,9 +943,10 @@ namespace Blox_Saber_Editor
 						var bpmDivided = 60 / GuiTrack.Bpm * 1000 / editor.Track.BeatDivisor;
 
 						var offset = (bpmDivided + GuiTrack.BpmOffset) % bpmDivided;
-						time = (long)((long)Math.Round(time / bpmDivided) * bpmDivided + offset);
 
 						time += (long)((decimal)e.DeltaPrecise * bpmDivided);
+
+						time = (long)(Math.Round((time - offset) / bpmDivided) * bpmDivided + offset);
 					}
 					else
 					{
@@ -952,23 +976,6 @@ namespace Blox_Saber_Editor
 			}
 		}
 
-		private bool TrySetTempo(float tempo)
-		{
-			if ((DateTime.Now - _lastTempoChange).TotalMilliseconds >= 35)
-			{
-				_lastTempoChange = DateTime.Now;
-				var newSpeed = Math.Max(0.2f, Math.Min(1, tempo));
-
-				if (newSpeed != MusicPlayer.Tempo)
-				{
-					MusicPlayer.Tempo = newSpeed;
-					return true;
-				}
-			}
-
-			return false;
-		}
-
 		public bool WillClose()
 		{
 			if (!_saved && _soundId != -1)
@@ -977,7 +984,19 @@ namespace Blox_Saber_Editor
 
 				MusicPlayer.Pause();
 
+				var wasFullscreen = IsFullscreen;
+
+				if (IsFullscreen)
+				{
+					ToggleFullscreen();
+				}
+
 				var r = MessageBox.Show("You have unsaved progress.\nDo you wish to save it before closing?", "Close", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+
+				if (wasFullscreen)
+				{
+					ToggleFullscreen();
+				}
 
 				if (r == DialogResult.Yes)
 					PromptSave();
@@ -1269,7 +1288,19 @@ namespace Blox_Saber_Editor
 				sfd.FileName = Path.GetFileNameWithoutExtension(_file);
 			}
 
+			var wasFullscreen = IsFullscreen;
+
+			if (IsFullscreen)
+			{
+				ToggleFullscreen();
+			}
+
 			var result = sfd.ShowDialog();
+
+			if (wasFullscreen)
+			{
+				ToggleFullscreen();
+			}
 
 			if (result == DialogResult.OK)
 			{
@@ -1400,40 +1431,30 @@ namespace Blox_Saber_Editor
 	{
 		private List<Note> _notes = new List<Note>();
 
-		public int Count => _notes.Count;
+		public int Count
+		{
+			get
+			{
+				lock (_notes)
+				{
+					return _notes.Count;
+				}
+			}
+		}
 
 		public void Add(Note note)
 		{
-			_notes.Add(note);
+			lock (_notes)
+			{
+				_notes.Add(note);
+			}
 
 			Sort();
 		}
 
 		public void Remove(Note note)
 		{
-			_notes.Remove(note);
-
-			Sort();
-		}
-
-		public void Clear()
-		{
-			_notes.Clear();
-		}
-
-		public void Sort()
-		{
-			_notes = new List<Note>(_notes.OrderBy(n => n.Ms));
-		}
-
-		public Note LastOrDefault(Func<Note, bool> predicate)
-		{
-			return _notes.LastOrDefault(predicate);
-		}
-
-		public void RemoveAll(List<Note> notes)
-		{
-			foreach (var note in notes)
+			lock (_notes)
 			{
 				_notes.Remove(note);
 			}
@@ -1441,22 +1462,77 @@ namespace Blox_Saber_Editor
 			Sort();
 		}
 
+		public void Clear()
+		{
+			lock (_notes)
+			{
+				_notes.Clear();
+			}
+		}
+
+		public void Sort()
+		{
+			lock (_notes)
+			{
+				_notes = new List<Note>(_notes.OrderBy(n => n.Ms));
+			}
+		}
+
+		public Note LastOrDefault(Func<Note, bool> predicate)
+		{
+			lock (_notes)
+			{
+				return _notes.LastOrDefault(predicate);
+			}
+		}
+
+		public void RemoveAll(List<Note> notes)
+		{
+			lock (_notes)
+			{
+				foreach (var note in notes)
+				{
+					_notes.Remove(note);
+				}
+			}
+
+			Sort();
+		}
+
 		public void AddAll(List<Note> notes)
 		{
-			_notes.AddRange(notes);
+			lock (_notes)
+			{
+				_notes.AddRange(notes);
+			}
 
 			Sort();
 		}
 
 		public Note this[int index]
 		{
-			get => _notes[index];
-			set => _notes[index] = value;
+			get
+			{
+				lock (_notes)
+				{
+					return _notes[index];
+				}
+			}
+			set
+			{
+				lock (_notes)
+				{
+					_notes[index] = value;
+				}
+			}
 		}
 
 		public List<Note> ToList()
 		{
-			return new List<Note>(_notes);
+			lock (_notes)
+			{
+				return new List<Note>(_notes);
+			}
 		}
 	}
 }

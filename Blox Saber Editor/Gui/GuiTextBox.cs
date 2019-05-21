@@ -154,7 +154,7 @@ namespace Blox_Saber_Editor.Gui
 
 			var keyChar = key.ToString();
 			
-			if (Numeric && (!CanBeNegative && !byte.TryParse(keyChar, out _) || CanBeNegative && !sbyte.TryParse(_text.Insert(_cursorPos, keyChar), out _))) //if not a number
+			if (Numeric && (!CanBeNegative && !byte.TryParse(keyChar, out _) || CanBeNegative && !long.TryParse(_text.Insert(_cursorPos, keyChar), out _))) //if not a number
 			{
 				if (Decimal)
 				{

@@ -3,10 +3,10 @@
   <Profiles />
   <Settings>
     <Setting Name="MasterVolume" Type="System.Decimal" Scope="User">
-      <Value Profile="(Default)">0.2</Value>
+      <Value Profile="(Default)">0.12</Value>
     </Setting>
     <Setting Name="SFXVolume" Type="System.Decimal" Scope="User">
-      <Value Profile="(Default)">0.35</Value>
+      <Value Profile="(Default)">0.3</Value>
     </Setting>
     <Setting Name="GridNumbers" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>

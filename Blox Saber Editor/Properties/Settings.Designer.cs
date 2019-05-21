@@ -25,7 +25,7 @@ namespace Blox_Saber_Editor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0.2")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.12")]
         public decimal MasterVolume {
             get {
                 return ((decimal)(this["MasterVolume"]));
@@ -37,7 +37,7 @@ namespace Blox_Saber_Editor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0.35")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.3")]
         public decimal SFXVolume {
             get {
                 return ((decimal)(this["SFXVolume"]));

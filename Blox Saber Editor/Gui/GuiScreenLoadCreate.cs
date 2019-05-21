@@ -92,8 +92,20 @@ namespace Blox_Saber_Editor.Gui
 						Title = "Load map",
 						Filter = "Text Documents (*.txt)|*.txt"
 					};
-					
+
+					var wasFullscreen = EditorWindow.Instance.IsFullscreen;
+
+					if (EditorWindow.Instance.IsFullscreen)
+					{
+						EditorWindow.Instance.ToggleFullscreen();
+					}
+
 					var result = ofd.ShowDialog();
+
+					if (wasFullscreen)
+					{
+						EditorWindow.Instance.ToggleFullscreen();
+					}
 
 					if (result == DialogResult.OK)
 					{
