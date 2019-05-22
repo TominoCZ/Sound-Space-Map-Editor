@@ -95,9 +95,9 @@ namespace Blox_Saber_Editor
 			Instance = this;
 
 			Icon = Resources.Blox_Saber;
-			VSync = VSyncMode.Off;
+			VSync = VSyncMode.On;
 
-			TargetRenderFrequency = 240;
+			//TargetRenderFrequency = 60;
 
 			MusicPlayer = new MusicPlayer { Volume = 0.25f };
 			SoundPlayer = new SoundPlayer();
@@ -128,10 +128,11 @@ namespace Blox_Saber_Editor
 		private void ProcessNotes()
 		{
 			var last = DateTime.Now;
+		    var period = 5;
 
 			while (true)
 			{
-				var time = DateTime.Now - TimeSpan.FromMilliseconds(5);
+			    var time = DateTime.Now - TimeSpan.FromMilliseconds(period);
 
 				var delta = time - last;
 
@@ -164,7 +165,7 @@ namespace Blox_Saber_Editor
 					}
 				}
 
-				Thread.Sleep(5);
+				Thread.Sleep(period);
 			}
 		}
 
@@ -206,9 +207,8 @@ namespace Blox_Saber_Editor
 
 		protected override void OnRenderFrame(FrameEventArgs e)
 		{
-			//MusicPlayer.Update();
+			GL.Clear(ClearBufferMask.ColorBufferBit);
 
-			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			GL.PushMatrix();
 
 			var b = (float)Math.Pow(_brightness, 7) * 0.25f;
