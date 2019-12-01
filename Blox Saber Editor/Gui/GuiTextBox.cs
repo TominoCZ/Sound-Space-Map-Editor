@@ -8,7 +8,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 
-namespace Blox_Saber_Editor.Gui
+namespace Sound_Space_Editor.Gui
 {
 	class GuiTextBox : Gui
 	{
@@ -109,7 +109,7 @@ namespace Blox_Saber_Editor.Gui
 			if (Centered)
 				GL.Translate(offX, 0, 0);
 
-			GL.Color3(Color.FromArgb(0, 180, 255));
+			GL.Color3(Color.FromArgb(255, 0, 255));
 			fr.Render(renderedText, (int)x, (int)(y - fr.GetHeight(24) / 2f), 24);
 
 			if (Focused)
@@ -122,7 +122,7 @@ namespace Blox_Saber_Editor.Gui
 
 				var alpha = (float)(Math.Sin(_timer * MathHelper.TwoPi) + 1) / 2;
 
-				GL.Color4(0, 1f, 0, alpha);
+				GL.Color4(0, 1f, 200/255f, alpha);
 				Glu.RenderQuad(x + textToCursorSize, y - cursorHeight / 2, 1, cursorHeight);
 
 				_timer += delta * 1.25f;

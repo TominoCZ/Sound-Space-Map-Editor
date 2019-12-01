@@ -1,6 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL;
 
-namespace Blox_Saber_Editor.Gui
+namespace Sound_Space_Editor.Gui
 {
 	class GuiButtonPlayPause : GuiButton
 	{

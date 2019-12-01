@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL;
 
-namespace Blox_Saber_Editor
+namespace Sound_Space_Editor
 {
 
     /// <summary>The font class for 2D text printing in a OpenGL scene.</summary>

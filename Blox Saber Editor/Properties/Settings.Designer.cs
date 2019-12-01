@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Blox_Saber_Editor.Properties {
+namespace Sound_Space_Editor.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -25,7 +25,7 @@ namespace Blox_Saber_Editor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0.12")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.05")]
         public decimal MasterVolume {
             get {
                 return ((decimal)(this["MasterVolume"]));
@@ -37,7 +37,7 @@ namespace Blox_Saber_Editor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0.3")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.1")]
         public decimal SFXVolume {
             get {
                 return ((decimal)(this["SFXVolume"]));
@@ -49,7 +49,7 @@ namespace Blox_Saber_Editor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool GridNumbers {
             get {
                 return ((bool)(this["GridNumbers"]));
@@ -61,7 +61,7 @@ namespace Blox_Saber_Editor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool ApproachSquares {
             get {
                 return ((bool)(this["ApproachSquares"]));
@@ -80,6 +80,18 @@ namespace Blox_Saber_Editor.Properties {
             }
             set {
                 this["AnimateBackground"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool Autoplay {
+            get {
+                return ((bool)(this["Autoplay"]));
+            }
+            set {
+                this["Autoplay"] = value;
             }
         }
     }

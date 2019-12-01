@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Blox_Saber_Editor.Gui
+namespace Sound_Space_Editor.Gui
 {
 	class Gui
 	{

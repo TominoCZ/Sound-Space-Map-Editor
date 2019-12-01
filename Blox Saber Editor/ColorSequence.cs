@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Blox_Saber_Editor
+namespace Sound_Space_Editor
 {
 	class ColorSequence
 	{
@@ -9,7 +9,7 @@ namespace Blox_Saber_Editor
 
 		public ColorSequence()
 		{
-			_colors = new[] { Color.Red, Color.Cyan };
+			_colors = new[] { Color.FromArgb(255, 0, 255), Color.FromArgb(0, 255, 200) };
 		}
 
 		public Color Next()

@@ -3,7 +3,7 @@ using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace Blox_Saber_Editor.Gui
+namespace Sound_Space_Editor.Gui
 {
 	class GuiSlider : GuiButton
 	{
@@ -29,7 +29,7 @@ namespace Blox_Saber_Editor.Gui
 		public override void Render(float delta, float mouseX, float mouseY)
 		{
 			var rect = ClientRectangle;
-			
+
 			IsMouseOver = rect.Contains(mouseX, mouseY);
 
 			var lineSize = _vertical ? rect.Height - rect.Width : rect.Width - rect.Height;
@@ -43,47 +43,38 @@ namespace Blox_Saber_Editor.Gui
 
 			_alpha = MathHelper.Clamp(_alpha + (mouseClose ? 10 : -10) * delta, 0, 1);
 
-			GL.Color4(0, 1f, 1f, 0.75f);
-			Glu.RenderQuad(lineRect);
-			GL.Color4(0, 1f, 1f, 1f);
-			Glu.RenderOutline(lineRect);
-			
+			RenderTimeline(lineRect);
+
 			//cursor
 			GL.Translate(cursorPos.X, cursorPos.Y, 0);
 			GL.Rotate(_alpha * 90, 0, 0, 1);
 
-			GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
-			GL.Color4(1f, 0, 0.25f, 0.2f * _alpha);
-			RenderCircle(0, 0, 12 * _alpha);
+			if (_alpha > 0)
+			{
+				GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
+				GL.Color4(0, 1, 200 / 255f, 0.2f * _alpha);
+				Glu.RenderCircle(0, 0, 12 * _alpha);
 
-			GL.PolygonMode(MaterialFace.Front, PolygonMode.Line);
-			GL.Color4(1f, 0, 0.25f, 1f * _alpha);
-			RenderCircle(0, 0, 12 * _alpha);
+				GL.PolygonMode(MaterialFace.Front, PolygonMode.Line);
+				GL.Color4(0, 1, 200 / 255f, 1f * _alpha);
+				Glu.RenderCircle(0, 0, 12 * _alpha);
+			}
 
 			GL.Rotate(-_alpha * 90, 0, 0, 1);
 			GL.Translate(-cursorPos.X, -cursorPos.Y, 0);
 
 			GL.PolygonMode(MaterialFace.Front, PolygonMode.Fill);
-			GL.Color4(1f, 0, 0.25f, 1f);
-			RenderCircle(cursorPos.X, cursorPos.Y, 4, 16);
+			GL.Color4(0, 1, 200 / 255f, 1f);
+			Glu.RenderCircle(cursorPos.X, cursorPos.Y, 4, 16);
 			//GL.LineWidth(1);
 		}
 
-		private void RenderCircle(float x, float y, float r, int pts = 6)
+		protected virtual void RenderTimeline(RectangleF rect)
 		{
-			GL.Begin(PrimitiveType.Polygon);
-
-			for (int i = 0; i < pts; i++)
-			{
-				var a = i / (float)pts * MathHelper.TwoPi;
-
-				var cx = Math.Cos(a) * r;
-				var cy = -Math.Sin(a) * r;
-
-				GL.Vertex2(x + cx, y + cy);
-			}
-
-			GL.End();
+			GL.Color4(1, 0, 1, 0.75f);
+			Glu.RenderQuad(rect);
+			GL.Color4(1, 0, 1, 1f);
+			Glu.RenderOutline(rect);
 		}
 
 		public override void OnResize(Size size)

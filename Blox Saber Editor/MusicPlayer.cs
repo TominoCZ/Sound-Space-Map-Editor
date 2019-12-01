@@ -2,7 +2,7 @@
 using Un4seen.Bass;
 using Un4seen.Bass.AddOn.Fx;
 
-namespace Blox_Saber_Editor
+namespace Sound_Space_Editor
 {
 	class MusicPlayer : IDisposable
 	{
@@ -50,11 +50,9 @@ namespace Blox_Saber_Editor
 
 		public void Stop()
 		{
-			var pos = Bass.BASS_ChannelGetPosition(streamID, BASSMode.BASS_POS_BYTES);
-
 			Bass.BASS_ChannelStop(streamID);
 
-			Bass.BASS_ChannelSetPosition(streamID, pos, BASSMode.BASS_POS_BYTES);
+			Bass.BASS_ChannelSetPosition(streamID, 0, BASSMode.BASS_POS_BYTES);
 		}
 
 		public float Tempo

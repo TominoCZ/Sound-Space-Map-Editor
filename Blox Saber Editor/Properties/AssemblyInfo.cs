@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // Obecné informace o sestavení se řídí přes následující 
 // sadu atributů. Změnou hodnot těchto atributů se upraví informace
 // přidružené k sestavení.
-[assembly: AssemblyTitle("Blox Saber Editor")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Sound Space Editor")]
+[assembly: AssemblyDescription("Software made for editing levels for the game Sound Space.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Blox Saber Editor")]
+[assembly: AssemblyCompany("Sound Space Studios")]
+[assembly: AssemblyProduct("Sound Space Editor")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

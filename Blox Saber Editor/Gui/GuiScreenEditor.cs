@@ -3,12 +3,12 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
-using Blox_Saber_Editor.Properties;
+using Sound_Space_Editor.Properties;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 
-namespace Blox_Saber_Editor.Gui
+namespace Sound_Space_Editor.Gui
 {
 	class GuiScreenEditor : GuiScreen
 	{
@@ -22,6 +22,7 @@ namespace Blox_Saber_Editor.Gui
 		public readonly GuiTextBox Bpm;
 		public readonly GuiTextBox Offset;
 		public readonly GuiCheckBox Reposition;
+		public readonly GuiCheckBox Autoplay;
 		public readonly GuiCheckBox ApproachSquares;
 		public readonly GuiCheckBox GridNumbers;
 		public readonly GuiCheckBox AnimateBackground;
@@ -55,9 +56,9 @@ namespace Blox_Saber_Editor.Gui
 				Numeric = true,
 				CanBeNegative = true
 			};
-			Reposition = new GuiCheckBox(1, "Reposition Notes", 10, 0, 32, 32, false);
+			Reposition = new GuiCheckBox(1, "Offset Notes", 10, 0, 32, 32, false);
 			BeatSnapDivisor = new GuiSlider(0, 0, 256, 40);
-			Timeline = new GuiSlider(0, 0, EditorWindow.Instance.ClientSize.Width, 64);
+			Timeline = new GuiSliderTimeline(0, 0, EditorWindow.Instance.ClientSize.Width, 64);
 			Tempo = new GuiSlider(0, 0, 512, 64)
 			{
 				MaxValue = 8,
@@ -79,8 +80,9 @@ namespace Blox_Saber_Editor.Gui
 
 			SetOffset = new GuiButton(2, 0, 0, 64, 32, "SET");
 			BackButton = new GuiButton(3, 0, 0, Grid.ClientRectangle.Width + 1, 42, "BACK TO MENU");
-			CopyButton = new GuiButton(4, 0, 0, Grid.ClientRectangle.Width + 1, 42, "COPY DATA");
+			CopyButton = new GuiButton(4, 0, 0, Grid.ClientRectangle.Width + 1, 42, "COPY MAP DATA");
 
+			Autoplay = new GuiCheckBox(5, "Autoplay", 0, 0, 32, 32, Settings.Default.Autoplay);
 			ApproachSquares = new GuiCheckBox(5, "Approach Squares", 0, 0, 32, 32, Settings.Default.ApproachSquares);
 			GridNumbers = new GuiCheckBox(5, "Grid Numbers", 0, 0, 32, 32, Settings.Default.GridNumbers);
 			AnimateBackground = new GuiCheckBox(5, "Animate Background", 0, 0, 32, 32, Settings.Default.AnimateBackground);
@@ -91,15 +93,15 @@ namespace Blox_Saber_Editor.Gui
 			Offset.OnKeyDown(Key.Right, false);
 			Bpm.Focused = false;
 			Offset.Focused = false;
-
+			
 			Buttons.Add(playPause);
 			Buttons.Add(Timeline);
 			Buttons.Add(Tempo);
 			Buttons.Add(MasterVolume);
 			Buttons.Add(SfxVolume);
 			Buttons.Add(BeatSnapDivisor);
-			Buttons.Add(playPause);
 			Buttons.Add(Reposition);
+			Buttons.Add(Autoplay);
 			Buttons.Add(ApproachSquares);
 			Buttons.Add(GridNumbers);
 			Buttons.Add(AnimateBackground);
@@ -137,13 +139,18 @@ namespace Blox_Saber_Editor.Gui
 			_toast.ClientRectangle.Y = size.Height - toastOffY * h * 3.25f + h / 2;
 			_toast.Color = Color.FromArgb((int)(Math.Pow(toastOffY, 3) * 255), _toast.Color);
 
-			GL.Color3(Color.FromArgb(0, 255, 64));
-			fr.Render($"Zoom: {(int)(EditorWindow.Instance.Zoom * 100)}%", (int)Bpm.ClientRectangle.X, (int)Bpm.ClientRectangle.Y - 75, 24);
+			GL.Color3(Color.FromArgb(0, 255, 200));
+			var zoomW = fr.GetWidth("Zoom: ", 24);
+
+			fr.Render("Zoom: ", (int)Bpm.ClientRectangle.X, (int)Bpm.ClientRectangle.Y - 60, 24);
+			GL.Color3(Color.FromArgb(255, 0, 255));
+			fr.Render($"{(int)(EditorWindow.Instance.Zoom * 100)}%", (int)Bpm.ClientRectangle.X + zoomW, (int)Bpm.ClientRectangle.Y - 60, 24);
+			GL.Color3(Color.FromArgb(0, 255, 200));
 			fr.Render("BPM:", (int)Bpm.ClientRectangle.X, (int)Bpm.ClientRectangle.Y - 24, 24);
-			fr.Render("Offset[ms]:", (int)Offset.ClientRectangle.X, (int)Offset.ClientRectangle.Y - 24, 24);
-			fr.Render("Options:", (int)ApproachSquares.ClientRectangle.X, (int)ApproachSquares.ClientRectangle.Y - 26, 24);
+			fr.Render("BPM Offset[ms]:", (int)Offset.ClientRectangle.X, (int)Offset.ClientRectangle.Y - 24, 24);
+			fr.Render("Options:", (int)Autoplay.ClientRectangle.X, (int)Autoplay.ClientRectangle.Y - 26, 24);
 			
-			var divisor = $"Beat Divisor - 1/{BeatSnapDivisor.Value + 1}:";
+			var divisor = $"Beat Divisor: {BeatSnapDivisor.Value + 1}";
 			var divisorW = fr.GetWidth(divisor, 24);
 
 			fr.Render(divisor, (int)(BeatSnapDivisor.ClientRectangle.X + BeatSnapDivisor.ClientRectangle.Width / 2 - divisorW / 2f), (int)BeatSnapDivisor.ClientRectangle.Y - 20, 24);
@@ -253,6 +260,9 @@ namespace Blox_Saber_Editor.Gui
 
 					void Redo()
 					{
+						Offset.Focused = false;
+						Offset.Text = newOffset.ToString();
+
 						if (toggle)
 						{
 							var list = EditorWindow.Instance.Notes.ToList();
@@ -270,6 +280,9 @@ namespace Blox_Saber_Editor.Gui
 
 					EditorWindow.Instance.UndoRedo.AddUndoRedo("CHANGE OFFSET", () =>
 					{
+						Offset.Focused = false;
+						Offset.Text = oldOffset.ToString();
+
 						if (toggle)
 						{
 							var list = EditorWindow.Instance.Notes.ToList();
@@ -286,15 +299,17 @@ namespace Blox_Saber_Editor.Gui
 				case 3:
 					if (EditorWindow.Instance.WillClose())
 					{
+						EditorWindow.Instance.UndoRedo.Clear();
 						EditorWindow.Instance.MusicPlayer.Reset();
 						EditorWindow.Instance.OpenGuiScreen(new GuiScreenLoadCreate());
 					}
 					break;
 				case 4:
 					Clipboard.SetText(EditorWindow.Instance.ParseData());
-					ShowToast("COPIED TO CLIPBOARD", Color.Chartreuse);
+					ShowToast("COPIED TO CLIPBOARD", Color.FromArgb(0, 255, 200));
 					break;
 				case 5:
+					Settings.Default.Autoplay = Autoplay.Toggle;
 					Settings.Default.ApproachSquares = ApproachSquares.Toggle;
 					Settings.Default.GridNumbers = GridNumbers.Toggle;
 					Settings.Default.AnimateBackground = AnimateBackground.Toggle;
@@ -330,7 +345,8 @@ namespace Blox_Saber_Editor.Gui
 			Reposition.ClientRectangle.Y = Offset.ClientRectangle.Bottom + 10;
 			BeatSnapDivisor.ClientRectangle.Y = Bpm.ClientRectangle.Y;
 
-			ApproachSquares.ClientRectangle.Y = Reposition.ClientRectangle.Bottom + 32 + 20;
+			Autoplay.ClientRectangle.Y = Reposition.ClientRectangle.Bottom + 32 + 20;
+			ApproachSquares.ClientRectangle.Y = Autoplay.ClientRectangle.Bottom + 10;
 			GridNumbers.ClientRectangle.Y = ApproachSquares.ClientRectangle.Bottom + 10;
 			AnimateBackground.ClientRectangle.Y = GridNumbers.ClientRectangle.Bottom + 10;
 
@@ -339,6 +355,7 @@ namespace Blox_Saber_Editor.Gui
 			SetOffset.ClientRectangle.X = Bpm.ClientRectangle.Right + 5;
 			Reposition.ClientRectangle.X = Bpm.ClientRectangle.X;
 
+			Autoplay.ClientRectangle.X = Bpm.ClientRectangle.X;
 			ApproachSquares.ClientRectangle.X = Bpm.ClientRectangle.X;
 			GridNumbers.ClientRectangle.X = Bpm.ClientRectangle.X;
 			AnimateBackground.ClientRectangle.X = Bpm.ClientRectangle.X;
@@ -377,7 +394,7 @@ namespace Blox_Saber_Editor.Gui
 				else if (bpm > 400)
 					bpm = 400;
 
-				GuiTrack.Bpm = bpm;
+				GuiTrack.Bpm = (float)bpm;
 
 				if (GuiTrack.Bpm > 0 && !decimalPont)
 					Bpm.Text = GuiTrack.Bpm.ToString();

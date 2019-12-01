@@ -2,14 +2,14 @@
 using System.Windows.Forms;
 using OpenTK.Input;
 
-namespace Blox_Saber_Editor.Gui
+namespace Sound_Space_Editor.Gui
 {
 	class GuiScreenCreate : GuiScreen
 	{
-		private GuiTextBox _tb;
-		private GuiButton _btnCreate;
-		private GuiButton _btnBack;
-		private GuiLabel _lbl = new GuiLabel(0, 0, "INPUT MUSIC ID") { Centered = true };
+		private readonly GuiTextBox _tb;
+		private readonly GuiButton _btnCreate;
+		private readonly GuiButton _btnBack;
+		private readonly GuiLabel _lbl = new GuiLabel(0, 0, "INPUT MUSIC ID") { Centered = true };
 
 		public GuiScreenCreate() : base(0, 0, 0, 0)
 		{
@@ -17,7 +17,7 @@ namespace Blox_Saber_Editor.Gui
 			_btnCreate = new GuiButton(0, 0, 0, 256, 64, "CREATE");
 			_btnBack = new GuiButton(1, 0, 0, 256, 64, "BACK");
 
-			_lbl.Color = Color.FromArgb(0, 255, 64);
+			_lbl.Color = Color.FromArgb(0, 255, 200);
 
 			OnResize(EditorWindow.Instance.ClientSize);
 

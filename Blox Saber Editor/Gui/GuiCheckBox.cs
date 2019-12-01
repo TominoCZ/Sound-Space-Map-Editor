@@ -2,7 +2,7 @@
 using System.Drawing;
 using OpenTK.Graphics.OpenGL;
 
-namespace Blox_Saber_Editor.Gui
+namespace Sound_Space_Editor.Gui
 {
 	class GuiCheckBox : GuiButton
 	{
@@ -40,14 +40,14 @@ namespace Blox_Saber_Editor.Gui
 
 			if (checkSize > 0)
 			{
-				GL.Color4(0, 1f, 0.1f, Math.Pow(_alpha, 4));
+				GL.Color4(1f, 0, 1, Math.Pow(_alpha, 4));
 				Glu.RenderQuad(rect.X + gap, rect.Y + gap, checkSize, checkSize);
 			}
 
 			var fr = EditorWindow.Instance.FontRenderer;
 			var height = fr.GetHeight(24);
 
-			GL.Color3(Color.FromArgb(0, 255, 64));
+			GL.Color3(Color.FromArgb(0, 255, 200));
 			fr.Render(Text, (int)(rect.Right + rect.Height / 4), (int)(rect.Y + rect.Height / 2 - height / 2f), 24);
 		}
 

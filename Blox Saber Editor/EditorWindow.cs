@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using Blox_Saber_Editor.Gui;
-using Blox_Saber_Editor.Properties;
+using Sound_Space_Editor.Gui;
+using Sound_Space_Editor.Properties;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using KeyPressEventArgs = OpenTK.KeyPressEventArgs;
 
-namespace Blox_Saber_Editor
+namespace Sound_Space_Editor
 {
 	class EditorWindow : GameWindow
 	{
@@ -54,6 +51,7 @@ namespace Blox_Saber_Editor
 
 		public bool IsFullscreen;
 
+		private Color _flashColor;
 		private float _brightness;
 
 		private int _dragStartX;
@@ -74,27 +72,29 @@ namespace Blox_Saber_Editor
 
 		private string _file;
 
+		private readonly long _playbackOffset = 0;
+
 		private long _soundId = -1;
 
 		public NoteList Notes = new NoteList();
 
-		private decimal _zoom = 1;
+		private float _zoom = 1;
 
-		private Thread _processThread;
+		private readonly Thread _processThread;
 
-		public decimal Zoom
+		public float Zoom
 		{
 			get => _zoom;
-			set => _zoom = Math.Max((decimal)0.1, Math.Min(4, value));
+			set => _zoom = Math.Max(0.1f, Math.Min(4, value));
 		}
 
-		public decimal CubeStep => 50 * 10 * Zoom;
+		public float CubeStep => 50 * 10 * Zoom;
 
-		public EditorWindow() : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Blox Saber Map Editor v1.3")
+		public EditorWindow(long offset) : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Sound Space Map Editor v1.0")
 		{
 			Instance = this;
 
-			Icon = Resources.Blox_Saber;
+			Icon = Resources.icon;
 			VSync = VSyncMode.On;
 
 			//TargetRenderFrequency = 60;
@@ -117,9 +117,11 @@ namespace Blox_Saber_Editor
 			KeyMapping.Add(Key.S, new Tuple<int, int>(1, 1));
 			KeyMapping.Add(Key.D, new Tuple<int, int>(2, 1));
 
-			KeyMapping.Add(Key.Z, new Tuple<int, int>(0, 2));
+			KeyMapping.Add(Key.Y, new Tuple<int, int>(0, 2)); KeyMapping.Add(Key.Z, new Tuple<int, int>(0, 2));
 			KeyMapping.Add(Key.X, new Tuple<int, int>(1, 2));
 			KeyMapping.Add(Key.C, new Tuple<int, int>(2, 2));
+
+			_playbackOffset = offset;
 
 			_processThread = new Thread(ProcessNotes) { IsBackground = true };
 			_processThread.Start();
@@ -128,11 +130,11 @@ namespace Blox_Saber_Editor
 		private void ProcessNotes()
 		{
 			var last = DateTime.Now;
-		    var period = 5;
+			var period = 5;
 
 			while (true)
 			{
-			    var time = DateTime.Now - TimeSpan.FromMilliseconds(period);
+				var time = DateTime.Now - TimeSpan.FromMilliseconds(period);
 
 				var delta = time - last;
 
@@ -144,7 +146,7 @@ namespace Blox_Saber_Editor
 
 					if (MusicPlayer.IsPlaying)
 					{
-						var closest = Notes.LastOrDefault(n => n.Ms <= (long)(MusicPlayer.CurrentTime.TotalMilliseconds + delta.TotalMilliseconds));
+						var closest = Notes.LastOrDefault(n => n.Ms <= (long)(MusicPlayer.CurrentTime.TotalMilliseconds + delta.TotalMilliseconds + _playbackOffset));
 
 						if (_lastPlayedNote != closest)
 						{
@@ -154,10 +156,11 @@ namespace Blox_Saber_Editor
 							{
 								//Console.WriteLine((long)(closest.Ms - MusicPlayer.CurrentTime.TotalMilliseconds));
 
-								SoundPlayer.Play("hit", gse.SfxVolume.Value / (float)gse.SfxVolume.MaxValue, (float)_rand.NextDouble() * 0.075f + 1.05f);
+								SoundPlayer.Play("hit", gse.SfxVolume.Value / (float)gse.SfxVolume.MaxValue);//, (float)_rand.NextDouble() * 0.075f + 1.05f);
 
 								if (gse.AnimateBackground.Toggle)
 								{
+									_flashColor = closest.Color;
 									_brightness = 1;
 								}
 							}
@@ -212,8 +215,7 @@ namespace Blox_Saber_Editor
 			GL.PushMatrix();
 
 			var b = (float)Math.Pow(_brightness, 7) * 0.25f;
-
-			GL.ClearColor(b, 0, b * 0.5f, 1);
+			GL.ClearColor(_flashColor.R / 255f * b, _flashColor.G / 255f * b, _flashColor.B / 255f * b, 1);
 
 			_brightness = (float)Math.Max(0, _brightness - e.Time);
 
@@ -225,8 +227,8 @@ namespace Blox_Saber_Editor
 
 				foreach (var draggedNote in _draggedNotes)
 				{
-					var posX = (decimal)MusicPlayer.CurrentTime.TotalSeconds * CubeStep;
-					var noteX = editor.Track.ScreenX - posX + draggedNote.DragStartMs / (decimal)1000 * (decimal)CubeStep;
+					var posX = MusicPlayer.CurrentTime.TotalSeconds * CubeStep;
+					var noteX = editor.Track.ScreenX - posX + draggedNote.DragStartMs / 1000f * CubeStep;
 
 					GL.Color3(0.75f, 0.75f, 0.75f);
 					Glu.RenderQuad((int)noteX, (int)rect.Y, 1, rect.Height);
@@ -715,7 +717,7 @@ namespace Blox_Saber_Editor
 							stepSmall = -stepSmall;
 
 						long closestBeat =
-							GetClosestBeat((long)((decimal)MusicPlayer.CurrentTime.TotalMilliseconds + stepSmall));
+							GetClosestBeat((long)(MusicPlayer.CurrentTime.TotalMilliseconds + stepSmall));
 
 						MusicPlayer.CurrentTime = TimeSpan.FromMilliseconds(closestBeat);
 					}
@@ -732,7 +734,7 @@ namespace Blox_Saber_Editor
 						{
 							_saved = true;
 
-							editor.ShowToast("SAVED", Color.Chartreuse);
+							editor.ShowToast("SAVED", Color.FromArgb(0, 255, 200));
 						}
 
 						if (wasPlaying)
@@ -744,7 +746,7 @@ namespace Blox_Saber_Editor
 						{
 							_saved = true;
 
-							editor.ShowToast("SAVED", Color.Chartreuse);
+							editor.ShowToast("SAVED", Color.FromArgb(0, 255, 200));
 						}
 					}
 
@@ -773,58 +775,73 @@ namespace Blox_Saber_Editor
 					}
 					else if (e.Key == Key.C)
 					{
-						var copied = SelectedNotes.Select(n => n.Clone()).ToList();
+						try
+						{
+							var copied = SelectedNotes.Select(n => n.Clone()).ToList();
 
-						Clipboard.SetData("notes", copied);
+							Clipboard.SetData("notes", copied);
 
-						editor.ShowToast("COPIED NOTES", Color.Chartreuse);
+							editor.ShowToast("COPIED NOTES", Color.FromArgb(0, 255, 200));
+						}
+						catch (Exception ex)
+						{
+							MessageBox.Show($"Error while trying to copy:\n{ex}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+						}
 					}
 					else if (e.Key == Key.V)
 					{
-						if (Clipboard.ContainsData("notes"))
+						try
 						{
-							MusicPlayer.Pause();
-
-							var copied = ((List<Note>)Clipboard.GetData("notes")).ToList();
-
-							var lowest = copied.Min(n => n.Ms);
-
-							copied.ForEach(n => n.Ms = (long)MusicPlayer.CurrentTime.TotalMilliseconds + n.Ms - lowest);
-
-							_draggedNotes.Clear();
-							SelectedNotes.Clear();
-
-							SelectedNotes.AddRange(copied);
-							_draggedNotes.AddRange(copied);
-
-							Notes.AddAll(copied);
-
-							_draggingNoteGrid = false;
-							_draggingNoteTimeline = false;
-
-							var saveState = _saved;
-
-							UndoRedo.AddUndoRedo("PASTE NOTES", () =>
+							if (Clipboard.ContainsData("notes"))
 							{
-								Notes.RemoveAll(copied);
+								MusicPlayer.Pause();
 
-								_saved = saveState;
-							}, () =>
-							{
-								Notes.AddAll(copied);
+								var copied = ((List<Note>)Clipboard.GetData("notes")).ToList();
+
+								var lowest = copied.Min(n => n.Ms);
+
+								copied.ForEach(n =>
+									n.Ms = (long)MusicPlayer.CurrentTime.TotalMilliseconds + n.Ms - lowest);
 
 								_draggedNotes.Clear();
 								SelectedNotes.Clear();
+
 								SelectedNotes.AddRange(copied);
 								_draggedNotes.AddRange(copied);
+
+								Notes.AddAll(copied);
 
 								_draggingNoteGrid = false;
 								_draggingNoteTimeline = false;
 
-								_saved = false;
-							});
+								var saveState = _saved;
 
-							_saved = false;
+								UndoRedo.AddUndoRedo("PASTE NOTES", () =>
+								{
+									Notes.RemoveAll(copied);
+
+									_saved = saveState;
+								}, () =>
+								{
+									Notes.AddAll(copied);
+
+									_draggedNotes.Clear();
+									SelectedNotes.Clear();
+									SelectedNotes.AddRange(copied);
+									_draggedNotes.AddRange(copied);
+
+									_draggingNoteGrid = false;
+									_draggingNoteTimeline = false;
+
+									_saved = false;
+								});
+
+								_saved = false;
+							}
+						}
+						catch (Exception ex)
+						{
+							MessageBox.Show($"Error while trying to paste:\n{ex}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 						}
 					}
 				}
@@ -929,7 +946,7 @@ namespace Blox_Saber_Editor
 			{
 				if (_controlDown)
 				{
-					Zoom += (decimal)e.DeltaPrecise * (decimal)0.1;
+					Zoom += e.DeltaPrecise * 0.1f;
 				}
 				else
 				{
@@ -944,13 +961,13 @@ namespace Blox_Saber_Editor
 
 						var offset = (bpmDivided + GuiTrack.BpmOffset) % bpmDivided;
 
-						time += (long)((decimal)e.DeltaPrecise * bpmDivided);
+						time += (long)(e.DeltaPrecise * bpmDivided);
 
 						time = (long)(Math.Round((time - offset) / bpmDivided) * bpmDivided + offset);
 					}
 					else
 					{
-						time += (long)((decimal)e.DeltaPrecise / 10 * 1000 / Zoom * (decimal)0.5);
+						time += (long)(e.DeltaPrecise / 10 * 1000 / Zoom * 0.5f);
 					}
 
 					time = Math.Min(maxTime, Math.Max(0, time));
@@ -1036,23 +1053,23 @@ namespace Blox_Saber_Editor
 
 			var rect = gui.Track.ClientRectangle;
 
-			decimal audioTime = (decimal)MusicPlayer.CurrentTime.TotalMilliseconds;
-			decimal posX = audioTime / 1000 * (decimal)CubeStep;
+			float audioTime = (float)MusicPlayer.CurrentTime.TotalMilliseconds;
+			float posX = audioTime / 1000 * CubeStep;
 
 			var screenX = gui.Track.ScreenX;
 
 			var bpm = GuiTrack.Bpm;
-			decimal bpmOffset = GuiTrack.BpmOffset;
+			float bpmOffset = GuiTrack.BpmOffset;
 			var beatDivisor = gui.Track.BeatDivisor;
 
-			var lineSpace = 60 / bpm * (decimal)CubeStep;
+			var lineSpace = 60 / bpm * CubeStep;
 			var stepSmall = lineSpace / beatDivisor;
 
-			var lineX = screenX - posX + bpmOffset / 1000 * (decimal)CubeStep;
+			var lineX = screenX - posX + bpmOffset / 1000 * CubeStep;
 			if (lineX < 0)
 				lineX %= lineSpace;
 
-			while (lineSpace > 0 && lineX < (decimal)rect.Width)
+			while (lineSpace > 0 && lineX < rect.Width)
 			{
 				//bpm line
 				var timelineMs = (long)Math.Floor((decimal)(lineX - screenX + posX) / (decimal)CubeStep * 1000);
@@ -1067,7 +1084,7 @@ namespace Blox_Saber_Editor
 					if (j < beatDivisor)
 					{
 						//divided bpm line
-						timelineMs = (long)Math.Floor((xo - screenX + posX) / (decimal)CubeStep * 1000);
+						timelineMs = (long)Math.Floor((xo - screenX + posX) / CubeStep * 1000);
 
 						if (timelineMs != long.MaxValue && timelineMs != long.MinValue)
 							CheckCloser(timelineMs); //beats.Add(timelineMs);
@@ -1085,21 +1102,21 @@ namespace Blox_Saber_Editor
 			var pixels = mouseX - _dragStartX;
 			var msDiff = pixels / CubeStep * 1000;
 
-			var audioTime = (decimal)MusicPlayer.CurrentTime.TotalMilliseconds;
+			var audioTime = (float)MusicPlayer.CurrentTime.TotalMilliseconds;
 
 			if (GuiScreen is GuiScreenEditor gui && _draggedNote != null)
 			{
-				var clickMs = (int)(Math.Max(0, _clickedMouse.X - gui.Track.ScreenX + audioTime / 1000 * (decimal)CubeStep) / (decimal)CubeStep * 1000);
+				var clickMs = (int)(Math.Max(0, _clickedMouse.X - gui.Track.ScreenX + audioTime / 1000 * CubeStep) / CubeStep * 1000);
 				var clickOff = clickMs - _dragNoteStartMs;
-				var cursorMs = (int)(Math.Max(0, mouseX - gui.Track.ScreenX + audioTime / 1000 * (decimal)CubeStep) / (decimal)CubeStep * 1000) - clickOff;
+				var cursorMs = (int)(Math.Max(0, mouseX - gui.Track.ScreenX + audioTime / 1000 * CubeStep) / CubeStep * 1000) - clickOff;
 
 				if (_draggedNotes.Count > 0 && GuiTrack.Bpm > 0)
 				{
-					var lineSpace = 60 / GuiTrack.Bpm * (decimal)CubeStep;
+					var lineSpace = 60 / GuiTrack.Bpm * CubeStep;
 					var stepSmall = lineSpace / gui.Track.BeatDivisor;
-					var snap = stepSmall / (decimal)1.75;
+					var snap = stepSmall / 1.75f;
 
-					decimal threshold = snap;
+					float threshold = snap;
 
 					if (snap < 1)
 						threshold = 1;
@@ -1108,7 +1125,7 @@ namespace Blox_Saber_Editor
 
 					var snappedMs = GetClosestBeat(_draggedNote.Ms);
 
-					if (Math.Abs(snappedMs - cursorMs) / (decimal)1000 * (decimal)CubeStep <= threshold) //8 pixels
+					if (Math.Abs(snappedMs - cursorMs) / 1000f * CubeStep <= threshold) //8 pixels
 						msDiff = -(_draggedNote.DragStartMs - snappedMs);
 				}
 
@@ -1172,14 +1189,19 @@ namespace Blox_Saber_Editor
 		{
 			var data = File.ReadAllText(file);
 
-			if (LoadMap(data))
+			if (LoadMap(data) && GuiScreen is GuiScreenEditor gse)
 			{
 				_file = file;
 				_saved = true;
 
+				gse.Bpm.Text = "0";
+				GuiTrack.Bpm = 0;
+				gse.Offset.Text = "0";
+				GuiTrack.BpmOffset = 0;
+
 				var ini = Path.ChangeExtension(file, "ini");
 
-				if (File.Exists(ini) && GuiScreen is GuiScreenEditor gse)
+				if (File.Exists(ini))
 				{
 					var lines = File.ReadAllLines(ini);
 
@@ -1198,7 +1220,7 @@ namespace Blox_Saber_Editor
 								{
 									gse.Bpm.Text = bpm.ToString();
 
-									GuiTrack.Bpm = bpm;
+									GuiTrack.Bpm = (float)bpm;
 								}
 								else if (property == "offset" && long.TryParse(value, out var offset))
 								{
@@ -1258,6 +1280,9 @@ namespace Blox_Saber_Editor
 				}
 				else
 					_soundId = -1;
+
+				GuiTrack.BpmOffset = 0;
+				GuiTrack.Bpm = 0;
 			}
 			catch (Exception e)
 			{

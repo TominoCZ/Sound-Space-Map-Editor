@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
 
-namespace Blox_Saber_Editor.Gui
+namespace Sound_Space_Editor.Gui
 {
 	class GuiGrid : Gui
 	{
 		public Note MouseOverNote;
+
+		private readonly Note _startNote = new Note(1, 1, 0);
 
 		public GuiGrid(float sx, float sy) : base(EditorWindow.Instance.ClientSize.Width / 2f - sx / 2, EditorWindow.Instance.ClientSize.Height / 2f - sy / 2, sx, sy)
 		{
@@ -16,7 +21,7 @@ namespace Blox_Saber_Editor.Gui
 
 		public override void Render(float delta, float mouseX, float mouseY)
 		{
-			var editor = (GuiScreenEditor) EditorWindow.Instance.GuiScreen;
+			var editor = (GuiScreenEditor)EditorWindow.Instance.GuiScreen;
 
 			var rect = ClientRectangle;
 			var mouseOver = false;
@@ -52,7 +57,10 @@ namespace Blox_Saber_Editor.Gui
 			GL.Color3(0.2f, 0.2f, 0.2f);
 			foreach (var pair in EditorWindow.Instance.KeyMapping)
 			{
-				var letter = pair.Key.ToString();
+				if (pair.Key == Key.Y)
+					continue;
+
+				var letter = pair.Key == Key.Z ? "Y/Z" : pair.Key.ToString();
 				var tuple = pair.Value;
 
 				var x = rect.X + tuple.Item1 * cellSize + cellSize / 2;
@@ -64,19 +72,39 @@ namespace Blox_Saber_Editor.Gui
 				fr.Render(letter, (int)(x - width / 2f), (int)(y - height / 2), 38);
 			}
 
+			Note last = null;
+			Note next = null;
+
 			for (var index = 0; index < EditorWindow.Instance.Notes.Count; index++)
 			{
 				var note = EditorWindow.Instance.Notes[index];
-				var visible = audioTime < note.Ms && note.Ms - audioTime <= 750;
+				var passed = audioTime > note.Ms + 1;
+				var visible = !passed && note.Ms - audioTime <= 750;
+
+				if (passed)
+				{
+					last = note;
+				}
+				else if (next == null)
+				{
+					next = note;
+				}
 
 				if (!visible)
+				{
+					if (passed && next != null)
+					{
+						break;
+					}
+
 					continue;
+				}
 
 				var x = rect.X + note.X * cellSize + gap / 2;
 				var y = rect.Y + note.Y * cellSize + gap / 2;
 
 				var progress = (float)Math.Pow(1 - Math.Min(1, (note.Ms - audioTime) / 750.0), 2);
-				
+
 				var noteRect = new RectangleF(x, y, noteSize, noteSize);
 				GL.Color4(note.Color.R, note.Color.G, note.Color.B, progress * 0.15f);
 				Glu.RenderQuad(noteRect);
@@ -98,8 +126,8 @@ namespace Blox_Saber_Editor.Gui
 					var w = fr.GetWidth(s, 24);
 					var h = fr.GetHeight(24);
 
-					fr.Render(s, (int) (noteRect.X + noteRect.Width / 2 - w / 2f),
-						(int) (noteRect.Y + noteRect.Height / 2 - h / 2f), 24);
+					fr.Render(s, (int)(noteRect.X + noteRect.Width / 2 - w / 2f),
+						(int)(noteRect.Y + noteRect.Height / 2 - h / 2f), 24);
 				}
 
 				if (!mouseOver)
@@ -125,6 +153,49 @@ namespace Blox_Saber_Editor.Gui
 					Glu.RenderOutline(x - 4, y - 4, noteSize + 8, noteSize + 8);
 				}
 			}
+
+			//RENDER AUTOPLAY
+			if (editor.Autoplay.Toggle)
+			{
+				RenderAutoPlay(last, next, cellSize, rect, audioTime);
+			}
+		}
+
+		private void RenderAutoPlay(Note last, Note next, float cellSize, RectangleF rect, double audioTime)
+		{
+			if (last == null)
+				last = _startNote;
+
+			if (next == null)
+				next = last;
+
+			var timeDiff = next.Ms - last.Ms;
+			var timePos = audioTime - last.Ms;
+
+			var progress = timeDiff == 0 ? 1 : (float)timePos / timeDiff;
+
+			progress = (float)Math.Sin(progress * MathHelper.PiOver2);
+
+			var s = (float)Math.Sin(progress * MathHelper.Pi) * 8 + 16;
+
+			var lx = rect.X + last.X * cellSize;
+			var ly = rect.Y + last.Y * cellSize;
+
+			var nx = rect.X + next.X * cellSize;
+			var ny = rect.Y + next.Y * cellSize;
+
+			var x = cellSize / 2 + lx + (nx - lx) * progress;
+			var y = cellSize / 2 + ly + (ny - ly) * progress;
+
+			var cx = x - s / 2;
+			var cy = y - s / 2;
+
+			GL.Color4(1, 1, 1, 0.25f);
+			Glu.RenderQuad(cx, cy, s, s);
+			GL.Color4(1, 1, 1, 1f);
+			GL.LineWidth(2);
+			Glu.RenderOutline(cx, cy, s, s);
+			GL.LineWidth(1);
 		}
 	}
 }

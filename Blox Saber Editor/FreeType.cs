@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace Blox_Saber_Editor
+namespace Sound_Space_Editor
 {
 
 #if (false)
