@@ -58,8 +58,8 @@ namespace Sound_Space_Editor
 		private long _dragStartMs;
 		private long _dragNoteStartMs;
 
-		private int _dragStartIndexX;
-		private int _dragStartIndexY;
+		private float _dragStartIndexX;
+		private float _dragStartIndexY;
 
 		private bool _saved;
 		private bool _rightDown;
@@ -1264,8 +1264,8 @@ namespace Sound_Space_Editor
 
 					var chunkSplit = Regex.Matches(chunk.Value, "([^|]+)");
 
-					var x = 2 - int.Parse(chunkSplit[0].Value);
-					var y = 2 - int.Parse(chunkSplit[1].Value);
+					var x = 2 - float.Parse(chunkSplit[0].Value.Replace(",", "."));
+					var y = 2 - float.Parse(chunkSplit[1].Value.Replace(",", "."));
 					var ms = long.Parse(chunkSplit[2].Value);
 
 					Notes.Add(new Note(x, y, ms));
