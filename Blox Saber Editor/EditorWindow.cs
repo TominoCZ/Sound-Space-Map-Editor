@@ -76,11 +76,11 @@ namespace Sound_Space_Editor
 
 		private long _soundId = -1;
 
-		public NoteList Notes = new NoteList();
-
 		private float _zoom = 1;
 
 		private readonly Thread _processThread;
+
+		public NoteList Notes = new NoteList();
 
 		public float Zoom
 		{
@@ -90,7 +90,7 @@ namespace Sound_Space_Editor
 
 		public float CubeStep => 50 * 10 * Zoom;
 
-		public EditorWindow(long offset) : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Sound Space Map Editor v1.0")
+		public EditorWindow(long offset) : base(1080, 600, new GraphicsMode(32, 8, 0, 8), "Sound Space Map Editor v1.1")
 		{
 			Instance = this;
 
@@ -130,7 +130,7 @@ namespace Sound_Space_Editor
 		private void ProcessNotes()
 		{
 			var last = DateTime.Now;
-			var period = 5;
+			var period = 8;
 
 			while (true)
 			{
@@ -1257,6 +1257,8 @@ namespace Sound_Space_Editor
 			try
 			{
 				var id = splits[0];
+				//long tLast = 0;
+				//long t = 0;
 
 				for (int i = 1; i < splits.Count; i++)
 				{
@@ -1266,9 +1268,22 @@ namespace Sound_Space_Editor
 
 					var x = 2 - float.Parse(chunkSplit[0].Value.Replace(",", "."));
 					var y = 2 - float.Parse(chunkSplit[1].Value.Replace(",", "."));
-					var ms = long.Parse(chunkSplit[2].Value);
+					var msText = chunkSplit[2].Value;
+					var ms = long.Parse(msText);
 
-					Notes.Add(new Note(x, y, ms));
+					/*if (msText == ".")
+					{
+						t += tLast;
+					}
+					else
+					{
+						var ms = long.Parse(msText);
+						tLast = ms;
+
+						t += ms;
+					}*/
+
+					Notes.Add(new Note(x, y, ms/*t*/));
 				}
 				if (long.TryParse(id.Value, out _soundId) && LoadSound(_soundId))
 				{
@@ -1345,6 +1360,9 @@ namespace Sound_Space_Editor
 
 			sb.Append(_soundId.ToString());
 
+			//long lastTime = 0;
+			//long lastDiff = 0;
+
 			for (int i = 0; i < Notes.Count; i++)
 			{
 				Note note = Notes[i];
@@ -1352,7 +1370,13 @@ namespace Sound_Space_Editor
 				var gridX = 2 - note.X;
 				var gridY = 2 - note.Y;
 
+				//var diff = note.Ms - lastTime;
+				//var str = diff == lastDiff ? "." : diff.ToString();
+
 				sb.Append($",{gridX}|{gridY}|{note.Ms}");
+
+				//lastDiff = diff;
+				//lastTime = note.Ms;
 			}
 
 			return sb.ToString();
@@ -1397,7 +1421,7 @@ namespace Sound_Space_Editor
 				{
 					using (var wc = new SecureWebClient())
 					{
-						wc.DownloadFile("https://assetgame.roblox.com/asset/?id=" + id, "assets/cached/" + id + ".asset");
+						wc.DownloadFile("https://assetdelivery.roblox.com/v1/asset/?id=" + id, "assets/cached/" + id + ".asset");
 					}
 				}
 
